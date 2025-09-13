@@ -57,11 +57,6 @@ const ComicSidebarContent: React.FC<ComicSidebarContentProps> = ({
             icon: Plus
         },
         {
-            href: "/admin/cards/dashboard",
-            label: "Cards Overview",
-            icon: BarChart3
-        },
-        {
             href: "/admin/cards/list",
             label: "All Cards",
             icon: List
@@ -84,11 +79,11 @@ const ComicSidebarContent: React.FC<ComicSidebarContentProps> = ({
             label: "All Categories",
             icon: List
         },
-        {
-            href: "/admin/categories/dashboard",
-            label: "Categories Overview",
-            icon: BarChart3
-        },
+        // {
+        //     href: "/admin/categories/dashboard",
+        //     label: "Categories Overview",
+        //     icon: BarChart3
+        // },
     ];
 
 

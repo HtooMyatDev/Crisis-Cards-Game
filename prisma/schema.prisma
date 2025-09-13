@@ -1,0 +1,237 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User management
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  role      UserRole @default(USER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  createdCards      Card[]       @relation("CardCreator")
+  assignedCards     Card[]       @relation("CardAssignee")
+  archivedCards     Card[]       @relation("CardArchivedBy")
+  cardComments      Comment[]
+  cardActivities    Activity[]
+  createdCategories Category[]   @relation("CategoryCreator")
+  createdTemplates  Template[]   @relation("TemplateCreator")
+
+  @@map("users")
+}
+
+// Categories for organizing cards
+model Category {
+  id          Int            @id @default(autoincrement())
+  name        String         @unique
+  description String?
+  color       String         @default("#3B82F6") // Hex color code
+  status      CategoryStatus @default(ACTIVE)
+  createdBy   Int
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Relations
+  creator   User       @relation("CategoryCreator", fields: [createdBy], references: [id])
+  cards     Card[]
+  templates Template[]
+
+  @@map("categories")
+}
+
+// Main crisis cards
+model Card {
+  id              Int          @id @default(autoincrement())
+  title           String
+  description     String?
+  severity        Severity     @default(MEDIUM)
+  priority        Priority     @default(MEDIUM)
+  status          CardStatus   @default(OPEN)
+  categoryId      Int
+  createdBy       Int
+  assignedTo      Int?
+  archivedById    Int?         // Fixed: renamed from archivedBy to avoid conflict
+  isArchived      Boolean      @default(false)
+  archivedAt      DateTime?
+  dueDate         DateTime?
+  resolvedAt      DateTime?
+  estimatedImpact String?      // Description of potential impact
+  affectedUsers   Int?         // Number of affected users
+  tags            String[]     // Array of tags
+  metadata        Json?        // Additional metadata as JSON
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Relations
+  category    Category     @relation(fields: [categoryId], references: [id])
+  creator     User         @relation("CardCreator", fields: [createdBy], references: [id])
+  assignee    User?        @relation("CardAssignee", fields: [assignedTo], references: [id])
+  archivedBy  User?        @relation("CardArchivedBy", fields: [archivedById], references: [id])
+  comments    Comment[]
+  activities  Activity[]
+  attachments Attachment[]
+
+  @@map("cards")
+}
+
+// Comments on cards
+model Comment {
+  id         Int      @id @default(autoincrement())
+  content    String
+  cardId     Int
+  userId     Int
+  isInternal Boolean  @default(false) // Internal comments vs public updates
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("comments")
+}
+
+// Activity log for tracking changes
+model Activity {
+  id          Int          @id @default(autoincrement())
+  cardId      Int
+  userId      Int
+  action      ActivityType
+  description String       // Human readable description
+  oldValue    String?      // Previous value (JSON string)
+  newValue    String?      // New value (JSON string)
+  metadata    Json?        // Additional context
+  createdAt   DateTime     @default(now())
+
+  // Relations
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("activities")
+}
+
+// File attachments for cards
+model Attachment {
+  id           Int      @id @default(autoincrement())
+  cardId       Int
+  fileName     String
+  originalName String
+  filePath     String
+  fileSize     Int      // Size in bytes
+  mimeType     String
+  uploadedBy   Int
+  createdAt    DateTime @default(now())
+
+  // Relations
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@map("attachments")
+}
+
+// Templates for common crisis types
+model Template {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  title       String   // Default title for cards created from this template
+  content     String   // Default description/content
+  severity    Severity @default(MEDIUM)
+  priority    Priority @default(MEDIUM)
+  categoryId  Int
+  createdBy   Int
+  tags        String[] // Default tags
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  category Category @relation(fields: [categoryId], references: [id])
+  creator  User     @relation("TemplateCreator", fields: [createdBy], references: [id])
+
+  @@map("templates")
+}
+
+// Notifications for users
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  isRead    Boolean          @default(false)
+  cardId    Int?             // Optional link to related card
+  createdAt DateTime         @default(now())
+
+  @@map("notifications")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  MANAGER
+  USER
+  VIEWER
+}
+
+enum CategoryStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum CardStatus {
+  OPEN
+  IN_PROGRESS
+  BLOCKED
+  RESOLVED
+  CLOSED
+}
+
+enum ActivityType {
+  CREATED
+  UPDATED
+  ASSIGNED
+  UNASSIGNED
+  STATUS_CHANGED
+  PRIORITY_CHANGED
+  SEVERITY_CHANGED
+  COMMENTED
+  ARCHIVED
+  RESTORED
+  DELETED
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  ERROR
+  SUCCESS
+}
