@@ -1,7 +1,8 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { Edit, Trash2, Plus, Search, Filter, Clock, Tag } from 'lucide-react';
-
+import SkeletonCardGrid from '@/components/CardSkeleton/SkeletonCardGrid';
+import { useRouter } from 'next/navigation';
 // Define the card data type
 interface CrisisCard {
     id: string;
@@ -21,7 +22,8 @@ export default function CrisisCardList() {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
     const [categoryFilter, setCategoryFilter] = useState<string>('All');
-
+    const router = useRouter()
+    
     // Added missing state for view management
     const [currentView, setCurrentView] = useState<'list' | 'edit' | 'create'>('list');
     const [editingCardId, setEditingCardId] = useState<string | null>(null);
@@ -125,7 +127,7 @@ export default function CrisisCardList() {
                     ];
                     setCards(mockCards);
                     setLoading(false);
-                }, 1000);
+                }, 2000); // Increased to 2 seconds to better show skeleton loading
             } catch (error) {
                 console.error('Error fetching cards:', error);
                 setLoading(false);
@@ -141,8 +143,8 @@ export default function CrisisCardList() {
     // Filter cards based on search and filters
     const filteredCards = cards.filter(card => {
         const matchesSearch = card.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            card.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            card.category.toLowerCase().includes(searchTerm.toLowerCase());
+            card.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            card.category.toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesStatus = statusFilter === 'All' || card.status === statusFilter;
         const matchesCategory = categoryFilter === 'All' || card.category === categoryFilter;
@@ -177,7 +179,7 @@ export default function CrisisCardList() {
     };
 
     const handleCreateNew = () => {
-        setCurrentView('create');
+        router.push('/admin/cards/create')
     };
 
     // Show edit/create view
@@ -260,8 +262,43 @@ export default function CrisisCardList() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-64">
-                <div className="text-xl font-semibold">Loading cards...</div>
+            <div>
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-2xl font-bold">Crisis Cards</h1>
+                    <button className="flex items-center gap-2 px-4 py-2 bg-black text-white font-bold border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-pulse">
+                        <Plus size={20} />
+                        Create New Card
+                    </button>
+                </div>
+
+                {/* Search and Filters Skeleton */}
+                <div className="bg-gray-50 p-4 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-6 animate-pulse">
+                    <div className="flex flex-col md:flex-row gap-4">
+                        <div className="flex-1 h-10 bg-gray-200 rounded-lg"></div>
+                        <div className="w-32 h-10 bg-gray-200 rounded-lg"></div>
+                        <div className="w-40 h-10 bg-gray-200 rounded-lg"></div>
+                    </div>
+                </div>
+
+                {/* Category Legend Skeleton */}
+                <div className="mb-6 animate-pulse">
+                    <div className="flex flex-wrap gap-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                                <div className="w-4 h-4 bg-gray-200 rounded-full"></div>
+                                <div className="w-16 h-4 bg-gray-200 rounded"></div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Results Count Skeleton */}
+                <div className="mb-4 animate-pulse">
+                    <div className="w-32 h-4 bg-gray-200 rounded"></div>
+                </div>
+
+                {/* Skeleton Cards */}
+                <SkeletonCardGrid count={6} />
             </div>
         );
     }
@@ -378,11 +415,10 @@ export default function CrisisCardList() {
                                     <h3 className="text-lg font-bold text-gray-900 line-clamp-2">
                                         {card.name}
                                     </h3>
-                                    <span className={`px-2 py-1 text-xs font-semibold rounded border-2 ${
-                                        card.status === 'Active'
+                                    <span className={`px-2 py-1 text-xs font-semibold rounded border-2 ${card.status === 'Active'
                                             ? 'bg-green-100 text-green-800 border-green-800'
                                             : 'bg-red-100 text-red-800 border-red-800'
-                                    }`}>
+                                        }`}>
                                         {card.status}
                                     </span>
                                 </div>
