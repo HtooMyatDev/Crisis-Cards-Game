@@ -59,34 +59,57 @@ model Card {
   id              Int          @id @default(autoincrement())
   title           String
   description     String?
-  severity        Severity     @default(MEDIUM)
-  priority        Priority     @default(MEDIUM)
-  status          CardStatus   @default(OPEN)
+  timeLimit       Int?
+  responseOptions String[]
+  status          String
   categoryId      Int
   createdBy       Int
   assignedTo      Int?
-  archivedById    Int?         // Fixed: renamed from archivedBy to avoid conflict
+  archivedById    Int?
   isArchived      Boolean      @default(false)
   archivedAt      DateTime?
-  dueDate         DateTime?
-  resolvedAt      DateTime?
-  estimatedImpact String?      // Description of potential impact
-  affectedUsers   Int?         // Number of affected users
-  tags            String[]     // Array of tags
-  metadata        Json?        // Additional metadata as JSON
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
+  // New card base values
+  pwValue         Int          @default(0)  // Power value
+  efValue         Int          @default(0)  // Efficiency value
+  psValue         Int          @default(0)  // Precision value
+  grValue         Int          @default(0)  // Growth value
+
   // Relations
-  category    Category     @relation(fields: [categoryId], references: [id])
-  creator     User         @relation("CardCreator", fields: [createdBy], references: [id])
-  assignee    User?        @relation("CardAssignee", fields: [assignedTo], references: [id])
-  archivedBy  User?        @relation("CardArchivedBy", fields: [archivedById], references: [id])
-  comments    Comment[]
-  activities  Activity[]
-  attachments Attachment[]
+  category        Category     @relation(fields: [categoryId], references: [id])
+  creator         User         @relation("CardCreator", fields: [createdBy], references: [id])
+  assignee        User?        @relation("CardAssignee", fields: [assignedTo], references: [id])
+  archivedBy      User?        @relation("CardArchivedBy", fields: [archivedById], references: [id])
+  comments        Comment[]
+  activities      Activity[]
+  attachments     Attachment[]
+  cardResponses   CardResponse[] // New relation for response options
 
   @@map("cards")
+}
+
+// New model for response options with their own values
+model CardResponse {
+  id          Int    @id @default(autoincrement())
+  cardId      Int
+  text        String
+  order       Int    @default(0) // To maintain order of responses
+
+  // Response option effects on card values
+  pwEffect    Int    @default(0)  // How much this response changes PW
+  efEffect    Int    @default(0)  // How much this response changes EF
+  psEffect    Int    @default(0)  // How much this response changes PS
+  grEffect    Int    @default(0)  // How much this response changes GR
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  card        Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@map("card_responses")
 }
 
 // Comments on cards

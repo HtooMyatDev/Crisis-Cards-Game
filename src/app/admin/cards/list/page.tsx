@@ -1,19 +1,43 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { Edit, Trash2, Plus, Search, Filter, Clock, Tag } from 'lucide-react';
+// Added new icons for the values
+import { Edit, Trash2, Plus, Search, Filter, Clock, Tag, Zap, Shield, TrendingUp, Heart, Users } from 'lucide-react';
 import SkeletonCardGrid from '@/components/CardSkeleton/SkeletonCardGrid';
 import { useRouter } from 'next/navigation';
-// Define the card data type
+
+// Updated card data type to include new values and response structure
+interface CardResponse {
+    id: number;
+    text: string;
+    order: number;
+    pwEffect: number;
+    efEffect: number;
+    psEffect: number;
+    grEffect: number;
+    cardId?: string; // Add this to ensure we have the relationship
+}
+
 interface CrisisCard {
     id: string;
-    name: string;
+    title: string;
     description: string;
-    category: string;
     timeLimit: number;
-    responseOptions: string[];
-    status: 'Active' | 'Inactive';
+    // Updated to include new card base values
+    pwValue: number;
+    efValue: number;
+    psValue: number;
+    grValue: number;
+    // Updated response structure
+    cardResponses?: CardResponse[];
+    responseOptions?: string[]; // Keep for backward compatibility
+    status: string;
     createdAt: string;
     updatedAt: string;
+    category: {
+        id: number;
+        name: string;
+        color?: string;
+    };
 }
 
 export default function CrisisCardList() {
@@ -22,114 +46,85 @@ export default function CrisisCardList() {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
     const [categoryFilter, setCategoryFilter] = useState<string>('All');
-    const router = useRouter()
-    
-    // Added missing state for view management
-    const [currentView, setCurrentView] = useState<'list' | 'edit' | 'create'>('list');
-    const [editingCardId, setEditingCardId] = useState<string | null>(null);
+    const router = useRouter();
 
-    // Category color mapping
-    const getCategoryColors = (category: string) => {
-        const colorMap: { [key: string]: { bg: string, border: string, text: string, shadow: string, accent: string } } = {
-            'Emergency': {
-                bg: 'bg-red-50',
-                border: 'border-red-500',
-                text: 'text-red-700',
-                shadow: 'shadow-[4px_4px_0px_0px_rgba(239,68,68,1)]',
-                accent: 'bg-red-500'
-            },
-            'Crisis': {
-                bg: 'bg-orange-50',
-                border: 'border-orange-500',
-                text: 'text-orange-700',
-                shadow: 'shadow-[4px_4px_0px_0px_rgba(249,115,22,1)]',
-                accent: 'bg-orange-500'
-            },
-            'Technical': {
-                bg: 'bg-blue-50',
-                border: 'border-blue-500',
-                text: 'text-blue-700',
-                shadow: 'shadow-[4px_4px_0px_0px_rgba(59,130,246,1)]',
-                accent: 'bg-blue-500'
-            },
-            'Medical': {
-                bg: 'bg-green-50',
-                border: 'border-green-500',
-                text: 'text-green-700',
-                shadow: 'shadow-[4px_4px_0px_0px_rgba(34,197,94,1)]',
-                accent: 'bg-green-500'
-            },
-            'Security': {
-                bg: 'bg-purple-50',
-                border: 'border-purple-500',
-                text: 'text-purple-700',
-                shadow: 'shadow-[4px_4px_0px_0px_rgba(168,85,247,1)]',
-                accent: 'bg-purple-500'
-            },
-            'Environmental': {
-                bg: 'bg-teal-50',
-                border: 'border-teal-500',
-                text: 'text-teal-700',
-                shadow: 'shadow-[4px_4px_0px_0px_rgba(20,184,166,1)]',
-                accent: 'bg-teal-500'
-            }
-        };
+    // Helper function to convert hex to RGB for transparency effects
+    const hexToRgb = (hex: string) => {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    };
 
-        return colorMap[category] || {
-            bg: 'bg-gray-50',
-            border: 'border-gray-500',
-            text: 'text-gray-700',
-            shadow: 'shadow-[4px_4px_0px_0px_rgba(107,114,128,1)]',
-            accent: 'bg-gray-500'
+    // Generate color styles based on category hex color
+    const getCategoryStyles = (category: { name: string; color?: string }) => {
+        const defaultColor = '#6b7280'; // gray-500
+        const hexColor = category?.color || defaultColor;
+
+        // Ensure hex color starts with #
+        const normalizedHex = hexColor.startsWith('#') ? hexColor : `#${hexColor}`;
+
+        const rgb = hexToRgb(normalizedHex);
+        if (!rgb) {
+            return {
+                accentStyle: { backgroundColor: defaultColor },
+                borderStyle: { borderColor: defaultColor },
+                bgStyle: { backgroundColor: `rgba(107, 114, 128, 0.1)` },
+                textStyle: { color: defaultColor },
+                shadowStyle: { boxShadow: `4px 4px 0px 0px rgba(107, 114, 128, 1)` }
+            };
+        }
+
+        return {
+            accentStyle: { backgroundColor: normalizedHex },
+            borderStyle: { borderColor: normalizedHex },
+            bgStyle: { backgroundColor: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.1)` },
+            textStyle: { color: normalizedHex },
+            shadowStyle: { boxShadow: `4px 4px 0px 0px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 1)` }
         };
     };
 
-    // Mock data - replace with actual API call
+    // Helper function to format effect values
+    const formatEffect = (value: number) => {
+        return value >= 0 ? `+${value}` : `${value}`;
+    };
+
+    // Helper function to get effect color
+    const getEffectColor = (value: number) => {
+        if (value > 0) return 'text-green-600';
+        if (value < 0) return 'text-red-600';
+        return 'text-gray-600';
+    };
+
     useEffect(() => {
         const fetchCards = async () => {
             try {
-                // Simulate API call
-                setTimeout(() => {
-                    const mockCards: CrisisCard[] = [
-                        {
-                            id: '1',
-                            name: 'Emergency Response Protocol',
-                            description: 'Quick response procedures for handling emergency situations in the workplace.',
-                            category: 'Emergency',
-                            timeLimit: 15,
-                            responseOptions: ['Call 911', 'Evacuate immediately', 'Contact supervisor'],
-                            status: 'Active',
-                            createdAt: '2024-01-15',
-                            updatedAt: '2024-01-20'
-                        },
-                        {
-                            id: '2',
-                            name: 'Crisis Communication',
-                            description: 'Guidelines for effective communication during crisis situations.',
-                            category: 'Crisis',
-                            timeLimit: 30,
-                            responseOptions: ['Alert team', 'Document incident'],
-                            status: 'Active',
-                            createdAt: '2024-01-10',
-                            updatedAt: '2024-01-18'
-                        },
-                        {
-                            id: '3',
-                            name: 'Equipment Failure Response',
-                            description: 'Steps to take when critical equipment fails during operations.',
-                            category: 'Technical',
-                            timeLimit: 45,
-                            responseOptions: ['Switch to backup', 'Call maintenance', 'Stop operations'],
-                            status: 'Inactive',
-                            createdAt: '2024-01-05',
-                            updatedAt: '2024-01-12'
-                        }
-                    ];
-                    setCards(mockCards);
-                    setLoading(false);
-                }, 2000); // Increased to 2 seconds to better show skeleton loading
+                const response = await fetch('/api/admin/cards', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json()
+                const cardsData = data.cards || data.data || data
+
+                if (Array.isArray(cardsData)) {
+                    setCards(cardsData)
+                } else {
+                    console.error('Expected array of cards, got:', cardsData);
+                    setCards([]);
+                }
             } catch (error) {
                 console.error('Error fetching cards:', error);
+                setLoading(false);
+            } finally {
                 setLoading(false);
             }
         };
@@ -138,127 +133,48 @@ export default function CrisisCardList() {
     }, []);
 
     // Get unique categories for filter
-    const categories = ['All', ...new Set(cards.map(card => card.category))];
+    const categories = ['All', ...new Set(cards.map(card => card.category?.name).filter(Boolean))];
 
     // Filter cards based on search and filters
     const filteredCards = cards.filter(card => {
-        const matchesSearch = card.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            card.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            card.category.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = card.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            card.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            card.category?.name?.toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesStatus = statusFilter === 'All' || card.status === statusFilter;
-        const matchesCategory = categoryFilter === 'All' || card.category === categoryFilter;
+        const matchesCategory = categoryFilter === 'All' || card.category?.name === categoryFilter;
 
         return matchesSearch && matchesStatus && matchesCategory;
     });
 
-    // Handler functions
-    const handleBackToList = () => {
-        setCurrentView('list');
-        setEditingCardId(null);
-    };
-
     const handleDelete = async (id: string) => {
         if (window.confirm('Are you sure you want to delete this card?')) {
             try {
-                // API call to delete card
-                // await fetch(`/api/cards/${id}`, { method: 'DELETE' });
+                const response = await fetch(`/api/admin/cards/${id}`, {
+                    method: "DELETE"
+                })
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete card');
+                }
 
                 // Remove from local state
                 setCards(cards.filter(card => card.id !== id));
                 console.log(`Card ${id} deleted successfully`);
             } catch (error) {
                 console.error('Error deleting card:', error);
+                alert('Error deleting card. Please try again.');
             }
         }
     };
 
     const handleEdit = (id: string) => {
-        setEditingCardId(id);
-        setCurrentView('edit');
+        router.push(`/admin/cards/edit/${id}`)
     };
 
     const handleCreateNew = () => {
         router.push('/admin/cards/create')
     };
-
-    // Show edit/create view
-    if (currentView === 'edit' || currentView === 'create') {
-        return (
-            <div className="max-w-4xl mx-auto">
-                <div className="flex items-center gap-4 mb-6">
-                    <button
-                        onClick={handleBackToList}
-                        className="flex items-center gap-2 px-3 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                        ← Back to List
-                    </button>
-                    <h1 className="text-2xl font-bold">
-                        {currentView === 'edit' ? 'Edit Crisis Card' : 'Create New Crisis Card'}
-                    </h1>
-                </div>
-
-                <div className="bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-8 text-center">
-                    <h2 className="text-xl font-bold mb-4">
-                        {currentView === 'edit' ? `Editing Card: ${editingCardId}` : 'Creating New Card'}
-                    </h2>
-                    <p className="text-gray-600 mb-6">
-                        The edit form would appear here. In a real application, you would use the EditCrisisCard component created above.
-                    </p>
-
-                    {/* Placeholder form elements */}
-                    <div className="space-y-4 text-left max-w-md mx-auto">
-                        <div>
-                            <label className="block text-sm font-semibold mb-2">Card Name</label>
-                            <input
-                                type="text"
-                                className="w-full px-3 py-2 border-2 border-black rounded-lg"
-                                placeholder="Enter card name..."
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold mb-2">Description</label>
-                            <textarea
-                                className="w-full px-3 py-2 border-2 border-black rounded-lg"
-                                rows={3}
-                                placeholder="Enter description..."
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold mb-2">Category</label>
-                            <select className="w-full px-3 py-2 border-2 border-black rounded-lg">
-                                <option>Emergency</option>
-                                <option>Crisis</option>
-                                <option>Technical</option>
-                                <option>Medical</option>
-                                <option>Security</option>
-                                <option>Environmental</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-4 justify-center mt-6">
-                        <button
-                            onClick={() => {
-                                // Mock save action
-                                alert(`Card ${currentView === 'edit' ? 'updated' : 'created'} successfully!`);
-                                handleBackToList();
-                            }}
-                            className="px-6 py-2 bg-green-600 text-white font-bold border-2 border-green-600 rounded-lg shadow-[2px_2px_0px_0px_rgba(22,163,74,1)] hover:shadow-[1px_1px_0px_0px_rgba(22,163,74,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200"
-                        >
-                            {currentView === 'edit' ? 'Update Card' : 'Create Card'}
-                        </button>
-                        <button
-                            onClick={handleBackToList}
-                            className="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     if (loading) {
         return (
@@ -368,12 +284,24 @@ export default function CrisisCardList() {
             {/* Category Color Legend */}
             <div className="mb-6">
                 <div className="flex flex-wrap gap-3">
-                    {categories.filter(cat => cat !== 'All').map(category => {
-                        const colors = getCategoryColors(category);
+                    {categories.filter(cat => cat !== 'All').map(categoryName => {
+                        // Find the full category object to get color
+                        const categoryObj = cards.find(card => card.category?.name === categoryName)?.category;
+                        const styles = getCategoryStyles(categoryObj || { name: categoryName });
+
                         return (
-                            <div key={category} className="flex items-center gap-2">
-                                <div className={`w-4 h-4 rounded-full border-2 ${colors.bg} ${colors.border}`}></div>
-                                <span className="text-sm font-medium">{category}</span>
+                            <div key={categoryName} className="flex items-center gap-2">
+                                <div
+                                    className="w-4 h-4 rounded-full border-2"
+                                    style={{
+                                        ...styles.accentStyle,
+                                        ...styles.borderStyle
+                                    }}
+                                ></div>
+                                <span className="text-sm font-medium">{categoryName}</span>
+                                {categoryObj?.color && (
+                                    <span className="text-xs text-gray-400 font-mono">({categoryObj.color})</span>
+                                )}
                             </div>
                         );
                     })}
@@ -401,23 +329,30 @@ export default function CrisisCardList() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredCards.map((card) => {
-                        const colors = getCategoryColors(card.category);
+                        const styles = getCategoryStyles(card.category || { name: 'Unknown' });
+                        // Use new cardResponses if available, fallback to old responseOptions
+                        const responses = card.cardResponses || [];
+                        const legacyOptions = card.responseOptions || [];
+
                         return (
                             <div
                                 key={card.id}
                                 className="bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 relative"
                             >
                                 {/* Color accent bar */}
-                                <div className={`absolute top-0 left-0 w-full h-1 ${colors.accent} rounded-t-md`}></div>
+                                <div
+                                    className="absolute top-0 left-0 w-full h-1 rounded-t-md"
+                                    style={styles.accentStyle}
+                                ></div>
 
                                 {/* Card Header */}
                                 <div className="flex justify-between items-start mb-3">
                                     <h3 className="text-lg font-bold text-gray-900 line-clamp-2">
-                                        {card.name}
+                                        {card.title}
                                     </h3>
                                     <span className={`px-2 py-1 text-xs font-semibold rounded border-2 ${card.status === 'Active'
-                                            ? 'bg-green-100 text-green-800 border-green-800'
-                                            : 'bg-red-100 text-red-800 border-red-800'
+                                        ? 'bg-green-100 text-green-800 border-green-800'
+                                        : 'bg-red-100 text-red-800 border-red-800'
                                         }`}>
                                         {card.status}
                                     </span>
@@ -432,9 +367,20 @@ export default function CrisisCardList() {
                                 <div className="space-y-2 mb-4">
                                     <div className="flex items-center gap-2 text-sm">
                                         <Tag size={16} className="text-gray-500" />
-                                        <span className={`font-medium px-2 py-1 ${colors.bg} border-2 border-gray-200 rounded-full text-xs ${colors.text}`}>
-                                            {card.category}
+                                        <span
+                                            className="font-medium px-2 py-1 border-2 border-gray-200 rounded-full text-xs"
+                                            style={{
+                                                ...styles.bgStyle,
+                                                ...styles.textStyle
+                                            }}
+                                        >
+                                            {card.category?.name || 'Unknown'}
                                         </span>
+                                        {card.category?.color && (
+                                            <span className="text-xs text-gray-400 font-mono">
+                                                {card.category.color}
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="flex items-center gap-2 text-sm">
                                         <Clock size={16} className="text-gray-500" />
@@ -442,18 +388,83 @@ export default function CrisisCardList() {
                                     </div>
                                 </div>
 
-                                {/* Response Options */}
+                                {/* Card Base Values with Icons (Updated Layout) */}
+                                <div className="mb-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Zap size={16} className="text-gray-500" />
+                                        <p className="text-sm font-semibold text-gray-700">Card Values:</p>
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-2">
+                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 rounded border">
+                                            <Shield size={16} className="text-blue-500" />
+                                            <span className="text-sm font-bold text-gray-800">{card.pwValue || 0}</span>
+                                        </div>
+                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 rounded border">
+                                            <TrendingUp size={16} className="text-green-500" />
+                                            <span className="text-sm font-bold text-gray-800">{card.efValue || 0}</span>
+                                        </div>
+                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 rounded border">
+                                            <Heart size={16} className="text-red-500" />
+                                            <span className="text-sm font-bold text-gray-800">{card.psValue || 0}</span>
+                                        </div>
+                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 rounded border">
+                                            <Users size={16} className="text-yellow-500" />
+                                            <span className="text-sm font-bold text-gray-800">{card.grValue || 0}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Response Options with Effects and Icons */}
                                 <div className="mb-4">
                                     <p className="text-sm font-semibold mb-2 text-gray-700">Response Options:</p>
-                                    <div className="space-y-1">
-                                        {card.responseOptions.slice(0, 2).map((option, index) => (
-                                            <div key={index} className="text-xs bg-gray-100 px-2 py-1 rounded border border-gray-300 text-gray-700">
-                                                {option}
+                                    <div className="space-y-2">
+                                        {/* Show new response structure if available */}
+                                        {responses.length > 0 ? (
+                                            responses.slice(0, 2).map((response) => (
+                                                <div key={response.id} className="text-xs bg-gray-100 p-2 rounded border border-gray-300">
+                                                    <div className="text-gray-700 mb-1">{response.text}</div>
+                                                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.pwEffect)}`}>
+                                                            <Shield size={12} />
+                                                            <span>PW: {formatEffect(response.pwEffect)}</span>
+                                                        </span>
+                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.efEffect)}`}>
+                                                            <TrendingUp size={12} />
+                                                            <span>EF: {formatEffect(response.efEffect)}</span>
+                                                        </span>
+                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.psEffect)}`}>
+                                                            <Heart size={12} />
+                                                            <span>PS: {formatEffect(response.psEffect)}</span>
+                                                        </span>
+                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.grEffect)}`}>
+                                                            <Users size={12} />
+                                                            <span>GR: {formatEffect(response.grEffect)}</span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : legacyOptions.length > 0 ? (
+                                            /* Fallback to legacy response options */
+                                            legacyOptions.slice(0, 2).map((option, index) => (
+                                                <div key={index} className="text-xs bg-gray-100 px-2 py-1 rounded border border-gray-300 text-gray-700" >
+                                                    {option}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-xs text-gray-500 bg-yellow-50 p-2 rounded border border-yellow-200">
+                                                No response options found for this card
                                             </div>
-                                        ))}
-                                        {card.responseOptions.length > 2 && (
+                                        )}
+
+                                        {/* Show count of remaining options */}
+                                        {responses.length > 2 && (
                                             <div className="text-xs text-gray-500">
-                                                +{card.responseOptions.length - 2} more options
+                                                +{responses.length - 2} more options
+                                            </div>
+                                        )}
+                                        {legacyOptions.length > 2 && responses.length === 0 && (
+                                            <div className="text-xs text-gray-500">
+                                                +{legacyOptions.length - 2} more options
                                             </div>
                                         )}
                                     </div>
@@ -485,8 +496,9 @@ export default function CrisisCardList() {
                             </div>
                         );
                     })}
-                </div>
-            )}
-        </div>
+                </div >
+            )
+            }
+        </div >
     );
 }
