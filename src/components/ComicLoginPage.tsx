@@ -1,23 +1,67 @@
 "use client"
-import React, { useState } from 'react'
-import { Mail, Lock, LogIn, Loader2, UserPlus, Shield, Eye, EyeOff } from 'lucide-react'
+import React, { useState, useActionState } from 'react'
+import { Mail, Lock, LogIn, Loader2, UserPlus, Shield, Eye, EyeOff, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 
-const CrisisLoginPage: React.FC = () => {
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [showPassword, setShowPassword] = useState(false)
-    const [loading, setLoading] = useState(false)
+async function loginAction(prevState: any, formData: FormData) {
+    const email = formData.get("email") as string
+    const password = formData.get("password") as string
 
-    const onSubmit = (e: React.FormEvent) => {
-        setLoading(true)
-        e.preventDefault()
-        console.log({ email, password })
+    try {
+        const response = await fetch('/api/auth/login', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        })
+
+        const data = await response.json()
+        const getFieldError = (field: string) => {
+            return data.errors?.properties?.[field]?.errors?.[0] || ''
+        }
+        if (response.ok) {
+            return {
+                success: true,
+                message: "Login successful!",
+                errors: {}
+            }
+        }
+        else {
+            // Handle validation errors
+            const fieldErrors: any = {}
+            if (data.errors) {
+                fieldErrors.email = getFieldError("email")
+                fieldErrors.password = getFieldError("password")
+            }
+
+            return {
+                success: false,
+                message: data.error || 'Login failed. Please try again.',
+                errors: fieldErrors
+            }
+        }
     }
+    catch (error) {
+        return {
+            success: false,
+            message: 'Network error. Please check your connection and try again',
+            errors: {}
+        }
+    }
+}
+
+const CrisisLoginPage: React.FC = () => {
+    const [showPassword, setShowPassword] = useState(false)
+
+    const [state, formAction, pending] = useActionState(loginAction, {
+        success: false,
+        message: '',
+        errors: {}
+    })
 
     return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 relative overflow-hidden">
-            {/* Crisis-themed Pattern Background */}
             <div className="absolute inset-0 opacity-8 pointer-events-none">
                 <div className="absolute top-10 left-10 w-20 h-20 border-4 border-yellow-400 transform rotate-45"></div>
                 <div className="absolute top-32 right-16 w-16 h-16 border-4 border-green-500 transform rotate-12"></div>
@@ -63,8 +107,29 @@ const CrisisLoginPage: React.FC = () => {
                     <div className="absolute -top-3 -right-3 w-6 h-6 bg-blue-400 rounded-full"></div>
                     <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-yellow-400 rounded-full"></div>
                     <div className="absolute -bottom-3 -right-3 w-6 h-6 bg-purple-500 transform rotate-45"></div>
+                    {/* Success Message */}
+                    {state.success && (
+                        <div className="mb-6 p-4 bg-green-100 border-4 border-green-500 rounded-lg relative">
+                            <div className="flex items-center gap-3">
+                                <Shield size={20} className="text-green-500 flex-shrink-0" />
+                                <p className="text-green-800 font-bold">{state.message}</p>
+                            </div>
+                            <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-500 transform rotate-45"></div>
+                        </div>
+                    )}
 
-                    <div className="space-y-6 relative z-10">
+                    {/* General Error Message */}
+                    {!state.success && state.message && Object.keys(state.errors).length === 0 && (
+                        <div className="mb-6 p-4 bg-red-100 border-4 border-red-500 rounded-lg relative">
+                            <div className="flex items-center gap-3">
+                                <AlertTriangle size={20} className="text-red-500 flex-shrink-0" />
+                                <p className="text-red-800 font-bold">{state.message}</p>
+                            </div>
+                            <div className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 transform rotate-45"></div>
+                        </div>
+                    )}
+
+                    <form action={formAction} className="space-y-6 relative z-10">
                         {/* Email Input */}
                         <div className="relative transition-all duration-200
                             focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
@@ -72,16 +137,22 @@ const CrisisLoginPage: React.FC = () => {
                                 <Mail size={20} />
                             </div>
                             <input
+                                required
                                 type="email"
                                 name="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Email Address"
-                                className="w-full pl-12 pr-4 py-4 border-4 border-black rounded-lg font-semibold text-lg
-                                    bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                                    focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                                    transition-all duration-200 focus:outline-none placeholder-gray-500"
+                                className={`w-full pl-12 pr-4 py-4 border-4 rounded-lg font-semibold text-lg
+                            bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+                            focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                            transition-all duration-200 focus:outline-none placeholder-gray-500
+                            ${state.errors.email ? 'border-red-500' : 'border-black'}`}
                             />
+                            {state.errors.email && (
+                                <div className="mt-2 flex items-center gap-2">
+                                    <AlertTriangle size={16} className="text-red-500" />
+                                    <p className="text-red-600 font-bold text-sm">{state.errors.email}</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Password Input */}
@@ -91,15 +162,15 @@ const CrisisLoginPage: React.FC = () => {
                                 <Lock size={20} />
                             </div>
                             <input
+                                required
                                 type={showPassword ? "text" : "password"}
                                 name="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Password"
-                                className="w-full pl-12 pr-12 py-4 border-4 border-black rounded-lg font-semibold text-lg
+                                className={`w-full pl-12 pr-12 py-4 border-4 rounded-lg font-semibold text-lg
                                     bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
                                     focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                                    transition-all duration-200 focus:outline-none placeholder-gray-500"
+                                    transition-all duration-200 focus:outline-none placeholder-gray-500
+                                    ${state.errors.password ? 'border-red-500' : 'border-black'}`}
                             />
                             <button
                                 type="button"
@@ -108,21 +179,28 @@ const CrisisLoginPage: React.FC = () => {
                             >
                                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                             </button>
-                        </div>
 
+                        </div>
+                        {state.errors.password && (
+                            <div className="mt-2 flex items-center gap-2">
+                                <AlertTriangle size={16} className="text-red-500" />
+                                <p className="text-red-600 font-bold text-sm">{state.errors.password}</p>
+                            </div>
+                        )}
                         {/* Submit Button */}
                         <button
-                            type="button"
-                            onClick={onSubmit}
+                            type="submit"
+                            disabled={pending}
                             className="w-full px-6 py-4 border-4 border-black rounded-lg font-bold text-lg
-                                bg-red-500 text-white transition-all duration-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                                hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-red-600
-                                hover:translate-x-[2px] hover:translate-y-[2px]
-                                active:translate-x-[4px] active:translate-y-[4px] active:shadow-none
-                                flex items-center justify-center gap-2 relative overflow-hidden group"
+                            bg-red-500 text-white transition-all duration-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+                            hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-red-600
+                            hover:translate-x-[2px] hover:translate-y-[2px]
+                            active:translate-x-[4px] active:translate-y-[4px] active:shadow-none
+                            flex items-center justify-center gap-2 relative overflow-hidden group
+                            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0"
                         >
                             <div className="absolute inset-0 bg-white transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-500 opacity-20"></div>
-                            {loading ? (
+                            {pending ? (
                                 <>
                                     <Loader2 size={20} className="relative z-10 animate-spin" />
                                     <span className="relative z-10">Accessing Crisis Command...</span>
@@ -134,7 +212,7 @@ const CrisisLoginPage: React.FC = () => {
                                 </>
                             )}
                         </button>
-                    </div>
+                    </form>
 
                     {/* Forgot Password */}
                     <div className="mt-6">

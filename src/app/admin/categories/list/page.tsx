@@ -5,15 +5,34 @@ import { useRouter } from 'next/navigation';
 import SkeletonCardGrid from '@/components/CategorySkeleton/SkeletonCardGrid';
 import SkeletonCardList from '@/components/CategorySkeleton/SkeletonCardList';
 
+interface ColorPreset {
+    id: number;
+    name: string;
+    backgroundColor: string;
+    textColor: string;
+    textBoxColor: string;
+}
+
+interface Creator {
+    id: number;
+    name: string;
+    email: string;
+}
+
 interface Category {
     id: number;
     name: string;
     description: string;
-    color: string;
+    colorPresetId: number | null;
+    colorPreset: ColorPreset | null;
     status: string;
-    itemCount?: number;
-    createdAt?: string;
-    updatedAt?: string;
+    isArchived: boolean;
+    creator: Creator;
+    createdAt: string;
+    updatedAt: string;
+    _count: {
+        cards: number;
+    };
 }
 
 export default function ListCategories() {
@@ -32,7 +51,7 @@ export default function ListCategories() {
             setLoading(true);
             setError('');
 
-            const response = await fetch('/api/admin/categories', {
+            const response = await fetch('/api/admin/categories?presets=true', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -41,7 +60,7 @@ export default function ListCategories() {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
@@ -62,10 +81,31 @@ export default function ListCategories() {
     const handleCreateCategory = () => {
         router.push("/admin/categories/create")
     }
+
     // Fetch categories on component mount
     useEffect(() => {
         fetchCategories();
     }, []);
+
+    // Get display colors from category (either from preset or defaults)
+    const getCategoryColors = (category: Category) => {
+        if (category.colorPreset) {
+            return {
+                backgroundColor: category.colorPreset.backgroundColor,
+                textColor: category.colorPreset.textColor,
+                textBoxColor: category.colorPreset.textBoxColor,
+                presetName: category.colorPreset.name
+            };
+        }
+
+        // Default colors if no preset
+        return {
+            backgroundColor: '#F0F9FF',
+            textColor: '#1F2937',
+            textBoxColor: '#FFFFFF',
+            presetName: null
+        };
+    };
 
     // Apply filters
     const getFilteredCategories = () => {
@@ -74,7 +114,7 @@ export default function ListCategories() {
         // Status filter
         if (statusFilter !== 'all') {
             filtered = filtered.filter(cat =>
-                cat.status.toLowerCase() === statusFilter.toLowerCase()
+                cat.status.toUpperCase() === statusFilter.toUpperCase()
             );
         }
 
@@ -82,7 +122,8 @@ export default function ListCategories() {
         if (searchTerm) {
             filtered = filtered.filter(category =>
                 category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                category.description.toLowerCase().includes(searchTerm.toLowerCase())
+                category.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                category.colorPreset?.name.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
 
@@ -92,7 +133,7 @@ export default function ListCategories() {
                 case 'name':
                     return a.name.localeCompare(b.name);
                 case 'items':
-                    return (b.itemCount || 0) - (a.itemCount || 0);
+                    return (b._count?.cards || 0) - (a._count?.cards || 0);
                 case 'newest':
                     return new Date(b.updatedAt || b.createdAt || '').getTime() -
                         new Date(a.updatedAt || a.createdAt || '').getTime();
@@ -108,148 +149,104 @@ export default function ListCategories() {
     };
 
     const filteredCategories = getFilteredCategories();
-    const activeCategories = categories.filter(cat => cat.status.toLowerCase() === 'active');
+    const activeCategories = categories.filter(cat => cat.status.toUpperCase() === 'ACTIVE');
 
     // Get unique statuses for filter dropdown
     const uniqueStatuses = [...new Set(categories.map(cat => cat.status))];
 
     const handleCategoryAction = (categoryId: number, action: 'view' | 'edit' | 'archive') => {
         console.log(`${action} category ${categoryId}`);
-        // Add your navigation/action logic here
         switch (action) {
             case 'view':
-                // Navigate to category detail page
+                router.push(`/admin/categories/${categoryId}`);
                 break;
             case 'edit':
-                // Navigate to edit category page
+                router.push(`/admin/categories/edit/${categoryId}`);
                 break;
             case 'archive':
-                // Archive category logic
+                // Archive category logic - you could add a modal here
+                archiveCategory(categoryId);
                 break;
         }
     };
 
-    const CategoryCard = ({ category }: { category: Category }) => (
-        <div
-            key={category.id}
-            className="bg-white border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] p-5 hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 group"
-        >
-            {/* Category Header */}
-            <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div
-                        className="w-5 h-5 rounded-full border-2 border-black flex-shrink-0"
-                        style={{ backgroundColor: category.color }}
-                    ></div>
-                    <h3 className="font-bold text-lg truncate">{category.name}</h3>
-                </div>
+    const archiveCategory = async (categoryId: number) => {
+        if (confirm('Are you sure you want to archive this category?')) {
+            try {
+                const response = await fetch(`/api/admin/categories/${categoryId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ isArchived: true })
+                });
 
-                {/* Action buttons - show on hover */}
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleCategoryAction(category.id, 'view');
-                        }}
-                        className="p-1 hover:bg-gray-100 rounded"
-                        title="View category"
-                    >
-                        <Eye size={14} />
-                    </button>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleCategoryAction(category.id, 'edit');
-                        }}
-                        className="p-1 hover:bg-gray-100 rounded"
-                        title="Edit category"
-                    >
-                        <Edit size={14} />
-                    </button>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleCategoryAction(category.id, 'archive');
-                        }}
-                        className="p-1 hover:bg-gray-100 rounded text-red-600"
-                        title="Archive category"
-                    >
-                        <Archive size={14} />
-                    </button>
-                </div>
-            </div>
+                if (response.ok) {
+                    fetchCategories(); // Refresh the list
+                } else {
+                    throw new Error('Failed to archive category');
+                }
+            } catch (error) {
+                console.error('Error archiving category:', error);
+                alert('Failed to archive category');
+            }
+        }
+    };
 
-            {/* Description */}
-            <p className="text-gray-600 mb-4 text-sm line-clamp-2">{category.description}</p>
+    const CategoryCard = ({ category }: { category: Category }) => {
+        const colors = getCategoryColors(category);
 
-            {/* Item Count and Status */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Tag size={14} />
-                    <span>{category.itemCount || 0} items</span>
-                </div>
-                <div className={`text-xs px-2 py-1 rounded font-medium border ${category.status && category.status.toLowerCase() === 'active'
-                    ? 'text-green-700 bg-green-100 border-green-200'
-                    : category.status && category.status.toLowerCase() === 'inactive'
-                        ? 'text-orange-700 bg-orange-100 border-orange-200'
-                        : 'text-gray-700 bg-gray-100 border-gray-200'
-                    }`}>
-                    {category.status}
-                </div>
-            </div>
-        </div>
-    );
+        return (
+            <div
+                key={category.id}
+                className="bg-white border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] p-5 hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 group overflow-hidden"
+            >
+                {/* Color preset indicator at top */}
+                <div
+                    className="h-2 -mx-5 -mt-5 mb-4"
+                    style={{ backgroundColor: colors.backgroundColor }}
+                ></div>
 
-    const CategoryListItem = ({ category }: { category: Category }) => (
-        <div
-            key={category.id}
-            className="bg-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] p-4 hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 group"
-        >
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div
-                        className="w-4 h-4 rounded-full border-2 border-black flex-shrink-0"
-                        style={{ backgroundColor: category.color }}
-                    ></div>
-                    <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-lg truncate">{category.name}</h3>
-                        <p className="text-gray-600 text-sm truncate">{category.description}</p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <Tag size={14} />
-                        <span>{category.itemCount || 0} items</span>
+                {/* Category Header */}
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div
+                            className="w-5 h-5 rounded-full border-2 border-black flex-shrink-0"
+                            style={{ backgroundColor: colors.textColor }}
+                        ></div>
+                        <div>
+                            <h3 className="font-bold text-lg truncate">{category.name}</h3>
+                            {colors.presetName && (
+                                <p className="text-xs text-gray-500">{colors.presetName} preset</p>
+                            )}
+                        </div>
                     </div>
 
-                    <div className={`text-xs px-2 py-1 rounded font-medium border ${category.status && category.status.toLowerCase() === 'active'
-                        ? 'text-green-700 bg-green-100 border-green-200'
-                        : category.status && category.status.toLowerCase() === 'inactive'
-                            ? 'text-orange-700 bg-orange-100 border-orange-200'
-                            : 'text-gray-700 bg-gray-100 border-gray-200'
-                        }`}>
-                        {category.status}
-                    </div>
-
-                    {/* Action buttons */}
+                    {/* Action buttons - show on hover */}
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
-                            onClick={() => handleCategoryAction(category.id, 'view')}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleCategoryAction(category.id, 'view');
+                            }}
                             className="p-1 hover:bg-gray-100 rounded"
                             title="View category"
                         >
                             <Eye size={14} />
                         </button>
                         <button
-                            onClick={() => handleCategoryAction(category.id, 'edit')}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleCategoryAction(category.id, 'edit');
+                            }}
                             className="p-1 hover:bg-gray-100 rounded"
                             title="Edit category"
                         >
                             <Edit size={14} />
                         </button>
                         <button
-                            onClick={() => handleCategoryAction(category.id, 'archive')}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleCategoryAction(category.id, 'archive');
+                            }}
                             className="p-1 hover:bg-gray-100 rounded text-red-600"
                             title="Archive category"
                         >
@@ -257,9 +254,105 @@ export default function ListCategories() {
                         </button>
                     </div>
                 </div>
+
+                {/* Description */}
+                <p className="text-gray-600 mb-4 text-sm line-clamp-2">{category.description}</p>
+
+                {/* Item Count and Status */}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <Tag size={14} />
+                        <span>{category._count?.cards || 0} cards</span>
+                    </div>
+                    <div className={`text-xs px-2 py-1 rounded font-medium border ${
+                        category.status && category.status.toUpperCase() === 'ACTIVE'
+                            ? 'text-green-700 bg-green-100 border-green-200'
+                            : category.status && category.status.toUpperCase() === 'INACTIVE'
+                                ? 'text-orange-700 bg-orange-100 border-orange-200'
+                                : 'text-gray-700 bg-gray-100 border-gray-200'
+                    }`}>
+                        {category.status}
+                    </div>
+                </div>
+
+                {/* Creator info */}
+                <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+                    Created by {category.creator?.name || 'Unknown'}
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
+
+    const CategoryListItem = ({ category }: { category: Category }) => {
+        const colors = getCategoryColors(category);
+
+        return (
+            <div
+                key={category.id}
+                className="bg-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] p-4 hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 group"
+            >
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <div
+                            className="w-4 h-4 rounded-full border-2 border-black flex-shrink-0"
+                            style={{ backgroundColor: colors.textColor }}
+                        ></div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-bold text-lg truncate">{category.name}</h3>
+                                {colors.presetName && (
+                                    <span className="text-xs bg-gray-100 px-2 py-1 rounded">{colors.presetName}</span>
+                                )}
+                            </div>
+                            <p className="text-gray-600 text-sm truncate">{category.description}</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <Tag size={14} />
+                            <span>{category._count?.cards || 0} cards</span>
+                        </div>
+
+                        <div className={`text-xs px-2 py-1 rounded font-medium border ${
+                            category.status && category.status.toUpperCase() === 'ACTIVE'
+                                ? 'text-green-700 bg-green-100 border-green-200'
+                                : category.status && category.status.toUpperCase() === 'INACTIVE'
+                                    ? 'text-orange-700 bg-orange-100 border-orange-200'
+                                    : 'text-gray-700 bg-gray-100 border-gray-200'
+                        }`}>
+                            {category.status}
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                                onClick={() => handleCategoryAction(category.id, 'view')}
+                                className="p-1 hover:bg-gray-100 rounded"
+                                title="View category"
+                            >
+                                <Eye size={14} />
+                            </button>
+                            <button
+                                onClick={() => handleCategoryAction(category.id, 'edit')}
+                                className="p-1 hover:bg-gray-100 rounded"
+                                title="Edit category"
+                            >
+                                <Edit size={14} />
+                            </button>
+                            <button
+                                onClick={() => handleCategoryAction(category.id, 'archive')}
+                                className="p-1 hover:bg-gray-100 rounded text-red-600"
+                                title="Archive category"
+                            >
+                                <Archive size={14} />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <div>
@@ -370,7 +463,7 @@ export default function ListCategories() {
                                 onChange={(e) => setSortBy(e.target.value)}
                             >
                                 <option value="name">Name (A-Z)</option>
-                                <option value="items">Item Count (High-Low)</option>
+                                <option value="items">Card Count (High-Low)</option>
                                 <option value="newest">Recently Updated</option>
                                 <option value="oldest">Oldest First</option>
                             </select>
@@ -458,9 +551,9 @@ export default function ListCategories() {
                         </div>
                         <div className="text-center">
                             <div className="text-2xl font-bold text-blue-600">
-                                {categories.reduce((sum, cat) => sum + (cat.itemCount || 0), 0)}
+                                {categories.reduce((sum, cat) => sum + (cat._count?.cards || 0), 0)}
                             </div>
-                            <div className="text-sm text-gray-600">Total Items</div>
+                            <div className="text-sm text-gray-600">Total Cards</div>
                         </div>
                         <div className="text-center">
                             <div className="text-2xl font-bold text-purple-600">{filteredCategories.length}</div>

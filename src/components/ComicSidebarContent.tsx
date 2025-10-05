@@ -1,17 +1,16 @@
-// ComicSidebarContent.tsx
 "use client"
 import React from 'react';
 import {
     CreditCard,
     ChevronRight,
-    BarChart3,
     Plus,
     LayoutDashboard,
     List,
     Users,
     Gamepad2,
     Archive,
-    Tag
+    Tag,
+    Palette
 } from 'lucide-react';
 import Link from "next/link"
 
@@ -79,11 +78,11 @@ const ComicSidebarContent: React.FC<ComicSidebarContentProps> = ({
             label: "All Categories",
             icon: List
         },
-        // {
-        //     href: "/admin/categories/dashboard",
-        //     label: "Categories Overview",
-        //     icon: BarChart3
-        // },
+        {
+            href: "/admin/categories/presets",
+            label: "Color Presets",
+            icon: Palette
+        }
     ];
 
 

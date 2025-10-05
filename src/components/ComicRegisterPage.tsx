@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from 'react'
-import { Mail, Lock, User, UserPlus, LogIn, Eye, EyeOff, Loader2, Shield } from 'lucide-react'
+import { Mail, Lock, User, UserPlus, LogIn, Eye, EyeOff, Loader2 } from 'lucide-react'
 import Link from "next/link"
 
 const ComicRegisterPage: React.FC = () => {
@@ -18,9 +18,6 @@ const ComicRegisterPage: React.FC = () => {
 
         try {
             // Simulate API call - replace with your actual registration logic
-            await new Promise(resolve => setTimeout(resolve, 2000))
-            console.log({ name, email, password, confirmPassword })
-
             // Handle successful registration here
             // e.g., redirect to dashboard, show success message, etc.
 

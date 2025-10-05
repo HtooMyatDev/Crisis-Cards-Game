@@ -17,55 +17,36 @@ const ComicSidebar = () => {
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     const toggleCards = () => {
-        if (!isCardsOpen) {
-            setIsCardsOpen(true);
-            setIsCategoriesOpen(false);
-            setIsProfileOpen(false);
-            setIsGamesOpen(false);
-        } else {
-            setIsCardsOpen(false);
-        }
-    };
-
-    const toggleProfile = () => {
-        if (!isProfileOpen) {
-            setIsProfileOpen(true);
-            setIsCardsOpen(false);
-            setIsCategoriesOpen(false);
-            setIsGamesOpen(false);
-        } else {
-            setIsProfileOpen(false);
-        }
-    };
-
-    const toggleCategories = () => {
-        if (!isCategoriesOpen) {
-            setIsCategoriesOpen(true);
-            setIsCardsOpen(false);
-            setIsProfileOpen(false);
-            setIsGamesOpen(false);
-        } else {
-            setIsCategoriesOpen(false);
-        }
-    };
-
-    const toggleGames = () => {
-        if (!isGamesOpen) {
-            setIsGamesOpen(true);
-            setIsCardsOpen(false);
-            setIsProfileOpen(false);
-            setIsCategoriesOpen(false);
-        } else {
-            setIsGamesOpen(false);
-        }
-    };
-
-    const handleNavigation = () => {
-        setIsOpen(false);
-        setIsCardsOpen(false);
+        setIsCardsOpen(true);
         setIsCategoriesOpen(false);
         setIsProfileOpen(false);
         setIsGamesOpen(false);
+    };
+
+    const toggleProfile = () => {
+        setIsProfileOpen(true);
+        setIsCardsOpen(false);
+        setIsCategoriesOpen(false);
+        setIsGamesOpen(false);
+    };
+
+    const toggleCategories = () => {
+        setIsCategoriesOpen(true);
+        setIsCardsOpen(false);
+        setIsProfileOpen(false);
+        setIsGamesOpen(false);
+    };
+
+    const toggleGames = () => {
+        setIsGamesOpen(true);
+        setIsCardsOpen(false);
+        setIsProfileOpen(false);
+        setIsCategoriesOpen(false);
+    };
+
+    const handleNavigation = () => {
+        // Only close mobile sidebar, keep desktop navigation sections open
+        setIsOpen(false);
     };
 
     const handleLogout = () => {
