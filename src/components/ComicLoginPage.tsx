@@ -1,64 +1,26 @@
 "use client"
-import React, { useState, useActionState } from 'react'
+import React, { useState, useActionState, useEffect } from 'react'
 import { Mail, Lock, LogIn, Loader2, UserPlus, Shield, Eye, EyeOff, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
-
-async function loginAction(prevState: any, formData: FormData) {
-    const email = formData.get("email") as string
-    const password = formData.get("password") as string
-
-    try {
-        const response = await fetch('/api/auth/login', {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email, password })
-        })
-
-        const data = await response.json()
-        const getFieldError = (field: string) => {
-            return data.errors?.properties?.[field]?.errors?.[0] || ''
-        }
-        if (response.ok) {
-            return {
-                success: true,
-                message: "Login successful!",
-                errors: {}
-            }
-        }
-        else {
-            // Handle validation errors
-            const fieldErrors: any = {}
-            if (data.errors) {
-                fieldErrors.email = getFieldError("email")
-                fieldErrors.password = getFieldError("password")
-            }
-
-            return {
-                success: false,
-                message: data.error || 'Login failed. Please try again.',
-                errors: fieldErrors
-            }
-        }
-    }
-    catch (error) {
-        return {
-            success: false,
-            message: 'Network error. Please check your connection and try again',
-            errors: {}
-        }
-    }
-}
+import { loginAction } from '@/app/actions/auth'
+import { useRouter } from 'next/navigation'
 
 const CrisisLoginPage: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false)
+    const router = useRouter()
 
     const [state, formAction, pending] = useActionState(loginAction, {
         success: false,
         message: '',
-        errors: {}
+        errors: {},
+        redirectTo: null
     })
+
+    useEffect(() => {
+        if (state.success && state.redirectTo) {
+            router.push(state.redirectTo)
+        }
+    }, [state.success, state.redirectTo, router])
 
     return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 relative overflow-hidden">

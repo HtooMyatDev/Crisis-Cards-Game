@@ -21,7 +21,7 @@ export default function EditCrisisCardDesign() {
     const cardId = Array.isArray(id) ? id[0] : id;
 
     // Custom hooks
-    const { loading, error, categories, initialFormData } = useCrisisCardData(cardId);
+    const { loading, error, categories, initialFormData } = useCrisisCardData(cardId ?? '');
     const {
         formData,
         hasUnsavedChanges,
@@ -188,6 +188,8 @@ export default function EditCrisisCardDesign() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <FormInput label="Category" required error={formErrors.categoryId}>
                                         <select
+                                            id="category"
+                                            aria-label="Category"
                                             value={formData.categoryId}
                                             onChange={(e) => handleCategoryChange(e.target.value)}
                                             className="w-full px-4 py-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[1px] focus:translate-y-[1px] transition-all duration-200 outline-none"
@@ -203,6 +205,8 @@ export default function EditCrisisCardDesign() {
 
                                     <FormInput label="Status">
                                         <select
+                                            id="status"
+                                            aria-label="Status"
                                             value={formData.status}
                                             onChange={(e) => updateField('status', e.target.value as FormState['status'])}
                                             className="w-full px-4 py-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[1px] focus:translate-y-[1px] transition-all duration-200 outline-none"

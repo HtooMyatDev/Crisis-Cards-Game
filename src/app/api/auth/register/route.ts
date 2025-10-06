@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { registerFormSchema } from "@/lib/rules"
 import { z } from "zod"
-
+import bcrypt from "bcrypt"
 export async function POST(request: NextRequest) {
     try {
         const { username, email, password, confirmPassword } = await request.json();

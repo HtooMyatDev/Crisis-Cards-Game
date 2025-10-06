@@ -18,7 +18,7 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   name      String?
-  password  String`
+  password  String
   role      UserRole @default(USER)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
