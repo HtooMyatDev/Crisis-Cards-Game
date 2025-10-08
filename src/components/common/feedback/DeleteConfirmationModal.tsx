@@ -37,7 +37,6 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
                 className="bg-white border-4 border-black rounded-lg shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-md w-full p-6 relative"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Close button */}
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-lg transition-colors"
@@ -46,7 +45,6 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
                     <X size={20} />
                 </button>
 
-                {/* Icon and Title */}
                 <div className="flex items-center gap-4 mb-4">
                     <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center border-2 border-red-600">
                         <AlertTriangle size={24} className="text-red-600" />
@@ -57,7 +55,6 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
                     </div>
                 </div>
 
-                {/* Content */}
                 <div className="mb-6">
                     <p className="text-gray-700 mb-2">
                         Are you sure you want to delete this crisis card?
@@ -70,7 +67,6 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
                     </p>
                 </div>
 
-                {/* Actions */}
                 <div className="flex gap-3">
                     <button
                         onClick={onClose}

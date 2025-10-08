@@ -7,7 +7,7 @@ interface UnsavedChangesModalProps {
     onCancel: () => void;
 }
 
-export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
+const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
     isOpen,
     onConfirm,
     onCancel
@@ -46,3 +46,5 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
         </div>
     );
 };
+
+export default UnsavedChangesModal;

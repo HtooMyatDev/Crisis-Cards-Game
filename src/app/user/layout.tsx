@@ -1,6 +1,6 @@
 "use client"
 import React from 'react';
-import UserSidebar from '@/components/UserSidebar';
+import UserSidebar from '@/components/user/Sidebar/UserSidebar';
 
 export default function UserLayout({
     children,

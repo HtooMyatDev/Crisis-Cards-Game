@@ -1,16 +1,11 @@
 "use client"
-import React, { useEffect, useState } from 'react';
-import {
-    User,
-    Settings,
-    Bell,
-    Shield,
-    LogOut,
-    ChevronRight
-} from 'lucide-react';
+import React, { useActionState, useEffect, useState } from 'react';
+import { User, Settings, Bell, Shield, LogOut, ChevronRight } from 'lucide-react';
 import Link from 'next/link'
+import { logoutAction } from '@/app/actions/auth';
+import { useRouter } from 'next/navigation';
 
-interface ComicSidebarFooterProps {
+interface AdminSidebarFooterProps {
     isProfileOpen: boolean;
     onToggleProfile: () => void;
     onNavigation: () => void;
@@ -23,7 +18,7 @@ interface ComicSidebarFooterProps {
     };
 }
 
-const ComicSidebarFooter: React.FC<ComicSidebarFooterProps> = ({
+const AdminSidebarFooter: React.FC<AdminSidebarFooterProps> = ({
     isProfileOpen,
     onToggleProfile,
     onNavigation,
@@ -33,9 +28,16 @@ const ComicSidebarFooter: React.FC<ComicSidebarFooterProps> = ({
 }) => {
     const [mounted, setMounted] = useState(false);
 
+    const [state, formAction, isPending] = useActionState(logoutAction, null);
+    const router = useRouter();
+
     useEffect(() => {
         setMounted(true);
-    }, []);
+        if (state?.success) {
+            router.push('/auth/login')
+        }
+    }, [state, router]);
+
 
     const isProfileSectionActive =
         pathname.includes('/admin/profile') ||
@@ -53,7 +55,6 @@ const ComicSidebarFooter: React.FC<ComicSidebarFooterProps> = ({
     return (
         <div className="absolute bottom-3 left-3 right-3">
             <div className="space-y-2">
-                {/* Profile Options Dropdown - Positioned ABOVE the main button when open */}
                 <div className={`ml-4 space-y-2 overflow-hidden transition-all duration-300 ease-out pe-1 pb-1 ${isProfileOpen
                     ? 'max-h-[280px] opacity-100 translate-y-0 mb-2'
                     : 'max-h-0 opacity-0 translate-y-2 mb-0'
@@ -76,21 +77,22 @@ const ComicSidebarFooter: React.FC<ComicSidebarFooterProps> = ({
                             {option.label}
                         </Link>
                     ))}
-
-                    <button
-                        className="w-full flex items-center gap-2.5 px-3 py-1.5 border-2 border-red-600 rounded-md font-semibold text-xs text-red-600
+                    <form action={formAction}>
+                        <button
+                            className="w-full flex items-center gap-2.5 px-3 py-1.5 border-2 border-red-600 rounded-md font-semibold text-xs text-red-600
                             shadow-[2px_2px_0px_0px_rgba(220,38,38,1)] hover:shadow-none
                             hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-150
                             active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
+                            cursor-pointer
                             bg-white hover:bg-red-50"
-                        onClick={onLogout}
-                    >
-                        <LogOut size={16} />
-                        Logout
-                    </button>
+                            onClick={onLogout}
+                        >
+                            <LogOut size={16} />
+                            Logout
+                        </button>
+                    </form>
                 </div>
 
-                {/* Main Profile Button */}
                 <button
                     type="button"
                     onClick={onToggleProfile}
@@ -102,7 +104,7 @@ const ComicSidebarFooter: React.FC<ComicSidebarFooterProps> = ({
                             ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-indigo-800'
                             : 'bg-gradient-to-r from-white to-gray-50 hover:from-indigo-50 hover:to-indigo-100'
                         }`}
-                    aria-expanded={isProfileOpen}
+
                 >
                     <div className="flex flex-col items-start">
                         <span className="text-xs font-bold">{userInfo.name}</span>
@@ -127,4 +129,4 @@ const ComicSidebarFooter: React.FC<ComicSidebarFooterProps> = ({
     );
 };
 
-export default ComicSidebarFooter;
+export default AdminSidebarFooter;

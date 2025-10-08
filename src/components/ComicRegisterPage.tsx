@@ -1,32 +1,64 @@
 "use client"
-import React, { useState } from 'react'
-import { Mail, Lock, User, UserPlus, LogIn, Eye, EyeOff, Loader2 } from 'lucide-react'
+import React, { useActionState, useState, useEffect, startTransition } from 'react'
+import { Mail, Lock, User, UserPlus, LogIn, Eye, EyeOff, Loader2, AlertTriangle, Shield } from 'lucide-react'
 import Link from "next/link"
+import { registerAction } from "@/app/actions/auth"
+import { useRouter } from 'next/navigation'
 
 const ComicRegisterPage: React.FC = () => {
-    const [name, setName] = useState('')
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [confirmPassword, setConfirmPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-    const [loading, setLoading] = useState(false)
+    const router = useRouter()
 
-    const onSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
+    // Form data state to persist values
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+        confirmPassword: ''
+    })
 
-        try {
-            // Simulate API call - replace with your actual registration logic
-            // Handle successful registration here
-            // e.g., redirect to dashboard, show success message, etc.
+    const [state, formAction, pending] = useActionState(registerAction, {
+        success: false,
+        message: '',
+        errors: {},
+        redirectTo: null
+    })
 
-        } catch (error) {
-            console.error('Registration failed:', error)
-            // Handle error here (show error message, etc.)
-        } finally {
-            setLoading(false)
+    // Handle input changes
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData(prev => ({
+            ...prev,
+            [e.target.name]: e.target.value
+        }))
+    }
+
+    // Clear password fields on error for security
+    useEffect(() => {
+        if (!state.success && state.message && Object.keys(state.errors).length > 0) {
+            setFormData(prev => ({
+                ...prev,
+                password: '',
+                confirmPassword: ''
+            }))
         }
+    }, [state.success, state.message, state.errors])
+
+    // Handle successful registration
+    useEffect(() => {
+        if (state.success && state.redirectTo) {
+            router.push(state.redirectTo)
+        }
+    }, [state.success, state.redirectTo, router])
+
+    // Handle form submission
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        const form = e.currentTarget
+        const formDataObj = new FormData(form)
+        startTransition(() => {
+            formAction(formDataObj)
+        })
     }
 
     return (
@@ -78,102 +110,159 @@ const ComicRegisterPage: React.FC = () => {
                     <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-yellow-400 rounded-full"></div>
                     <div className="absolute -bottom-3 -right-3 w-6 h-6 bg-purple-500 transform rotate-45"></div>
 
-                    <div className="space-y-6 relative z-10">
-                        {/* Name Input */}
-                        <div className="relative transition-all duration-200
-                            focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
-                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 z-10">
-                                <User size={20} />
+                    {/* Success Message */}
+                    {state.success && (
+                        <div className="mb-6 p-4 bg-green-100 border-4 border-green-500 rounded-lg relative">
+                            <div className="flex items-center gap-3">
+                                <Shield size={20} className="text-green-500 flex-shrink-0" />
+                                <p className="text-green-800 font-bold">{state.message}</p>
                             </div>
-                            <input
-                                type="text"
-                                name="name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Full Name"
-                                className="w-full pl-12 pr-4 py-4 border-4 border-black rounded-lg font-semibold text-lg
-                                    bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                                    focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                                    transition-all duration-200 focus:outline-none placeholder-gray-500"
-                            />
+                            <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-500 transform rotate-45"></div>
+                        </div>
+                    )}
+
+                    {/* General Error Message */}
+                    {!state.success && state.message && Object.keys(state.errors).length === 0 && (
+                        <div className="mb-6 p-4 bg-red-100 border-4 border-red-500 rounded-lg relative">
+                            <div className="flex items-center gap-3">
+                                <AlertTriangle size={20} className="text-red-500 flex-shrink-0" />
+                                <p className="text-red-800 font-bold">{state.message}</p>
+                            </div>
+                            <div className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 transform rotate-45"></div>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+                        {/* Name Input */}
+                        <div>
+                            <div className="relative transition-all duration-200 focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 z-10">
+                                    <User size={20} />
+                                </div>
+                                <input
+                                    required
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    placeholder="Full Name"
+                                    className={`w-full pl-12 pr-4 py-4 border-4 rounded-lg font-semibold text-lg
+                                        bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+                                        focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                                        transition-all duration-200 focus:outline-none placeholder-gray-500
+                                        ${(state.errors as Record<string, string>).name ? 'border-red-500' : 'border-black'}`}
+                                />
+                            </div>
+                            {(state.errors as Record<string, string>).name && (
+                                <div className="mt-2 flex items-center gap-2">
+                                    <AlertTriangle size={16} className="text-red-500" />
+                                    <p className="text-red-600 font-bold text-sm">{state.errors.name}</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Email Input */}
-                        <div className="relative transition-all duration-200
-                            focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
-                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 z-10">
-                                <Mail size={20} />
+                        <div>
+                            <div className="relative transition-all duration-200 focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 z-10">
+                                    <Mail size={20} />
+                                </div>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    required
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="Email Address"
+                                    className={`w-full pl-12 pr-4 py-4 border-4 rounded-lg font-semibold text-lg
+                                        bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+                                        focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                                        transition-all duration-200 focus:outline-none placeholder-gray-500
+                                        ${(state.errors as Record<string, string>).email ? 'border-red-500' : 'border-black'}`}
+                                />
                             </div>
-                            <input
-                                type="email"
-                                name="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="Email Address"
-                                className="w-full pl-12 pr-4 py-4 border-4 border-black rounded-lg font-semibold text-lg
-                                    bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                                    focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                                    transition-all duration-200 focus:outline-none placeholder-gray-500"
-                            />
+                            {(state.errors as Record<string, string>).email && (
+                                <div className="mt-2 flex items-center gap-2">
+                                    <AlertTriangle size={16} className="text-red-500" />
+                                    <p className="text-red-600 font-bold text-sm">{state.errors.email}</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Password Input */}
-                        <div className="relative transition-all duration-200
-                            focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
-                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 z-10">
-                                <Lock size={20} />
+                        <div>
+                            <div className="relative transition-all duration-200 focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 z-10">
+                                    <Lock size={20} />
+                                </div>
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="password"
+                                    required
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    placeholder="Password"
+                                    className={`w-full pl-12 pr-12 py-4 border-4 rounded-lg font-semibold text-lg
+                                        bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+                                        focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                                        transition-all duration-200 focus:outline-none placeholder-gray-500
+                                        ${(state.errors as Record<string, string>).password ? 'border-red-500' : 'border-black'}`}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors z-10"
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
                             </div>
-                            <input
-                                type={showPassword ? "text" : "password"}
-                                name="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Password"
-                                className="w-full pl-12 pr-12 py-4 border-4 border-black rounded-lg font-semibold text-lg
-                                    bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                                    focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                                    transition-all duration-200 focus:outline-none placeholder-gray-500"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors z-10"
-                            >
-                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                            </button>
+                            {(state.errors as Record<string, string>).password && (
+                                <div className="mt-2 flex items-center gap-2">
+                                    <AlertTriangle size={16} className="text-red-500" />
+                                    <p className="text-red-600 font-bold text-sm">{state.errors.password}</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Confirm Password Input */}
-                        <div className="relative transition-all duration-200
-                            focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
-                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 z-10">
-                                <Lock size={20} />
+                        <div>
+                            <div className="relative transition-all duration-200 focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 z-10">
+                                    <Lock size={20} />
+                                </div>
+                                <input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    name="confirmPassword"
+                                    required
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                    placeholder="Confirm Password"
+                                    className={`w-full pl-12 pr-12 py-4 border-4 rounded-lg font-semibold text-lg
+                                        bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+                                        focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                                        transition-all duration-200 focus:outline-none placeholder-gray-500
+                                        ${(state.errors as Record<string, string>).confirmPassword ? 'border-red-500' : 'border-black'}`}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors z-10"
+                                >
+                                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
                             </div>
-                            <input
-                                type={showConfirmPassword ? "text" : "password"}
-                                name="confirmPassword"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                placeholder="Confirm Password"
-                                className="w-full pl-12 pr-12 py-4 border-4 border-black rounded-lg font-semibold text-lg
-                                    bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                                    focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                                    transition-all duration-200 focus:outline-none placeholder-gray-500"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors z-10"
-                            >
-                                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                            </button>
+                            {(state.errors as Record<string, string>).confirmPassword && (
+                                <div className="mt-2 flex items-center gap-2">
+                                    <AlertTriangle size={16} className="text-red-500" />
+                                    <p className="text-red-600 font-bold text-sm">{state.errors.confirmPassword}</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Submit Button */}
                         <button
                             type="submit"
-                            onClick={onSubmit}
-                            disabled={loading}
+                            disabled={pending}
                             className="w-full px-6 py-4 border-4 border-black rounded-lg font-bold text-lg
                                 bg-green-500 text-white transition-all duration-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
                                 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-green-600
@@ -184,7 +273,7 @@ const ComicRegisterPage: React.FC = () => {
                                 flex items-center justify-center gap-2 relative overflow-hidden group"
                         >
                             <div className="absolute inset-0 bg-white transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-500 opacity-20"></div>
-                            {loading ? (
+                            {pending ? (
                                 <>
                                     <Loader2 size={20} className="relative z-10 animate-spin" />
                                     <span className="relative z-10">Joining Crisis Team...</span>
@@ -196,7 +285,7 @@ const ComicRegisterPage: React.FC = () => {
                                 </>
                             )}
                         </button>
-                    </div>
+                    </form>
 
                     {/* Terms */}
                     <div className="mt-6">

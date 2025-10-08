@@ -1,16 +1,22 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useActionState, useEffect, useState } from 'react';
 import { Menu, X, Home, Gamepad2, Trophy, User, LogOut, ChevronRight } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import ThemeToggle from '@/components/ThemeToggle';
-
+import ThemeToggle from '@/components/common/ui/ThemeToggle';
+import { logoutAction } from '@/app/actions/auth';
+import { useRouter } from 'next/navigation'
 const UserSidebar = () => {
     const [isOpen, setIsOpen] = useState(false);
+
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+
     const pathname = usePathname();
 
+    const router = useRouter()
+
     const toggleSidebar = () => setIsOpen(!isOpen);
+
     const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
 
     const handleNavigation = () => {
@@ -19,13 +25,19 @@ const UserSidebar = () => {
     };
 
     const handleLogout = () => {
-        console.log('User logout clicked');
         setIsOpen(false);
         setIsProfileOpen(false);
     };
 
+    const [state, formAction, isPending] = useActionState(logoutAction, null)
+
+    useEffect(() => {
+        if (state?.success) {
+            router.push('/auth/login')
+        }
+    }, [state, router])
     const userInfo = {
-        name: 'Player One',
+        name: 'Htoo Myat Aung',
         level: 'Level 5',
         initials: 'P1'
     };
@@ -149,17 +161,19 @@ const UserSidebar = () => {
                                 Profile
                             </Link>
 
-                            <button
-                                className="w-full flex items-center gap-2.5 px-3 py-1.5 border-2 border-red-600 dark:border-red-500 rounded-md font-semibold text-xs text-red-600 dark:text-red-400
-                                    shadow-[2px_2px_0px_0px_rgba(220,38,38,1)] dark:shadow-[2px_2px_0px_0px_rgba(239,68,68,0.5)] hover:shadow-none
-                                    hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-150
-                                    active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
-                                    bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                onClick={handleLogout}
-                            >
-                                <LogOut size={16} />
-                                Logout
-                            </button>
+                            <form action={formAction}>
+                                <button
+                                    className="w-full flex items-center gap-2.5 px-3 py-1.5 border-2 border-red-600 dark:border-red-500 rounded-md font-semibold text-xs text-red-600 dark:text-red-400
+            shadow-[2px_2px_0px_0px_rgba(220,38,38,1)] dark:shadow-[2px_2px_0px_0px_rgba(239,68,68,0.5)] hover:shadow-none
+            hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-150
+            active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
+            bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                    onClick={handleLogout}
+                                >
+                                    <LogOut size={16} />
+                                    Logout
+                                </button>
+                            </form>
                         </div>
 
                         {/* Main Profile Button */}
@@ -174,7 +188,7 @@ const UserSidebar = () => {
                                     ? 'bg-gradient-to-r from-purple-600 to-purple-700 dark:from-purple-500 dark:to-purple-600 text-white border-purple-800 dark:border-purple-500'
                                     : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-purple-50 hover:to-purple-100 dark:hover:from-purple-900 dark:hover:to-purple-800 text-black dark:text-white'
                                 }`}
-                            aria-expanded={isProfileOpen}
+
                         >
                             <div className="flex flex-col items-start">
                                 <span className="text-xs font-bold">{userInfo.name}</span>

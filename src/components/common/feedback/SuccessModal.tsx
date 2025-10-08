@@ -43,13 +43,11 @@ export default function SuccessModal({
 
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-gray-900/20 backdrop-blur-sm"
                 onClick={onClose}
             />
 
-            {/* Modal */}
             <div className="relative bg-white border-2 border-black rounded-lg shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8 max-w-md w-full animate-in fade-in-50 zoom-in-95 duration-300">
                 <button
                     onClick={onClose}
@@ -70,7 +68,6 @@ export default function SuccessModal({
                         <p className="text-sm text-gray-500 mb-4">{redirectMessage}</p>
                     )}
 
-                    {/* Progress bar */}
                     {showProgressBar && autoCloseDelay > 0 && (
                         <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
                             <div

@@ -1,14 +1,19 @@
 "use client"
-import React, { useState, useActionState, useEffect } from 'react'
+import React, { useState, useActionState, useEffect, startTransition } from 'react'
 import { Mail, Lock, LogIn, Loader2, UserPlus, Shield, Eye, EyeOff, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { loginAction } from '@/app/actions/auth'
 import { useRouter } from 'next/navigation'
 
-const CrisisLoginPage: React.FC = () => {
+const LoginPage: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false)
     const router = useRouter()
 
+    // Form data state to persist values
+    const [formData, setFormData] = useState({
+        email: '',
+        password: ''
+    })
     const [state, formAction, pending] = useActionState(loginAction, {
         success: false,
         message: '',
@@ -16,12 +21,36 @@ const CrisisLoginPage: React.FC = () => {
         redirectTo: null
     })
 
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData(prev => ({
+            ...prev,
+            [e.target.name]: e.target.value
+        }))
+    }
+
+    useEffect(() => {
+        if (!state.success && state.message && Object.keys(state.errors).length > 0) {
+            setFormData(prev => ({
+                ...prev,
+                password: '',
+            }))
+        }
+    }, [state.success, state.message, state.errors])
+
     useEffect(() => {
         if (state.success && state.redirectTo) {
             router.push(state.redirectTo)
         }
     }, [state.success, state.redirectTo, router])
 
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        const form = e.currentTarget
+        const formDataObj = new FormData(form)
+        startTransition(() => {
+            formAction(formDataObj)
+        })
+    }
     return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 relative overflow-hidden">
             <div className="absolute inset-0 opacity-8 pointer-events-none">
@@ -91,7 +120,7 @@ const CrisisLoginPage: React.FC = () => {
                         </div>
                     )}
 
-                    <form action={formAction} className="space-y-6 relative z-10">
+                    <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                         {/* Email Input */}
                         <div className="relative transition-all duration-200
                             focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
@@ -102,14 +131,16 @@ const CrisisLoginPage: React.FC = () => {
                                 required
                                 type="email"
                                 name="email"
+                                value={formData.email}
+                                onChange={handleChange}
                                 placeholder="Email Address"
                                 className={`w-full pl-12 pr-4 py-4 border-4 rounded-lg font-semibold text-lg
                             bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
                             focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
                             transition-all duration-200 focus:outline-none placeholder-gray-500
-                            ${state.errors.email ? 'border-red-500' : 'border-black'}`}
+                            ${(state.errors as Record<string, string>).email ? 'border-red-500' : 'border-black'}`}
                             />
-                            {state.errors.email && (
+                            {(state.errors as Record<string, string>).email && (
                                 <div className="mt-2 flex items-center gap-2">
                                     <AlertTriangle size={16} className="text-red-500" />
                                     <p className="text-red-600 font-bold text-sm">{state.errors.email}</p>
@@ -128,6 +159,8 @@ const CrisisLoginPage: React.FC = () => {
                                 type={showPassword ? "text" : "password"}
                                 name="password"
                                 placeholder="Password"
+                                value={formData.password}
+                                onChange={handleChange}
                                 className={`w-full pl-12 pr-12 py-4 border-4 rounded-lg font-semibold text-lg
                                     bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
                                     focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
@@ -229,4 +262,4 @@ const CrisisLoginPage: React.FC = () => {
     )
 }
 
-export default CrisisLoginPage
+export default LoginPage

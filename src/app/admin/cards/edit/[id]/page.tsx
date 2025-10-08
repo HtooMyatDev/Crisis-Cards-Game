@@ -8,12 +8,12 @@ import { FormState, ResponseOption, FormErrors } from '@/types/crisisCard';
 import { useCrisisCardData } from '@/hooks/useCrisisCardData';
 import { useFormState } from '@/hooks/useFormState'
 import { useFormValidation } from '@/hooks/useFormValidation';
-import { FormInput } from '@/components/FormInput';
-import { NumberInput } from '@/components/NumberInput';
+import FormInput from '@/components/common/forms/FormInput';
+import NumberInput from '@/components/common/forms/NumberInput';
 import { ResponseOptionEditor } from '@/components/ResponseOptionEditor';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import LoadingSpinner from '@/components/common/feedback/LoadingSpinner';
 import { CardPreview } from '@/components/CardPreview';
-import { UnsavedChangesModal } from '@/components/UnsavedChangesModal';
+import UnsavedChangesModal from '@/components/common/feedback/UnsavedChangesModal';
 
 export default function EditCrisisCardDesign() {
     const router = useRouter();
@@ -234,7 +234,7 @@ export default function EditCrisisCardDesign() {
                                                 </label>
                                                 <NumberInput
                                                     value={formData[key]}
-                                                    onChange={(value) => updateNumberField(key, value)}
+                                                    onChange={(value: string) => updateNumberField(key, value)}
                                                     min={-50}
                                                     max={50}
                                                     placeholder="0"
@@ -255,7 +255,7 @@ export default function EditCrisisCardDesign() {
                                 >
                                     <NumberInput
                                         value={formData.timeLimit}
-                                        onChange={(value) => updateNumberField('timeLimit', value)}
+                                        onChange={(value: string) => updateNumberField('timeLimit', value)}
                                         min={1}
                                         max={120}
                                         placeholder="15"

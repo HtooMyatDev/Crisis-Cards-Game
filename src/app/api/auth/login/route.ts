@@ -3,7 +3,6 @@ import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import bcrypt from 'bcrypt';
-import { generateJWTToken } from "@/utils/auth";
 
 export async function POST(request: NextRequest) {
     try {
@@ -12,6 +11,7 @@ export async function POST(request: NextRequest) {
             email,
             password
         })
+
 
         if (!validatedFields.success) {
             return NextResponse.json({
@@ -58,15 +58,8 @@ export async function POST(request: NextRequest) {
         // Determine route based on role
         const route = existingUser.role === "ADMIN"
             ? "/admin/dashboard"
-            : "/user/dashboard";
+            : "/user/home";
 
-        // Generate JWT token
-        const token = generateJWTToken({
-            userId: existingUser.id,
-            email: existingUser.email,
-            role: existingUser.role,
-            name: existingUser.name
-        });
 
         // Create response with token in cookie
         const response = NextResponse.json({
@@ -79,20 +72,10 @@ export async function POST(request: NextRequest) {
                 role: existingUser.role
             }
         }, { status: 200 });
-
-        // Set HTTP-only cookie
-        response.cookies.set('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: 'strict',
-            maxAge: 60 * 60 * 24, // 24 hours
-            path: '/'
-        });
-
         return response;
 
     }
-    catch (error: unknown) {
+    catch {
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 })

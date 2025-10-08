@@ -1,9 +1,9 @@
 import React from 'react'
-import ComicLoginPage from '@/components/ComicLoginPage'
+import LoginPage from '@/components/auth/LoginPage'
 const login = () => {
     return (
         <div>
-            <ComicLoginPage />
+            <LoginPage />
         </div>
     )
 }

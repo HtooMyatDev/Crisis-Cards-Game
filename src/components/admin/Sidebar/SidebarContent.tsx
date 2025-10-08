@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import Link from "next/link"
 
-interface ComicSidebarContentProps {
+interface AdminSidebarContentProps {
     pathname: string;
     isCardsOpen: boolean;
     onToggleCards: () => void;
@@ -25,7 +25,7 @@ interface ComicSidebarContentProps {
     onToggleGames: () => void;
 }
 
-const ComicSidebarContent: React.FC<ComicSidebarContentProps> = ({
+const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
     pathname = '',
     isCardsOpen,
     onToggleCards,
@@ -118,7 +118,6 @@ const ComicSidebarContent: React.FC<ComicSidebarContentProps> = ({
                                 ? 'bg-gradient-to-r from-green-600 to-green-700 text-white border-green-800'
                                 : 'bg-gradient-to-r from-white to-gray-50 hover:from-green-50 hover:to-green-100'
                             }`}
-                        aria-expanded={isGamesOpen}
                     >
                         <div className="flex items-center gap-2.5">
                             <Gamepad2 size={18} />
@@ -185,7 +184,6 @@ const ComicSidebarContent: React.FC<ComicSidebarContentProps> = ({
                                 ? 'bg-gradient-to-r from-red-600 to-red-700 text-white border-red-800'
                                 : 'bg-gradient-to-r from-white to-gray-50 hover:from-red-50 hover:to-red-100'
                             }`}
-                        aria-expanded={isCardsOpen}
                     >
                         <div className="flex items-center gap-2.5">
                             <CreditCard size={18} />
@@ -235,7 +233,6 @@ const ComicSidebarContent: React.FC<ComicSidebarContentProps> = ({
                                 ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white border-orange-800'
                                 : 'bg-gradient-to-r from-white to-gray-50 hover:from-orange-50 hover:to-orange-100'
                             }`}
-                        aria-expanded={isCategoriesOpen}
                     >
                         <div className="flex items-center gap-2.5">
                             <Tag size={18} />
@@ -277,4 +274,4 @@ const ComicSidebarContent: React.FC<ComicSidebarContentProps> = ({
     );
 };
 
-export default ComicSidebarContent;
+export default AdminSidebarContent;

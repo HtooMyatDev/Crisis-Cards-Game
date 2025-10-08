@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
 import { useRouter } from "next/navigation"
-import SuccessModal from '@/components/SuccessModal';
+import SuccessModal from '@/components/common/feedback/SuccessModal';
 import { useForm } from 'react-hook-form'
 
 interface CategoryFormData {
@@ -305,11 +305,10 @@ export default function CreateCategory() {
                                                     key={preset.id}
                                                     type="button"
                                                     onClick={() => setValue('colorPresetId', preset.id.toString())}
-                                                    className={`p-3 border-2 rounded-lg hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 ${
-                                                        watchedColorPresetId === preset.id.toString()
+                                                    className={`p-3 border-2 rounded-lg hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 ${watchedColorPresetId === preset.id.toString()
                                                             ? `border-2 shadow-[3px_3px_0px_0px_${preset.textBoxColor}]`
                                                             : 'border-black'
-                                                    }`}
+                                                        }`}
                                                     style={{
                                                         backgroundColor: preset.backgroundColor,
                                                         ...(watchedColorPresetId === preset.id.toString() && {

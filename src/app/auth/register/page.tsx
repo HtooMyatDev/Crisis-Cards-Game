@@ -1,12 +1,12 @@
-import ComicRegisterPage from '@/components/ComicRegisterPage'
+import RegisterPage from '@/components/auth/RegisterPage'
 import React from 'react'
 
 const register = () => {
-  return (
-    <div>
-        <ComicRegisterPage/>
-    </div>
-  )
+    return (
+        <div>
+            <RegisterPage />
+        </div>
+    )
 }
 
 export default register
