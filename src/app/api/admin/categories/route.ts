@@ -3,8 +3,10 @@ import { prisma } from '@/lib/prisma'; // Import the singleton Prisma client
 
 export async function POST(request: NextRequest) {
     try {
+
         // 1. Parse the request body to get the category data.
         const body = await request.json();
+
         const { name, description, colorPresetId, status } = body;
 
         // 2. Validate the incoming data.
@@ -39,7 +41,7 @@ export async function POST(request: NextRequest) {
         // Map frontend status to database enum
         const dbStatus = status === 'Active' ? 'ACTIVE' : 'INACTIVE';
 
-        const createdBy = 1; // Example user ID
+        const createdBy = 2; // Example user ID
 
         // 3. Create the category
         const newCategory = await prisma.category.create({

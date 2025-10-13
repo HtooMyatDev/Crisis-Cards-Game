@@ -5,286 +5,334 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+provider = "postgresql"
+url = env("DATABASE_URL")
 }
 
 // User management
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String?
-  password  String
-  role      UserRole @default(USER)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+id Int @id @default(autoincrement())
+email String @unique
+name String?
+password String
+role UserRole @default(USER)
+isActive Boolean @default(true)
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 
-  // Relations
-  createdCards      Card[]        @relation("CardCreator")
-  assignedCards     Card[]        @relation("CardAssignee")
-  archivedCards     Card[]        @relation("CardArchivedBy")
-  cardComments      Comment[]
-  cardActivities    Activity[]
-  createdCategories Category[]    @relation("CategoryCreator")
-  createdTemplates  Template[]    @relation("TemplateCreator")
-  ColorPreset       ColorPreset[]
+// Relations
+createdCards Card[] @relation("CardCreator")
+assignedCards Card[] @relation("CardAssignee")
+archivedCards Card[] @relation("CardArchivedBy")
+cardComments Comment[]
+cardActivities Activity[]
+createdCategories Category[] @relation("CategoryCreator")
+createdTemplates Template[] @relation("TemplateCreator")
+ColorPreset ColorPreset[]
+hostedGames GameSession[]
 
-  @@map("users")
+@@map("users")
 }
 
 model ColorPreset {
-  id              Int      @id @default(autoincrement())
-  name            String   @db.VarChar(50)
-  description     String?  @db.Text
-  backgroundColor String   @db.VarChar(7) // Background color for cards/sections
-  textColor       String   @db.VarChar(7) // Text color for readability
-  textBoxColor    String   @db.VarChar(7) // Color for text boxes/input fields
-  isActive        Boolean  @default(true)
-  isDefault       Boolean  @default(false) // Mark system defaults
-  usageCount      Int      @default(0) // Track popularity
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  createdById     Int? // Optional: link to admin user who created it
+id Int @id @default(autoincrement())
+name String @db.VarChar(50)
+description String? @db.Text
+backgroundColor String @db.VarChar(7) // Background color for cards/sections
+textColor String @db.VarChar(7) // Text color for readability
+textBoxColor String @db.VarChar(7) // Color for text boxes/input fields
+isActive Boolean @default(true)
+isDefault Boolean @default(false) // Mark system defaults
+usageCount Int @default(0) // Track popularity
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+createdById Int? // Optional: link to admin user who created it
 
-  // Relations
-  createdBy  User?      @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  categories Category[] // Categories using this preset
+// Relations
+createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+categories Category[] // Categories using this preset
 
-  @@map("color_presets")
+@@map("color_presets")
+}
+
+// Add these minimal models to your existing schema for testing
+
+// Game Session - represents an active game instance
+model GameSession {
+id String @id @default(cuid())
+gameCode String @unique // 6-digit code for players to join
+hostId Int // User who created the session
+categoryId Int // Category to pull cards from
+status GameStatus @default(WAITING)
+currentCardIndex Int @default(0)
+startedAt DateTime?
+endedAt DateTime?
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+
+// Relations
+host User @relation(fields: [hostId], references: [id])
+category Category @relation(fields: [categoryId], references: [id])
+players Player[]
+
+@@map("game_sessions")
+}
+
+// Player - anonymous player in a game
+model Player {
+id Int @id @default(autoincrement())
+gameSessionId String
+nickname String // Display name chosen by player
+score Int @default(0)
+joinedAt DateTime @default(now())
+isConnected Boolean @default(true)
+
+// Relations
+gameSession GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+
+@@unique([gameSessionId, nickname]) // Unique nickname per game
+@@map("players")
 }
 
 // Categories for organizing cards
 model Category {
-  id             Int            @id @default(autoincrement())
-  name           String         @unique
-  description    String?
-  colorPresetId  Int?           // Reference to ColorPreset
-  status         Status @default(ACTIVE)
-  isArchived     Boolean        @default(false)
-  createdBy      Int
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+id Int @id @default(autoincrement())
+name String @unique
+description String?
+colorPresetId Int? // Reference to ColorPreset
+status Status @default(ACTIVE)
+isArchived Boolean @default(false)
+createdBy Int
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 
-  // Relations
-  creator     User         @relation("CategoryCreator", fields: [createdBy], references: [id])
-  colorPreset ColorPreset? @relation(fields: [colorPresetId], references: [id], onDelete: SetNull)
-  cards       Card[]
-  templates   Template[]
+// Relations
+creator User @relation("CategoryCreator", fields: [createdBy], references: [id])
+colorPreset ColorPreset? @relation(fields: [colorPresetId], references: [id], onDelete: SetNull)
+cards Card[]
+templates Template[]
+gameSessions GameSession[]
 
-  @@map("categories")
+@@map("categories")
 }
 
 // Main crisis cards
 model Card {
-  id              Int       @id @default(autoincrement())
-  title           String
-  description     String?
-  timeLimit       Int?
-  responseOptions String[]
-  status          String
-  categoryId      Int
-  createdBy       Int
-  assignedTo      Int?
-  archivedById    Int?
-  isArchived      Boolean   @default(false)
-  archivedAt      DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+id Int @id @default(autoincrement())
+title String
+description String?
+timeLimit Int?
+responseOptions String[]
+status String
+categoryId Int
+createdBy Int
+assignedTo Int?
+archivedById Int?
+isArchived Boolean @default(false)
+archivedAt DateTime?
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 
-  // New card base values
-  pwValue Int @default(0) // Power value
-  efValue Int @default(0) // Efficiency value
-  psValue Int @default(0) // Precision value
-  grValue Int @default(0) // Growth value
+// New card base values
+pwValue Int @default(0) // Power value
+efValue Int @default(0) // Efficiency value
+psValue Int @default(0) // Precision value
+grValue Int @default(0) // Growth value
 
-  // Relations
-  category      Category       @relation(fields: [categoryId], references: [id])
-  creator       User           @relation("CardCreator", fields: [createdBy], references: [id])
-  assignee      User?          @relation("CardAssignee", fields: [assignedTo], references: [id])
-  archivedBy    User?          @relation("CardArchivedBy", fields: [archivedById], references: [id])
-  comments      Comment[]
-  activities    Activity[]
-  attachments   Attachment[]
-  cardResponses CardResponse[] // New relation for response options
+// Relations
+category Category @relation(fields: [categoryId], references: [id])
+creator User @relation("CardCreator", fields: [createdBy], references: [id])
+assignee User? @relation("CardAssignee", fields: [assignedTo], references: [id])
+archivedBy User? @relation("CardArchivedBy", fields: [archivedById], references: [id])
+comments Comment[]
+activities Activity[]
+attachments Attachment[]
+cardResponses CardResponse[] // New relation for response options
 
-  @@map("cards")
+@@map("cards")
 }
 
 // New model for response options with their own values
 model CardResponse {
-  id     Int    @id @default(autoincrement())
-  cardId Int
-  text   String
-  order  Int    @default(0) // To maintain order of responses
+id Int @id @default(autoincrement())
+cardId Int
+text String
+order Int @default(0) // To maintain order of responses
 
-  // Response option effects on card values
-  pwEffect Int @default(0) // How much this response changes PW
-  efEffect Int @default(0) // How much this response changes EF
-  psEffect Int @default(0) // How much this response changes PS
-  grEffect Int @default(0) // How much this response changes GR
+// Response option effects on card values
+pwEffect Int @default(0) // How much this response changes PW
+efEffect Int @default(0) // How much this response changes EF
+psEffect Int @default(0) // How much this response changes PS
+grEffect Int @default(0) // How much this response changes GR
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 
-  // Relations
-  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+// Relations
+card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
 
-  @@map("card_responses")
+@@map("card_responses")
 }
 
 // Comments on cards
 model Comment {
-  id         Int      @id @default(autoincrement())
-  content    String
-  cardId     Int
-  userId     Int
-  isInternal Boolean  @default(false) // Internal comments vs public updates
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+id Int @id @default(autoincrement())
+content String
+cardId Int
+userId Int
+isInternal Boolean @default(false) // Internal comments vs public updates
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 
-  // Relations
-  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id])
+// Relations
+card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+user User @relation(fields: [userId], references: [id])
 
-  @@map("comments")
+@@map("comments")
 }
 
 // Activity log for tracking changes
 model Activity {
-  id          Int          @id @default(autoincrement())
-  cardId      Int
-  userId      Int
-  action      ActivityType
-  description String // Human readable description
-  oldValue    String? // Previous value (JSON string)
-  newValue    String? // New value (JSON string)
-  metadata    Json? // Additional context
-  createdAt   DateTime     @default(now())
+id Int @id @default(autoincrement())
+cardId Int
+userId Int
+action ActivityType
+description String // Human readable description
+oldValue String? // Previous value (JSON string)
+newValue String? // New value (JSON string)
+metadata Json? // Additional context
+createdAt DateTime @default(now())
 
-  // Relations
-  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id])
+// Relations
+card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+user User @relation(fields: [userId], references: [id])
 
-  @@map("activities")
+@@map("activities")
 }
 
 // File attachments for cards
 model Attachment {
-  id           Int      @id @default(autoincrement())
-  cardId       Int
-  fileName     String
-  originalName String
-  filePath     String
-  fileSize     Int // Size in bytes
-  mimeType     String
-  uploadedBy   Int
-  createdAt    DateTime @default(now())
+id Int @id @default(autoincrement())
+cardId Int
+fileName String
+originalName String
+filePath String
+fileSize Int // Size in bytes
+mimeType String
+uploadedBy Int
+createdAt DateTime @default(now())
 
-  // Relations
-  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+// Relations
+card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
 
-  @@map("attachments")
+@@map("attachments")
 }
 
 // Templates for common crisis types
 model Template {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?
-  title       String // Default title for cards created from this template
-  content     String // Default description/content
-  severity    Severity @default(MEDIUM)
-  priority    Priority @default(MEDIUM)
-  categoryId  Int
-  createdBy   Int
-  tags        String[] // Default tags
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+id Int @id @default(autoincrement())
+name String @unique
+description String?
+title String // Default title for cards created from this template
+content String // Default description/content
+severity Severity @default(MEDIUM)
+priority Priority @default(MEDIUM)
+categoryId Int
+createdBy Int
+tags String[] // Default tags
+isActive Boolean @default(true)
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 
-  // Relations
-  category Category @relation(fields: [categoryId], references: [id])
-  creator  User     @relation("TemplateCreator", fields: [createdBy], references: [id])
+// Relations
+category Category @relation(fields: [categoryId], references: [id])
+creator User @relation("TemplateCreator", fields: [createdBy], references: [id])
 
-  @@map("templates")
+@@map("templates")
 }
 
 // Notifications for users
 model Notification {
-  id        Int              @id @default(autoincrement())
-  userId    Int
-  title     String
-  message   String
-  type      NotificationType @default(INFO)
-  isRead    Boolean          @default(false)
-  cardId    Int? // Optional link to related card
-  createdAt DateTime         @default(now())
+id Int @id @default(autoincrement())
+userId Int
+title String
+message String
+type NotificationType @default(INFO)
+isRead Boolean @default(false)
+cardId Int? // Optional link to related card
+createdAt DateTime @default(now())
 
-  @@map("notifications")
+@@map("notifications")
 }
 
 // Enums
 enum UserRole {
-  ADMIN
-  MANAGER
-  USER
-  VIEWER
+ADMIN
+MANAGER
+USER
+VIEWER
 }
 
 enum CategoryStatus {
-  ACTIVE
-  INACTIVE
+ACTIVE
+INACTIVE
 }
 
 enum Severity {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
+LOW
+MEDIUM
+HIGH
+CRITICAL
 }
 
 enum Status {
-    ACTIVE
-    INACTIVE
+ACTIVE
+INACTIVE
 }
 
 enum Priority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
+LOW
+MEDIUM
+HIGH
+URGENT
 }
 
 enum CardStatus {
-  OPEN
-  IN_PROGRESS
-  BLOCKED
-  RESOLVED
-  CLOSED
+OPEN
+IN_PROGRESS
+BLOCKED
+RESOLVED
+CLOSED
 }
 
 enum ActivityType {
-  CREATED
-  UPDATED
-  ASSIGNED
-  UNASSIGNED
-  STATUS_CHANGED
-  PRIORITY_CHANGED
-  SEVERITY_CHANGED
-  COMMENTED
-  ARCHIVED
-  RESTORED
-  DELETED
+CREATED
+UPDATED
+ASSIGNED
+UNASSIGNED
+STATUS_CHANGED
+PRIORITY_CHANGED
+SEVERITY_CHANGED
+COMMENTED
+ARCHIVED
+RESTORED
+DELETED
 }
 
 enum NotificationType {
-  INFO
-  WARNING
-  ERROR
-  SUCCESS
+INFO
+WARNING
+ERROR
+SUCCESS
+}
+
+// Game Status enum
+enum GameStatus {
+WAITING // Waiting for players to join
+IN_PROGRESS // Game is active
+FINISHED // Game completed
 }

@@ -15,7 +15,7 @@ interface ResponseOption {
 
 interface CardFormData {
     name: string;
-    description: string;
+description: string;
     category: string;
     timeLimit: number;
     // Card base values
