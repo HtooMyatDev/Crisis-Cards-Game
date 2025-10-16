@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { registerFormSchema } from "@/lib/rules"
 import { z } from "zod"
 import bcrypt from "bcrypt"
-import { prisma } from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"   
 export async function POST(request: NextRequest) {
     try {
         const { username, email, password, confirmPassword } = await request.json();
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
             confirmPassword
         })
 
-        
+
         if (!validatedFields.success) {
             return NextResponse.json({
                 message: 'Validation failed',

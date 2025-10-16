@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 // Added new icons for the values
 import { Edit, Trash2, Plus, Search, Filter, Clock, Tag, Zap, Shield, TrendingUp, Heart, Users } from 'lucide-react';
-import SkeletonCardGrid from '@/components/CardSkeleton/SkeletonCardGrid';
+import SkeletonCardGrid from '@/components/skeletons/CardSkeletonGrid';
 import { useRouter } from 'next/navigation';
 
 // Updated card data type to include new values and response structure

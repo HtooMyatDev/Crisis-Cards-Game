@@ -1,1 +1,1 @@
-export { FormInput as default } from '@/components/FormInput';
+export { FormInput as default } from '@/components/ui/FormInput';

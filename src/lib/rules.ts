@@ -23,3 +23,7 @@ export const registerFormSchema = z.object({
         });
     }
 });
+
+export const gameCreateSchema = z.object({
+    gameCode: z.string().min(6, { message: "Game Code must be at least 6 characters" }),
+})

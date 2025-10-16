@@ -10,10 +10,10 @@ import { useFormState } from '@/hooks/useFormState'
 import { useFormValidation } from '@/hooks/useFormValidation';
 import FormInput from '@/components/common/forms/FormInput';
 import NumberInput from '@/components/common/forms/NumberInput';
-import { ResponseOptionEditor } from '@/components/ResponseOptionEditor';
+import { ResponseOptionEditor } from '@/components/previews/ResponseOptionEditor';
 import LoadingSpinner from '@/components/common/feedback/LoadingSpinner';
-import { CardPreview } from '@/components/CardPreview';
-import UnsavedChangesModal from '@/components/common/feedback/UnsavedChangesModal';
+import { CardPreview } from '@/components/previews/CardPreview';
+import UnsavedChangesModal from '@/components/modals/UnsavedChangesModal';
 
 export default function EditCrisisCardDesign() {
     const router = useRouter();

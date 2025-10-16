@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Save,
     X,
@@ -11,7 +11,6 @@ import {
     ArrowLeft,
     RefreshCw
 } from 'lucide-react';
-
 const CreateGameSession = () => {
     const [formData, setFormData] = useState({
         categoryId: '',
@@ -19,21 +18,27 @@ const CreateGameSession = () => {
         autoGenerateCode: true
     });
 
+    const [categories, setCategories] = useState([]);
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [generatedGameCode, setGeneratedGameCode] = useState('');
 
-    const categories = [
-        { id: 1, name: 'Fire Emergency' },
-        { id: 2, name: 'Medical Crisis' },
-        { id: 3, name: 'Natural Disaster' },
-        { id: 4, name: 'Security Incident' },
-        { id: 5, name: 'Equipment Failure' },
-        { id: 6, name: 'Communication Breakdown' },
-        { id: 7, name: 'Leadership Challenge' },
-        { id: 8, name: 'Team Coordination' }
-    ];
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch('/api/admin/categories');
+                const data = await res.json();
+                if (data.success && Array.isArray(data.categories)) {
+                    setCategories(data.categories)
+                }
+            }
+            catch (error) {
+                console.error('Failed to fetch categories', error)
+            }
+        };
+        fetchCategories();
+    }, [])
 
     const generateGameCode = () => {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -93,32 +98,26 @@ const CreateGameSession = () => {
         setIsSubmitting(true);
 
         try {
-            let finalGameCode = formData.gameCode;
-            if (formData.autoGenerateCode && !finalGameCode) {
-                finalGameCode = generateGameCode();
-                setGeneratedGameCode(finalGameCode);
+            const formattedData = {
+                gameCode: formData.gameCode,
+                hostId: 2,
+                categoryId: parseInt(formData.categoryId),
+            }
+            const response = await fetch('/api/admin/games', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': "application/json"
+                },
+                body: JSON.stringify(formattedData),
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to create a game session')
             }
 
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            const sessionData = {
-                gameCode: finalGameCode,
-                categoryId: parseInt(formData.categoryId),
-                status: 'WAITING'
-            };
-
-            console.log('Creating game session:', sessionData);
-            setShowSuccess(true);
-
-            setTimeout(() => {
-                setShowSuccess(false);
-                setFormData({
-                    categoryId: '',
-                    gameCode: '',
-                    autoGenerateCode: true
-                });
-                setGeneratedGameCode('');
-            }, 3000);
+            const result = await response.json();
+            console.log('Game session created successfully:', result);
 
         } catch (error) {
             console.error('Error creating session:', error);
@@ -201,9 +200,8 @@ const CreateGameSession = () => {
                                 name="categoryId"
                                 value={formData.categoryId}
                                 onChange={handleInputChange}
-                                className={`w-full px-4 py-3 border-2 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium ${
-                                    errors.categoryId ? 'border-red-500' : 'border-black'
-                                }`}
+                                className={`w-full px-4 py-3 border-2 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium ${errors.categoryId ? 'border-red-500' : 'border-black'
+                                    }`}
                             >
                                 <option value="">Choose a crisis category...</option>
                                 {categories.map(category => (
@@ -282,9 +280,8 @@ const CreateGameSession = () => {
                                         onChange={handleInputChange}
                                         placeholder="Enter 6-character code..."
                                         maxLength={6}
-                                        className={`w-full px-4 py-3 border-2 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xl font-bold uppercase text-center ${
-                                            errors.gameCode ? 'border-red-500' : 'border-black'
-                                        }`}
+                                        className={`w-full px-4 py-3 border-2 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xl font-bold uppercase text-center ${errors.gameCode ? 'border-red-500' : 'border-black'
+                                            }`}
                                     />
                                     {errors.gameCode && (
                                         <p className="text-red-600 text-sm mt-2 flex items-center gap-1">

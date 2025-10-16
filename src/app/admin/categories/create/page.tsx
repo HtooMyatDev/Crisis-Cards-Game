@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
 import { useRouter } from "next/navigation"
-import SuccessModal from '@/components/common/feedback/SuccessModal';
+import SuccessModal from '@/components/modals/SuccessModal';
 import { useForm } from 'react-hook-form'
 
 interface CategoryFormData {

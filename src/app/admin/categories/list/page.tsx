@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Tag, RefreshCw, Filter, Grid, List, Plus, Eye, Edit, Archive } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import SkeletonCardGrid from '@/components/CategorySkeleton/SkeletonCardGrid';
-import SkeletonCardList from '@/components/CategorySkeleton/SkeletonCardList';
+import SkeletonCardGrid from '@/components/skeletons/CategorySkeletonGrid';
+import SkeletonCardList from '@/components/skeletons/CategorySkeletonList';
 
 interface ColorPreset {
     id: number;

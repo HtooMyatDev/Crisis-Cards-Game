@@ -1,1 +1,1 @@
-export { default } from '@/components/CategorySkeleton/SkeletonCardGrid';
+export { default } from '@/components/skeletons/CategorySkeletonGrid';

@@ -35,7 +35,8 @@ export default function UserManagement() {
                 setLoading(false);
             }
         };
-        fetchUsers();
+
+     fetchUsers();
     }, []);
 
     const filteredUsers = users.filter(user => {
