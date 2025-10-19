@@ -58,28 +58,63 @@ categories Category[] // Categories using this preset
 
 @@map("color_presets")
 }
-
-// Add these minimal models to your existing schema for testing
-
-// Game Session - represents an active game instance
 model GameSession {
+  id               String   @id @default(cuid())
+  name             String
+  gameCode         String   @unique
+  gameMode         String   @default("Standard")
+  hostId           Int
+  status           GameStatus @default(WAITING)
+  currentCardIndex Int      @default(0)
+  startedAt        DateTime?
+  endedAt          DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([hostId])
+
+  // Relations
+  host        User                  @relation(fields: [hostId], references: [id])
+  categories  GameSessionCategory[] // Changed from 'category' to 'categories'
+  players     Player[]
+
+  @@map("game_sessions")
+}
+
+model GameSessionCategory {
 id String @id @default(cuid())
-gameCode String @unique // 6-digit code for players to join
-hostId Int // User who created the session
-categoryId Int // Category to pull cards from
-status GameStatus @default(WAITING)
-currentCardIndex Int @default(0)
-startedAt DateTime?
-endedAt DateTime?
-createdAt DateTime @default(now())
-updatedAt DateTime @updatedAt
-
-// Relations
-host User @relation(fields: [hostId], references: [id])
+gameSessionId String
+categoryId Int
+gameSession GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
 category Category @relation(fields: [categoryId], references: [id])
-players Player[]
+createdAt DateTime @default(now())
 
-@@map("game_sessions")
+@@unique([gameSessionId, categoryId])
+@@index([gameSessionId])
+@@index([categoryId])
+}
+
+// Categories for organizing cards
+model Category {
+  id             Int          @id @default(autoincrement())
+  name           String       @unique
+  description    String?
+  color          String       @default("#6b7280") // ADD THIS LINE
+  colorPresetId  Int?         // Reference to ColorPreset
+  status         Status       @default(ACTIVE)
+  isArchived     Boolean      @default(false)
+  createdBy      Int
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  // Relations
+  creator      User                  @relation("CategoryCreator", fields: [createdBy], references: [id])
+  colorPreset  ColorPreset?          @relation(fields: [colorPresetId], references: [id], onDelete: SetNull)
+  cards        Card[]
+  templates    Template[]
+  gameSessions GameSessionCategory[]
+
+  @@map("categories")
 }
 
 // Player - anonymous player in a game
@@ -96,28 +131,6 @@ gameSession GameSession @relation(fields: [gameSessionId], references: [id], onD
 
 @@unique([gameSessionId, nickname]) // Unique nickname per game
 @@map("players")
-}
-
-// Categories for organizing cards
-model Category {
-id Int @id @default(autoincrement())
-name String @unique
-description String?
-colorPresetId Int? // Reference to ColorPreset
-status Status @default(ACTIVE)
-isArchived Boolean @default(false)
-createdBy Int
-createdAt DateTime @default(now())
-updatedAt DateTime @updatedAt
-
-// Relations
-creator User @relation("CategoryCreator", fields: [createdBy], references: [id])
-colorPreset ColorPreset? @relation(fields: [colorPresetId], references: [id], onDelete: SetNull)
-cards Card[]
-templates Template[]
-gameSessions GameSession[]
-
-@@map("categories")
 }
 
 // Main crisis cards

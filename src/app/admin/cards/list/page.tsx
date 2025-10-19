@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-// Added new icons for the values
-import { Edit, Trash2, Plus, Search, Filter, Clock, Tag, Zap, Shield, TrendingUp, Heart, Users } from 'lucide-react';
+// Added Archive icon
+import { Edit, Plus, Search, Filter, Clock, Tag, Zap, Shield, TrendingUp, Heart, Users, Archive } from 'lucide-react';
 import SkeletonCardGrid from '@/components/skeletons/CardSkeletonGrid';
 import { useRouter } from 'next/navigation';
 
@@ -14,7 +14,7 @@ interface CardResponse {
     efEffect: number;
     psEffect: number;
     grEffect: number;
-    cardId?: string; // Add this to ensure we have the relationship
+    cardId?: string;
 }
 
 interface CrisisCard {
@@ -22,14 +22,12 @@ interface CrisisCard {
     title: string;
     description: string;
     timeLimit: number;
-    // Updated to include new card base values
     pwValue: number;
     efValue: number;
     psValue: number;
     grValue: number;
-    // Updated response structure
     cardResponses?: CardResponse[];
-    responseOptions?: string[]; // Keep for backward compatibility
+    responseOptions?: string[];
     status: string;
     createdAt: string;
     updatedAt: string;
@@ -48,7 +46,11 @@ export default function CrisisCardList() {
     const [categoryFilter, setCategoryFilter] = useState<string>('All');
     const router = useRouter();
 
-    // Helper function to convert hex to RGB for transparency effects
+    // Archive modal states
+    const [showArchiveModal, setShowArchiveModal] = useState(false);
+    const [cardToArchive, setCardToArchive] = useState<{ id: string; title: string } | null>(null);
+    const [isArchiving, setIsArchiving] = useState(false);
+
     const hexToRgb = (hex: string) => {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result ? {
@@ -58,12 +60,9 @@ export default function CrisisCardList() {
         } : null;
     };
 
-    // Generate color styles based on category hex color
     const getCategoryStyles = (category: { name: string; color?: string }) => {
-        const defaultColor = '#6b7280'; // gray-500
+        const defaultColor = '#6b7280';
         const hexColor = category?.color || defaultColor;
-
-        // Ensure hex color starts with #
         const normalizedHex = hexColor.startsWith('#') ? hexColor : `#${hexColor}`;
 
         const rgb = hexToRgb(normalizedHex);
@@ -86,12 +85,10 @@ export default function CrisisCardList() {
         };
     };
 
-    // Helper function to format effect values
     const formatEffect = (value: number) => {
         return value >= 0 ? `+${value}` : `${value}`;
     };
 
-    // Helper function to get effect color
     const getEffectColor = (value: number) => {
         if (value > 0) return 'text-green-600';
         if (value < 0) return 'text-red-600';
@@ -101,7 +98,7 @@ export default function CrisisCardList() {
     useEffect(() => {
         const fetchCards = async () => {
             try {
-                const response = await fetch('/api/admin/cards', {
+                const response = await fetch('/api/admin/cards?isArchived=false', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
@@ -132,10 +129,8 @@ export default function CrisisCardList() {
         fetchCards();
     }, []);
 
-    // Get unique categories for filter
     const categories = ['All', ...new Set(cards.map(card => card.category?.name).filter(Boolean))];
 
-    // Filter cards based on search and filters
     const filteredCards = cards.filter(card => {
         const matchesSearch = card.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             card.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -147,24 +142,39 @@ export default function CrisisCardList() {
         return matchesSearch && matchesStatus && matchesCategory;
     });
 
-    const handleDelete = async (id: string) => {
-        if (window.confirm('Are you sure you want to delete this card?')) {
-            try {
-                const response = await fetch(`/api/admin/cards/${id}`, {
-                    method: "DELETE"
-                })
+    const openArchiveModal = (id: string, title: string) => {
+        setCardToArchive({ id, title });
+        setShowArchiveModal(true);
+    };
 
-                if (!response.ok) {
-                    throw new Error('Failed to delete card');
-                }
+    const closeArchiveModal = () => {
+        setShowArchiveModal(false);
+        setCardToArchive(null);
+    };
 
-                // Remove from local state
-                setCards(cards.filter(card => card.id !== id));
-                console.log(`Card ${id} deleted successfully`);
-            } catch (error) {
-                console.error('Error deleting card:', error);
-                alert('Error deleting card. Please try again.');
+    const handleArchive = async () => {
+        if (!cardToArchive) return;
+
+        setIsArchiving(true);
+        try {
+            const response = await fetch(`/api/admin/cards/${cardToArchive.id}`, {
+                method: "PATCH",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isArchived: true })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to archive card');
             }
+
+            setCards(cards.filter(card => card.id !== cardToArchive.id));
+            console.log(`Card ${cardToArchive.id} archived successfully`);
+            closeArchiveModal();
+        } catch (error) {
+            console.error('Error archiving card:', error);
+            alert('Error archiving card. Please try again.');
+        } finally {
+            setIsArchiving(false);
         }
     };
 
@@ -187,7 +197,6 @@ export default function CrisisCardList() {
                     </button>
                 </div>
 
-                {/* Search and Filters Skeleton */}
                 <div className="bg-gray-50 p-4 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-6 animate-pulse">
                     <div className="flex flex-col md:flex-row gap-4">
                         <div className="flex-1 h-10 bg-gray-200 rounded-lg"></div>
@@ -196,7 +205,6 @@ export default function CrisisCardList() {
                     </div>
                 </div>
 
-                {/* Category Legend Skeleton */}
                 <div className="mb-6 animate-pulse">
                     <div className="flex flex-wrap gap-3">
                         {Array.from({ length: 6 }).map((_, i) => (
@@ -208,12 +216,10 @@ export default function CrisisCardList() {
                     </div>
                 </div>
 
-                {/* Results Count Skeleton */}
                 <div className="mb-4 animate-pulse">
                     <div className="w-32 h-4 bg-gray-200 rounded"></div>
                 </div>
 
-                {/* Skeleton Cards */}
                 <SkeletonCardGrid count={6} />
             </div>
         );
@@ -232,10 +238,8 @@ export default function CrisisCardList() {
                 </button>
             </div>
 
-            {/* Search and Filters */}
             <div className="bg-gray-50 p-4 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-6">
                 <div className="flex flex-col md:flex-row gap-4">
-                    {/* Search */}
                     <div className="flex-1">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={20} />
@@ -249,7 +253,6 @@ export default function CrisisCardList() {
                         </div>
                     </div>
 
-                    {/* Status Filter */}
                     <div className="flex items-center gap-2">
                         <Filter size={20} />
                         <select
@@ -263,7 +266,6 @@ export default function CrisisCardList() {
                         </select>
                     </div>
 
-                    {/* Category Filter */}
                     <div className="flex items-center gap-2">
                         <Tag size={20} />
                         <select
@@ -281,11 +283,9 @@ export default function CrisisCardList() {
                 </div>
             </div>
 
-            {/* Category Color Legend */}
             <div className="mb-6">
                 <div className="flex flex-wrap gap-3">
                     {categories.filter(cat => cat !== 'All').map(categoryName => {
-                        // Find the full category object to get color
                         const categoryObj = cards.find(card => card.category?.name === categoryName)?.category;
                         const styles = getCategoryStyles(categoryObj || { name: categoryName });
 
@@ -308,14 +308,12 @@ export default function CrisisCardList() {
                 </div>
             </div>
 
-            {/* Results Count */}
             <div className="mb-4">
                 <p className="text-gray-600">
                     Showing {filteredCards.length} of {cards.length} cards
                 </p>
             </div>
 
-            {/* Cards Grid */}
             {filteredCards.length === 0 ? (
                 <div className="text-center py-12">
                     <p className="text-gray-500 text-lg mb-4">No cards found matching your criteria</p>
@@ -330,7 +328,6 @@ export default function CrisisCardList() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredCards.map((card) => {
                         const styles = getCategoryStyles(card.category || { name: 'Unknown' });
-                        // Use new cardResponses if available, fallback to old responseOptions
                         const responses = card.cardResponses || [];
                         const legacyOptions = card.responseOptions || [];
 
@@ -339,13 +336,11 @@ export default function CrisisCardList() {
                                 key={card.id}
                                 className="bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 relative"
                             >
-                                {/* Color accent bar */}
                                 <div
                                     className="absolute top-0 left-0 w-full h-1 rounded-t-md"
                                     style={styles.accentStyle}
                                 ></div>
 
-                                {/* Card Header */}
                                 <div className="flex justify-between items-start mb-3">
                                     <h3 className="text-lg font-bold text-gray-900 line-clamp-2">
                                         {card.title}
@@ -358,12 +353,10 @@ export default function CrisisCardList() {
                                     </span>
                                 </div>
 
-                                {/* Description */}
                                 <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                                     {card.description}
                                 </p>
 
-                                {/* Card Details */}
                                 <div className="space-y-2 mb-4">
                                     <div className="flex items-center gap-2 text-sm">
                                         <Tag size={16} className="text-gray-500" />
@@ -388,7 +381,6 @@ export default function CrisisCardList() {
                                     </div>
                                 </div>
 
-                                {/* Card Base Values with Icons (Updated Layout) */}
                                 <div className="mb-4">
                                     <div className="flex items-center gap-2 mb-2">
                                         <Zap size={16} className="text-gray-500" />
@@ -414,11 +406,9 @@ export default function CrisisCardList() {
                                     </div>
                                 </div>
 
-                                {/* Response Options with Effects and Icons */}
                                 <div className="mb-4">
                                     <p className="text-sm font-semibold mb-2 text-gray-700">Response Options:</p>
                                     <div className="space-y-2">
-                                        {/* Show new response structure if available */}
                                         {responses.length > 0 ? (
                                             responses.slice(0, 2).map((response) => (
                                                 <div key={response.id} className="text-xs bg-gray-100 p-2 rounded border border-gray-300">
@@ -444,7 +434,6 @@ export default function CrisisCardList() {
                                                 </div>
                                             ))
                                         ) : legacyOptions.length > 0 ? (
-                                            /* Fallback to legacy response options */
                                             legacyOptions.slice(0, 2).map((option, index) => (
                                                 <div key={index} className="text-xs bg-gray-100 px-2 py-1 rounded border border-gray-300 text-gray-700" >
                                                     {option}
@@ -456,7 +445,6 @@ export default function CrisisCardList() {
                                             </div>
                                         )}
 
-                                        {/* Show count of remaining options */}
                                         {responses.length > 2 && (
                                             <div className="text-xs text-gray-500">
                                                 +{responses.length - 2} more options
@@ -470,7 +458,6 @@ export default function CrisisCardList() {
                                     </div>
                                 </div>
 
-                                {/* Actions */}
                                 <div className="flex gap-2 pt-4 border-t border-gray-200">
                                     <button
                                         onClick={() => handleEdit(card.id)}
@@ -480,15 +467,14 @@ export default function CrisisCardList() {
                                         Edit
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(card.id)}
-                                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border-2 border-red-600 text-red-600 rounded-lg font-semibold shadow-[2px_2px_0px_0px_rgba(220,38,38,1)] hover:shadow-[1px_1px_0px_0px_rgba(220,38,38,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 bg-white hover:bg-red-50"
+                                        onClick={() => openArchiveModal(card.id, card.title)}
+                                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border-2 border-orange-600 text-orange-600 rounded-lg font-semibold shadow-[2px_2px_0px_0px_rgba(234,88,12,1)] hover:shadow-[1px_1px_0px_0px_rgba(234,88,12,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 bg-white hover:bg-orange-50"
                                     >
-                                        <Trash2 size={16} />
-                                        Delete
+                                        <Archive size={16} />
+                                        Archive
                                     </button>
                                 </div>
 
-                                {/* Timestamps */}
                                 <div className="text-xs text-gray-400 mt-3 pt-2 border-t border-gray-100">
                                     <div>Created: {new Date(card.createdAt).toLocaleDateString()}</div>
                                     <div>Updated: {new Date(card.updatedAt).toLocaleDateString()}</div>
@@ -496,9 +482,60 @@ export default function CrisisCardList() {
                             </div>
                         );
                     })}
-                </div >
-            )
-            }
-        </div >
+                </div>
+            )}
+
+            {/* Archive Confirmation Modal */}
+            {showArchiveModal && cardToArchive && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div
+                        className="absolute inset-0 bg-black/50"
+                        onClick={closeArchiveModal}
+                    ></div>
+
+                    <div className="relative bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] max-w-md w-full mx-4 p-6">
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">
+                            Archive Card
+                        </h3>
+                        <p className="text-gray-600 mb-2">
+                            Are you sure you want to archive <span className="font-semibold">"{cardToArchive.title}"</span>?
+                        </p>
+                        <p className="text-sm text-gray-500 mb-6">
+                            This card will be hidden from the active list. You can restore it later if needed.
+                        </p>
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={closeArchiveModal}
+                                disabled={isArchiving}
+                                className="px-4 py-2 text-gray-700 bg-white font-medium border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleArchive}
+                                disabled={isArchiving}
+                                className="px-4 py-2 bg-orange-600 text-white font-medium border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {isArchiving ? (
+                                    <>
+                                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Archiving...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Archive size={16} />
+                                        Archive
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }

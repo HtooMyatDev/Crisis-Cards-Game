@@ -30,37 +30,29 @@ export async function GET(_request: NextRequest, context: { params: { id: string
     }
 }
 
-export async function PATCH(request: NextRequest, context: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
     try {
-        const idNum = Number(context.params.id);
+        const body = await request.json();
+        const { id } = await params;
+        const idNum = Number(id);
+
         if (!Number.isFinite(idNum)) {
             return NextResponse.json({ error: 'Invalid id parameter' }, { status: 400 });
         }
 
-        const body = await request.json();
         const { isArchived } = body;
 
-        // Validate that isArchived is provided and is a boolean
         if (typeof isArchived !== 'boolean') {
             return NextResponse.json({ error: 'isArchived must be a boolean value' }, { status: 400 });
         }
 
-        // Check if card exists
-        const existingCard = await prisma.card.findUnique({
-            where: { id: idNum }
-        });
-
-        if (!existingCard) {
-            return NextResponse.json({ error: 'Card not found' }, { status: 404 });
-        }
-
-        // Update the card's archive status
+        // Update the card's archive status (will throw if not found)
         const updatedCard = await prisma.card.update({
             where: { id: idNum },
             data: {
-                isArchived: isArchived,
+                isArchived,
                 archivedAt: isArchived ? new Date() : null,
-                archivedById: isArchived ? 1 : null // You might want to get the actual user ID from auth
+                archivedById: isArchived ? 2 : null
             },
             include: {
                 category: true,
@@ -75,16 +67,11 @@ export async function PATCH(request: NextRequest, context: { params: { id: strin
         });
 
     } catch (error: unknown) {
-        if (error && typeof error === 'object' && 'code' in error) {
-            if (error.code === 'P2025') {
-                return NextResponse.json({ error: 'Card not found' }, { status: 404 });
-            }
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+            return NextResponse.json({ error: 'Card not found' }, { status: 404 });
         }
 
-        return NextResponse.json(
-            { error: 'Failed to update card' },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: 'Failed to update card' }, { status: 500 });
     }
 }
 

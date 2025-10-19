@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
                     timeLimit,
                     status,
                     categoryId,
-                    createdBy,
+                    createdBy: 2,
                     // Add the new card base values
                     pwValue,
                     efValue,
@@ -143,12 +143,20 @@ export async function POST(request: NextRequest) {
         );
     }
 }
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
+        const { searchParams } = new URL(request.url)
+        const isArchivedParam = searchParams.get('isArchived');
+
+        const whereClause = isArchivedParam !== null
+            ? { isArchived: isArchivedParam === 'true' }
+            : { isArchived: false }
+
         const cards = await prisma.card.findMany({
-            include:{
-                category:true,
-                cardResponses:true
+            where: whereClause,
+            include: {
+                category: true,
+                cardResponses: true
             }
         });
 

@@ -48,7 +48,7 @@ export default function ArchivedCards() {
         const fetchArchivedCards = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('/api/admin/cards?archived=true', {
+                const response = await fetch('/api/admin/cards?isArchived=true', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
@@ -122,7 +122,7 @@ export default function ArchivedCards() {
     const handleRestore = async (cardId: string) => {
         try {
             setActionLoading(cardId);
-            const response = await fetch(`/api/admin/cards/${cardId}/restore`, {
+            const response = await fetch(`/api/admin/cards/${cardId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json'

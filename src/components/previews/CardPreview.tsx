@@ -1,7 +1,7 @@
 import React from 'react';
 import { Eye, Tag, Clock, Zap, Shield, TrendingUp, Heart, Users } from 'lucide-react';
-import { FormState, Category } from '../types/crisisCard';
-import { getCategoryStyles, formatEffect, getEffectColor } from '../utils/colorUtils';
+import { FormState, Category } from '../../types/crisisCard';
+import { getCategoryStyles, formatEffect, getEffectColor } from '../../utils/colorUtils';
 
 interface CardPreviewProps {
     formData: FormState;

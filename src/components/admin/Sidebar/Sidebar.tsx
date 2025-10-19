@@ -16,32 +16,40 @@ const AdminSidebar = () => {
 
     const toggleSidebar = () => setIsOpen(!isOpen);
 
-    const openCards = () => {
-        setIsCardsOpen(true);
-        setIsCategoriesOpen(false);
-        setIsProfileOpen(false);
-        setIsGamesOpen(false);
+    const toggleCards = () => {
+        setIsCardsOpen(!isCardsOpen);
+        if (!isCardsOpen) {
+            setIsCategoriesOpen(false);
+            setIsProfileOpen(false);
+            setIsGamesOpen(false);
+        }
     };
 
-    const openProfile = () => {
-        setIsProfileOpen(true);
-        setIsCardsOpen(false);
-        setIsCategoriesOpen(false);
-        setIsGamesOpen(false);
+    const toggleProfile = () => {
+        setIsProfileOpen(!isProfileOpen);
+        if (!isProfileOpen) {
+            setIsCardsOpen(false);
+            setIsCategoriesOpen(false);
+            setIsGamesOpen(false);
+        }
     };
 
-    const openCategories = () => {
-        setIsCategoriesOpen(true);
-        setIsCardsOpen(false);
-        setIsProfileOpen(false);
-        setIsGamesOpen(false);
+    const toggleCategories = () => {
+        setIsCategoriesOpen(!isCategoriesOpen);
+        if (!isCategoriesOpen) {
+            setIsCardsOpen(false);
+            setIsProfileOpen(false);
+            setIsGamesOpen(false);
+        }
     };
 
-    const openGames = () => {
-        setIsGamesOpen(true);
-        setIsCardsOpen(false);
-        setIsProfileOpen(false);
-        setIsCategoriesOpen(false);
+    const toggleGames = () => {
+        setIsGamesOpen(!isGamesOpen);
+        if (!isGamesOpen) {
+            setIsCardsOpen(false);
+            setIsProfileOpen(false);
+            setIsCategoriesOpen(false);
+        }
     };
 
     const handleNavigation = () => {
@@ -92,16 +100,16 @@ const AdminSidebar = () => {
                     isCardsOpen={isCardsOpen}
                     isCategoriesOpen={isCategoriesOpen}
                     isGamesOpen={isGamesOpen}
-                    onToggleCards={openCards}
-                    onToggleCategories={openCategories}
-                    onToggleGames={openGames}
+                    onToggleCards={toggleCards}
+                    onToggleCategories={toggleCategories}
+                    onToggleGames={toggleGames}
                     onNavigation={handleNavigation}
                 />
 
                 <AdminSidebarFooter
                     pathname={pathname}
                     isProfileOpen={isProfileOpen}
-                    onToggleProfile={openProfile}
+                    onToggleProfile={toggleProfile}
                     onNavigation={handleNavigation}
                     onLogout={handleLogout}
                     userInfo={userInfo}

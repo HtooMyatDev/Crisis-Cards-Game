@@ -1,5 +1,5 @@
 "use client"
-import React from 'react';
+import React, { useState } from 'react';
 import {
     CreditCard,
     ChevronRight,
@@ -10,7 +10,12 @@ import {
     Gamepad2,
     Archive,
     Tag,
-    Palette
+    Palette,
+    Settings,
+    BarChart3,
+    Search,
+    FileText,
+    HelpCircle
 } from 'lucide-react';
 import Link from "next/link"
 
@@ -23,6 +28,10 @@ interface AdminSidebarContentProps {
     onToggleCategories: () => void;
     isGamesOpen: boolean;
     onToggleGames: () => void;
+    // Optional badge counts
+    activeSessionsCount?: number;
+    pendingUsersCount?: number;
+    archivedCardsCount?: number;
 }
 
 const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
@@ -33,14 +42,19 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
     isCategoriesOpen,
     onToggleCategories,
     isGamesOpen,
-    onToggleGames
+    onToggleGames,
+    activeSessionsCount,
+    pendingUsersCount,
+    archivedCardsCount
 }) => {
+    const [searchQuery, setSearchQuery] = useState('');
 
     const gameOptions = [
         {
             href: "/admin/games/manage",
             label: "All Sessions",
-            icon: List
+            icon: List,
+            badge: activeSessionsCount
         },
         {
             href: "/admin/games/create",
@@ -63,7 +77,8 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
         {
             href: "/admin/cards/archive",
             label: "Archived Cards",
-            icon: Archive
+            icon: Archive,
+            badge: archivedCardsCount
         }
     ];
 
@@ -85,10 +100,81 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
         }
     ];
 
+    // Filter function for search
+    const allMenuItems = [
+        { href: '/admin/dashboard', label: 'Dashboard' },
+        ...gameOptions.map(g => ({ href: g.href, label: g.label })),
+        { href: '/admin/users', label: 'User Management' },
+        ...cardOptions.map(c => ({ href: c.href, label: c.label })),
+        ...categoryOptions.map(c => ({ href: c.href, label: c.label })),
+        { href: '/admin/analytics', label: 'Analytics & Reports' },
+        { href: '/admin/audit-logs', label: 'Audit Logs' },
+        { href: '/admin/settings', label: 'Settings' },
+        { href: '/admin/help', label: 'Help & Documentation' }
+    ];
+
+    const filteredItems = searchQuery
+        ? allMenuItems.filter(item =>
+            item.label.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        : [];
+
+    const Badge = ({ count }: { count?: number }) => {
+        if (!count) return null;
+        return (
+            <span className="ml-auto bg-black text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                {count}
+            </span>
+        );
+    };
 
     return (
         <nav className="p-3 pt-14 md:pt-4 h-full overflow-y-auto scrollbar-thin">
             <div className="flex flex-col gap-y-2 pb-40">
+                {/* Search Bar */}
+                <div className="mb-2 relative">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                        <input
+                            type="text"
+                            placeholder="Search menu..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-3 py-2 border-2 border-black rounded-lg text-sm
+                                shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                                focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    {/* Search Results Dropdown */}
+                    {searchQuery && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-black rounded-lg
+                            shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] z-50 max-h-64 overflow-y-auto">
+                            {filteredItems.length > 0 ? (
+                                <div className="p-2">
+                                    {filteredItems.map((item) => (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            className="block px-3 py-2 hover:bg-blue-50 rounded text-sm font-medium"
+                                            onClick={() => {
+                                                setSearchQuery('');
+                                                onNavigation();
+                                            }}
+                                        >
+                                            {item.label}
+                                        </Link>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="p-4 text-center text-sm text-gray-500">
+                                    No results found
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
                 {/* Dashboard */}
                 <a
                     href="/admin/dashboard"
@@ -149,6 +235,7 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                                 >
                                     <option.icon size={16} />
                                     {option.label}
+                                    <Badge count={option.badge} />
                                 </Link>
                             ))}
                         </div>
@@ -170,6 +257,7 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                 >
                     <Users size={18} />
                     User Management
+                    <Badge count={pendingUsersCount} />
                 </a>
 
                 {/* Crisis Cards Dropdown */}
@@ -215,6 +303,7 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                                 >
                                     <option.icon size={16} />
                                     {option.label}
+                                    <Badge count={option.badge} />
                                 </Link>
                             ))}
                         </div>
@@ -269,6 +358,77 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                         </div>
                     </div>
                 </div>
+
+                {/* Divider */}
+                <div className="border-t-2 border-gray-300 my-2"></div>
+
+                {/* Analytics & Reports */}
+                <a
+                    href="/admin/analytics"
+                    className={`flex items-center gap-2.5 px-3 py-2 border-2 border-black rounded-lg font-bold text-sm
+                        shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none
+                        hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-150
+                        active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
+                        ${pathname === '/admin/analytics'
+                            ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 text-white border-cyan-800'
+                            : 'bg-gradient-to-r from-white to-gray-50 hover:from-cyan-50 hover:to-cyan-100'
+                        }`}
+                    onClick={onNavigation}
+                >
+                    <BarChart3 size={18} />
+                    Analytics & Reports
+                </a>
+
+                {/* Audit Logs */}
+                <a
+                    href="/admin/audit-logs"
+                    className={`flex items-center gap-2.5 px-3 py-2 border-2 border-black rounded-lg font-bold text-sm
+                        shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none
+                        hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-150
+                        active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
+                        ${pathname === '/admin/audit-logs'
+                            ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white border-slate-800'
+                            : 'bg-gradient-to-r from-white to-gray-50 hover:from-slate-50 hover:to-slate-100'
+                        }`}
+                    onClick={onNavigation}
+                >
+                    <FileText size={18} />
+                    Audit Logs
+                </a>
+
+                {/* Settings */}
+                <a
+                    href="/admin/settings"
+                    className={`flex items-center gap-2.5 px-3 py-2 border-2 border-black rounded-lg font-bold text-sm
+                        shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none
+                        hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-150
+                        active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
+                        ${pathname === '/admin/settings'
+                            ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white border-gray-800'
+                            : 'bg-gradient-to-r from-white to-gray-50 hover:from-gray-50 hover:to-gray-100'
+                        }`}
+                    onClick={onNavigation}
+                >
+                    <Settings size={18} />
+                    Settings
+                </a>
+
+                {/* Help & Documentation */}
+                <a
+                    href="/admin/help"
+                    className={`flex items-center gap-2.5 px-3 py-2 border-2 border-black rounded-lg font-bold text-sm
+                        shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none
+                        hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-150
+                        active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
+                        ${pathname === '/admin/help'
+                            ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-indigo-800'
+                            : 'bg-gradient-to-r from-white to-gray-50 hover:from-indigo-50 hover:to-indigo-100'
+                        }`}
+                    onClick={onNavigation}
+                >
+                    <HelpCircle size={18} />
+                    Help & Documentation
+                </a>
             </div>
         </nav>
     );

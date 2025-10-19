@@ -46,6 +46,11 @@ export default function ListCategories() {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [showFilters, setShowFilters] = useState(false);
 
+    // Modal states
+    const [showArchiveModal, setShowArchiveModal] = useState(false);
+    const [categoryToArchive, setCategoryToArchive] = useState<Category | null>(null);
+    const [isArchiving, setIsArchiving] = useState(false);
+
     const fetchCategories = async () => {
         try {
             setLoading(true);
@@ -164,30 +169,43 @@ export default function ListCategories() {
                 router.push(`/admin/categories/edit/${categoryId}`);
                 break;
             case 'archive':
-                // Archive category logic - you could add a modal here
-                archiveCategory(categoryId);
+                // Open archive modal
+                const category = categories.find(cat => cat.id === categoryId);
+                if (category) {
+                    setCategoryToArchive(category);
+                    setShowArchiveModal(true);
+                }
                 break;
         }
     };
 
-    const archiveCategory = async (categoryId: number) => {
-        if (confirm('Are you sure you want to archive this category?')) {
-            try {
-                const response = await fetch(`/api/admin/categories/${categoryId}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ isArchived: true })
-                });
+    const closeArchiveModal = () => {
+        setShowArchiveModal(false);
+        setCategoryToArchive(null);
+    };
 
-                if (response.ok) {
-                    fetchCategories(); // Refresh the list
-                } else {
-                    throw new Error('Failed to archive category');
-                }
-            } catch (error) {
-                console.error('Error archiving category:', error);
-                alert('Failed to archive category');
+    const archiveCategory = async () => {
+        if (!categoryToArchive) return;
+
+        setIsArchiving(true);
+        try {
+            const response = await fetch(`/api/admin/categories/${categoryToArchive.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isArchived: true })
+            });
+
+            if (response.ok) {
+                fetchCategories(); // Refresh the list
+                closeArchiveModal();
+            } else {
+                throw new Error('Failed to archive category');
             }
+        } catch (error) {
+            console.error('Error archiving category:', error);
+            alert('Failed to archive category');
+        } finally {
+            setIsArchiving(false);
         }
     };
 
@@ -558,6 +576,60 @@ export default function ListCategories() {
                         <div className="text-center">
                             <div className="text-2xl font-bold text-purple-600">{filteredCategories.length}</div>
                             <div className="text-sm text-gray-600">Showing</div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Archive Confirmation Modal */}
+            {showArchiveModal && categoryToArchive && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/50"
+                        onClick={closeArchiveModal}
+                    ></div>
+
+                    {/* Modal Content */}
+                    <div className="relative bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] max-w-md w-full mx-4 p-6">
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">
+                            Archive Category
+                        </h3>
+                        <p className="text-gray-600 mb-2">
+                            Are you sure you want to archive <span className="font-semibold">"{categoryToArchive.name}"</span>?
+                        </p>
+                        <p className="text-sm text-gray-500 mb-6">
+                            This category has {categoryToArchive._count?.cards || 0} card(s). You can restore it later if needed.
+                        </p>
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={closeArchiveModal}
+                                disabled={isArchiving}
+                                className="px-4 py-2 text-gray-700 bg-white font-medium border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={archiveCategory}
+                                disabled={isArchiving}
+                                className="px-4 py-2 bg-red-600 text-white font-medium border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {isArchiving ? (
+                                    <>
+                                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Archiving...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Archive size={16} />
+                                        Archive
+                                    </>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>

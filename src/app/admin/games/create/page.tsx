@@ -9,13 +9,17 @@ import {
     AlertCircle,
     CheckCircle,
     ArrowLeft,
-    RefreshCw
+    RefreshCw,
+    FileText
 } from 'lucide-react';
+
 const CreateGameSession = () => {
     const [formData, setFormData] = useState({
-        categoryId: '',
+        name: '',
+        categoryIds: [], // Changed to array for multiple categories
         gameCode: '',
-        autoGenerateCode: true
+        autoGenerateCode: true,
+        gameMode: 'Standard' // Default game mode
     });
 
     const [categories, setCategories] = useState([]);
@@ -23,6 +27,8 @@ const CreateGameSession = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [generatedGameCode, setGeneratedGameCode] = useState('');
+
+    const gameModes = ['Standard', 'Quick Play', 'Advanced', 'Custom'];
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -67,6 +73,22 @@ const CreateGameSession = () => {
         }
     };
 
+    const handleCategoryToggle = (categoryId) => {
+        setFormData(prev => {
+            const isSelected = prev.categoryIds.includes(categoryId);
+            return {
+                ...prev,
+                categoryIds: isSelected
+                    ? prev.categoryIds.filter(id => id !== categoryId)
+                    : [...prev.categoryIds, categoryId]
+            };
+        });
+
+        if (errors.categoryIds) {
+            setErrors(prev => ({ ...prev, categoryIds: '' }));
+        }
+    };
+
     const handleGenerateNewCode = () => {
         const newCode = generateGameCode();
         setGeneratedGameCode(newCode);
@@ -76,8 +98,16 @@ const CreateGameSession = () => {
     const validateForm = () => {
         const newErrors = {};
 
-        if (!formData.categoryId) {
-            newErrors.categoryId = 'Please select a crisis category';
+        if (!formData.name.trim()) {
+            newErrors.name = 'Session name is required';
+        }
+
+        if (formData.categoryIds.length === 0) {
+            newErrors.categoryIds = 'Please select at least one crisis category';
+        }
+
+        if (!formData.gameMode) {
+            newErrors.gameMode = 'Please select a game mode';
         }
 
         if (!formData.autoGenerateCode && !formData.gameCode.trim()) {
@@ -99,9 +129,11 @@ const CreateGameSession = () => {
 
         try {
             const formattedData = {
+                name: formData.name,
                 gameCode: formData.gameCode,
-                hostId: 2,
-                categoryId: parseInt(formData.categoryId),
+                hostId: 2, // Replace with actual admin ID from auth
+                categoryIds: formData.categoryIds.map(id => parseInt(id)),
+                gameMode: formData.gameMode
             }
             const response = await fetch('/api/admin/games', {
                 method: 'POST',
@@ -118,6 +150,12 @@ const CreateGameSession = () => {
 
             const result = await response.json();
             console.log('Game session created successfully:', result);
+            setShowSuccess(true);
+
+            // Optionally redirect after success
+            setTimeout(() => {
+                window.location.href = '/admin/games/manage';
+            }, 2000);
 
         } catch (error) {
             console.error('Error creating session:', error);
@@ -183,45 +221,155 @@ const CreateGameSession = () => {
                 )}
 
                 <div className="space-y-6">
+                    {/* Session Name */}
+                    <div className="bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-indigo-500 border-2 border-black rounded-lg">
+                                <FileText size={20} className="text-white" />
+                            </div>
+                            <h2 className="text-xl font-bold">Session Details</h2>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label htmlFor="name" className="block font-medium text-gray-700 mb-2">
+                                    Session Name *
+                                </label>
+                                <input
+                                    id="name"
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    placeholder="e.g., Team Building Session, Monday Game..."
+                                    className={`w-full px-4 py-3 border-2 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium ${
+                                        errors.name ? 'border-red-500' : 'border-black'
+                                    }`}
+                                />
+                                {errors.name && (
+                                    <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
+                                        <AlertCircle size={16} />
+                                        {errors.name}
+                                    </p>
+                                )}
+                                <p className="text-sm text-gray-500 mt-2">
+                                    Choose a memorable name to identify this game session
+                                </p>
+                            </div>
+
+                            <div>
+                                <label htmlFor="gameMode" className="block font-medium text-gray-700 mb-2">
+                                    Game Mode *
+                                </label>
+                                <select
+                                    id="gameMode"
+                                    name="gameMode"
+                                    value={formData.gameMode}
+                                    onChange={handleInputChange}
+                                    className={`w-full px-4 py-3 border-2 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium ${
+                                        errors.gameMode ? 'border-red-500' : 'border-black'
+                                    }`}
+                                >
+                                    {gameModes.map(mode => (
+                                        <option key={mode} value={mode}>
+                                            {mode}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.gameMode && (
+                                    <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
+                                        <AlertCircle size={16} />
+                                        {errors.gameMode}
+                                    </p>
+                                )}
+                                <p className="text-sm text-gray-500 mt-2">
+                                    Select the gameplay style for this session
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Crisis Category */}
                     <div className="bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 bg-purple-500 border-2 border-black rounded-lg">
                                 <Target size={20} className="text-white" />
                             </div>
-                            <h2 className="text-xl font-bold">Crisis Category</h2>
+                            <h2 className="text-xl font-bold">Crisis Categories</h2>
                         </div>
 
                         <div>
-                            <label htmlFor="categoryId" className="block font-medium text-gray-700 mb-2">
-                                Select Category *
+                            <label className="block font-medium text-gray-700 mb-3">
+                                Select Categories * (You can select multiple)
                             </label>
-                            <select
-                                id="categoryId"
-                                name="categoryId"
-                                value={formData.categoryId}
-                                onChange={handleInputChange}
-                                className={`w-full px-4 py-3 border-2 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium ${errors.categoryId ? 'border-red-500' : 'border-black'
-                                    }`}
-                            >
-                                <option value="">Choose a crisis category...</option>
-                                {categories.map(category => (
-                                    <option key={category.id} value={category.id}>
-                                        {category.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.categoryId && (
-                                <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {categories.map(category => {
+                                    const isSelected = formData.categoryIds.includes(category.id.toString());
+                                    return (
+                                        <button
+                                            key={category.id}
+                                            type="button"
+                                            onClick={() => handleCategoryToggle(category.id.toString())}
+                                            className={`p-4 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-150 text-left ${
+                                                isSelected
+                                                    ? 'bg-gray-900'
+                                                    : 'bg-white hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div
+                                                    className={`w-6 h-6 rounded-md border-2 border-black flex items-center justify-center flex-shrink-0 transition-all ${
+                                                        isSelected ? 'scale-100' : 'scale-100'
+                                                    }`}
+                                                    style={{
+                                                        backgroundColor: isSelected ? category.color : 'white'
+                                                    }}
+                                                >
+                                                    {isSelected && (
+                                                        <svg
+                                                            width="16"
+                                                            height="16"
+                                                            viewBox="0 0 24 24"
+                                                            fill="none"
+                                                            stroke="white"
+                                                            strokeWidth="3"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                        >
+                                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                                        </svg>
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-2 flex-1">
+                                                    <div
+                                                        className="w-3 h-3 rounded-full border-2 border-black flex-shrink-0"
+                                                        style={{ backgroundColor: category.color }}
+                                                    />
+                                                    <span className={`font-bold ${isSelected ? 'text-white' : 'text-gray-900'}`}>
+                                                        {category.name}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {errors.categoryIds && (
+                                <p className="text-red-600 text-sm mt-3 flex items-center gap-1">
                                     <AlertCircle size={16} />
-                                    {errors.categoryId}
+                                    {errors.categoryIds}
                                 </p>
                             )}
-                            <p className="text-sm text-gray-500 mt-2">
-                                Cards from this category will be used in the game session
+                            <p className="text-sm text-gray-500 mt-3">
+                                Selected: <span className="font-semibold">{formData.categoryIds.length}</span> {formData.categoryIds.length === 1 ? 'category' : 'categories'}
+                            </p>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Cards from selected categories will be shuffled and used in the game
                             </p>
                         </div>
                     </div>
 
+                    {/* Game Code */}
                     <div className="bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 bg-blue-500 border-2 border-black rounded-lg">
@@ -280,8 +428,9 @@ const CreateGameSession = () => {
                                         onChange={handleInputChange}
                                         placeholder="Enter 6-character code..."
                                         maxLength={6}
-                                        className={`w-full px-4 py-3 border-2 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xl font-bold uppercase text-center ${errors.gameCode ? 'border-red-500' : 'border-black'
-                                            }`}
+                                        className={`w-full px-4 py-3 border-2 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xl font-bold uppercase text-center ${
+                                            errors.gameCode ? 'border-red-500' : 'border-black'
+                                        }`}
                                     />
                                     {errors.gameCode && (
                                         <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
@@ -297,6 +446,7 @@ const CreateGameSession = () => {
                         </div>
                     </div>
 
+                    {/* Info Box */}
                     <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
                         <div className="flex gap-3">
                             <Info size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
@@ -312,6 +462,7 @@ const CreateGameSession = () => {
                         </div>
                     </div>
 
+                    {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row gap-4 justify-end">
                         <button
                             type="button"
