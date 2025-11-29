@@ -6,11 +6,17 @@ export function middleware(request: NextRequest) {
     const currentPath = request.nextUrl.pathname;
 
 
-if (!isAuthenticated && !request.nextUrl.pathname.startsWith("/auth")) {
+    if (!isAuthenticated && (request.nextUrl.pathname.startsWith("/admin") || request.nextUrl.pathname.startsWith("/user"))) {
         return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 
     if (isAuthenticated && request.nextUrl.pathname.startsWith("/auth")) {
+        const redirectPath = userRole?.value === 'ADMIN' ? '/admin/dashboard' : '/user/home';
+        return NextResponse.redirect(new URL(redirectPath, request.url));
+    }
+
+    // Prevent authenticated users from accessing /play page
+    if (isAuthenticated && currentPath.startsWith('/play')) {
         const redirectPath = userRole?.value === 'ADMIN' ? '/admin/dashboard' : '/user/home';
         return NextResponse.redirect(new URL(redirectPath, request.url));
     }
@@ -29,5 +35,5 @@ if (!isAuthenticated && !request.nextUrl.pathname.startsWith("/auth")) {
 }
 
 export const config = {
-    matcher: ['/admin/:path*', '/auth/:path*', '/user/:path*']
+    matcher: ['/admin/:path*', '/auth/:path*', '/user/:path*', '/play']
 }

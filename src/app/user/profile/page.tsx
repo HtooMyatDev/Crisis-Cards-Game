@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     User,
     Mail,
@@ -24,13 +24,24 @@ import {
 const UserProfilePage = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [activeTab, setActiveTab] = useState('profile');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [saving, setSaving] = useState(false);
+
     const [profileData, setProfileData] = useState({
-        name: 'Player One',
-        email: 'player.one@example.com',
-        username: 'playerone2024',
-        bio: 'Crisis management enthusiast. Love solving complex problems under pressure!',
-        joinDate: 'March 2024',
-        location: 'New York, USA'
+        name: '',
+        email: '',
+        username: '',
+        bio: '',
+        joinDate: '',
+        location: ''
+    });
+
+    const [editedData, setEditedData] = useState({
+        name: '',
+        username: '',
+        bio: '',
+        location: ''
     });
 
     const [settings, setSettings] = useState({
@@ -41,35 +52,163 @@ const UserProfilePage = () => {
         difficulty: 'medium'
     });
 
-    const userStats = {
-        level: 5,
-        totalScore: 1247,
-        gamesPlayed: 24,
-        winRate: 67,
-        streak: 5,
-        rank: 4,
-        achievements: 12,
-        hoursPlayed: 18
+    const [userStats, setUserStats] = useState({
+        level: 0,
+        totalScore: 0,
+        gamesPlayed: 0,
+        winRate: 0,
+        streak: 0,
+        rank: 0,
+        achievements: 0,
+        hoursPlayed: 0
+    });
+
+    // Fetch profile data on mount
+    useEffect(() => {
+        fetchProfile();
+        fetchSettings();
+    }, []);
+
+    const fetchProfile = async () => {
+        try {
+            setLoading(true);
+            setError('');
+            const res = await fetch('/api/user/profile');
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch profile');
+            }
+
+            const data = await res.json();
+            const profile = data.profile;
+
+            // Format join date
+            const joinDate = new Date(profile.createdAt).toLocaleDateString('en-US', {
+                month: 'long',
+                year: 'numeric'
+            });
+
+            setProfileData({
+                name: profile.name || '',
+                email: profile.email || '',
+                username: profile.username || '',
+                bio: profile.bio || '',
+                joinDate,
+                location: profile.location || ''
+            });
+
+            setEditedData({
+                name: profile.name || '',
+                username: profile.username || '',
+                bio: profile.bio || '',
+                location: profile.location || ''
+            });
+
+            setUserStats(profile.stats);
+        } catch (err) {
+            console.error('Failed to fetch profile:', err);
+            setError('Failed to load profile data');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const achievements = [
-        { id: 1, title: 'First Victory', description: 'Win your first game', earned: true, icon: Trophy, color: 'bg-yellow-500' },
-        { id: 2, title: 'Quick Thinker', description: 'Complete 5 scenarios in under 30 seconds each', earned: true, icon: Clock, color: 'bg-blue-500' },
-        { id: 3, title: 'Streak Master', description: 'Win 5 games in a row', earned: true, icon: TrendingUp, color: 'bg-green-500' },
-        { id: 4, title: 'Crisis Expert', description: 'Achieve 80% win rate', earned: false, icon: Target, color: 'bg-purple-500' },
-        { id: 5, title: 'Social Player', description: 'Play with friends 10 times', earned: false, icon: Users, color: 'bg-pink-500' },
-        { id: 6, title: 'Perfectionist', description: 'Get perfect scores on 3 scenarios', earned: true, icon: Star, color: 'bg-orange-500' }
-    ];
+    const fetchSettings = async () => {
+        try {
+            const res = await fetch('/api/user/settings');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && data.settings) {
+                    setSettings({
+                        emailNotifications: data.settings.emailNotifications,
+                        pushNotifications: data.settings.pushNotifications,
+                        soundEffects: data.settings.soundEffects,
+                        autoSave: data.settings.autoSave,
+                        difficulty: data.settings.difficulty
+                    });
+                }
+            }
+        } catch (err) {
+            console.error('Failed to fetch settings:', err);
+        }
+    };
 
-    const handleSave = () => {
-        setIsEditing(false);
-        // Save logic would go here
+    const updateSettings = async (newSettings: typeof settings) => {
+        try {
+            const res = await fetch('/api/user/settings', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newSettings)
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    setSettings(newSettings);
+                }
+            }
+        } catch (err) {
+            console.error('Failed to update settings:', err);
+        }
+    };
+
+    const handleSave = async () => {
+        try {
+            setSaving(true);
+            setError('');
+
+            const res = await fetch('/api/user/profile', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(editedData)
+            });
+
+            if (!res.ok) {
+                throw new Error('Failed to update profile');
+            }
+
+            const data = await res.json();
+            const profile = data.profile;
+
+            // Update profile data
+            setProfileData({
+                ...profileData,
+                name: profile.name || '',
+                username: profile.username || '',
+                bio: profile.bio || '',
+                location: profile.location || ''
+            });
+
+            setIsEditing(false);
+        } catch (err) {
+            console.error('Failed to save profile:', err);
+            setError('Failed to save changes');
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleCancel = () => {
         setIsEditing(false);
-        // Reset form data
+        // Reset edited data to current profile data
+        setEditedData({
+            name: profileData.name,
+            username: profileData.username,
+            bio: profileData.bio,
+            location: profileData.location
+        });
     };
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="p-6 flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-black dark:border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600 dark:text-gray-300 font-medium">Loading profile...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6">
@@ -82,6 +221,11 @@ const UserProfilePage = () => {
                     <p className="text-gray-600 dark:text-gray-300 font-medium transition-colors duration-200">
                         Manage your account and view your gaming progress
                     </p>
+                    {error && (
+                        <div className="mt-4 bg-red-100 dark:bg-red-900 border-2 border-red-600 rounded-lg p-3 text-red-800 dark:text-red-200 font-medium">
+                            {error}
+                        </div>
+                    )}
                 </div>
 
                 {/* Tab Navigation */}
@@ -89,7 +233,6 @@ const UserProfilePage = () => {
                     {[
                         { id: 'profile', label: 'Profile', icon: User },
                         { id: 'stats', label: 'Statistics', icon: Trophy },
-                        { id: 'achievements', label: 'Achievements', icon: Award },
                         { id: 'settings', label: 'Settings', icon: Settings }
                     ].map((tab) => (
                         <button
@@ -136,12 +279,23 @@ const UserProfilePage = () => {
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={handleSave}
+                                                disabled={saving}
                                                 className="bg-green-500 dark:bg-green-600 border-2 border-black dark:border-gray-600 rounded-lg px-4 py-2 font-bold text-white text-sm
                                                     shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.1)]
-                                                    hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all duration-150"
+                                                    hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all duration-150
+                                                    disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
-                                                <Save size={16} className="inline mr-1" />
-                                                Save
+                                                {saving ? (
+                                                    <>
+                                                        <div className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1"></div>
+                                                        Saving...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Save size={16} className="inline mr-1" />
+                                                        Save
+                                                    </>
+                                                )}
                                             </button>
                                             <button
                                                 onClick={handleCancel}
@@ -164,8 +318,8 @@ const UserProfilePage = () => {
                                         {isEditing ? (
                                             <input
                                                 type="text"
-                                                value={profileData.name}
-                                                onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                                                value={editedData.name}
+                                                onChange={(e) => setEditedData({ ...editedData, name: e.target.value })}
                                                 className="w-full p-3 border-2 border-black dark:border-gray-600 rounded-lg
                                                     bg-white dark:bg-gray-700 text-black dark:text-white
                                                     shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.1)]
@@ -183,8 +337,8 @@ const UserProfilePage = () => {
                                         {isEditing ? (
                                             <input
                                                 type="text"
-                                                value={profileData.username}
-                                                onChange={(e) => setProfileData({...profileData, username: e.target.value})}
+                                                value={editedData.username}
+                                                onChange={(e) => setEditedData({ ...editedData, username: e.target.value })}
                                                 className="w-full p-3 border-2 border-black dark:border-gray-600 rounded-lg
                                                     bg-white dark:bg-gray-700 text-black dark:text-white
                                                     shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.1)]
@@ -201,8 +355,8 @@ const UserProfilePage = () => {
                                         </label>
                                         {isEditing ? (
                                             <textarea
-                                                value={profileData.bio}
-                                                onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
+                                                value={editedData.bio}
+                                                onChange={(e) => setEditedData({ ...editedData, bio: e.target.value })}
                                                 className="w-full p-3 border-2 border-black dark:border-gray-600 rounded-lg h-24 resize-none
                                                     bg-white dark:bg-gray-700 text-black dark:text-white
                                                     shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.1)]
@@ -322,36 +476,7 @@ const UserProfilePage = () => {
                     </div>
                 )}
 
-                {/* Achievements Tab */}
-                {activeTab === 'achievements' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {achievements.map((achievement) => (
-                            <div key={achievement.id} className={`bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-600 rounded-lg p-6
-                                shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.1)]
-                                transition-all duration-200 ${achievement.earned ? '' : 'opacity-60'}`}>
 
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className={`w-12 h-12 ${achievement.color} dark:${achievement.color} border-2 border-black dark:border-gray-600
-                                        rounded-full flex items-center justify-center`}>
-                                        <achievement.icon size={24} className="text-white" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="font-bold text-black dark:text-white">{achievement.title}</h3>
-                                        {achievement.earned && (
-                                            <span className="text-xs bg-green-500 dark:bg-green-600 text-white px-2 py-1 rounded">
-                                                EARNED
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <p className="text-sm text-gray-600 dark:text-gray-300">
-                                    {achievement.description}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                )}
 
                 {/* Settings Tab */}
                 {activeTab === 'settings' && (
@@ -371,7 +496,7 @@ const UserProfilePage = () => {
                                         <p className="text-sm text-gray-600 dark:text-gray-300">Receive updates about your games</p>
                                     </div>
                                     <button
-                                        onClick={() => setSettings({...settings, emailNotifications: !settings.emailNotifications})}
+                                        onClick={() => updateSettings({ ...settings, emailNotifications: !settings.emailNotifications })}
                                         className={`w-12 h-6 rounded-full border-2 border-black dark:border-gray-600 transition-all duration-200
                                             ${settings.emailNotifications ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}
                                     >
@@ -386,7 +511,7 @@ const UserProfilePage = () => {
                                         <p className="text-sm text-gray-600 dark:text-gray-300">Play sounds during gameplay</p>
                                     </div>
                                     <button
-                                        onClick={() => setSettings({...settings, soundEffects: !settings.soundEffects})}
+                                        onClick={() => updateSettings({ ...settings, soundEffects: !settings.soundEffects })}
                                         className={`w-12 h-6 rounded-full border-2 border-black dark:border-gray-600 transition-all duration-200
                                             ${settings.soundEffects ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}
                                     >
@@ -401,7 +526,7 @@ const UserProfilePage = () => {
                                         {['easy', 'medium', 'hard'].map((difficulty) => (
                                             <button
                                                 key={difficulty}
-                                                onClick={() => setSettings({...settings, difficulty})}
+                                                onClick={() => updateSettings({ ...settings, difficulty })}
                                                 className={`px-4 py-2 border-2 border-black dark:border-gray-600 rounded-lg font-bold text-sm capitalize
                                                     shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.1)]
                                                     hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all duration-150

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(_request: NextRequest, context: { params: { id: string } }) {
+export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
-        const idNum = Number(context.params.id);
+        const params = await context.params
+        const idNum = Number(params.id);
         if (!Number.isFinite(idNum)) {
             return NextResponse.json({ error: 'Invalid id parameter' }, { status: 400 });
         }
@@ -30,11 +31,103 @@ export async function GET(_request: NextRequest, context: { params: { id: string
     }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
         const body = await request.json();
-        const { id } = await params;
-        const idNum = Number(id);
+        const params = await context.params;
+        const idNum = Number(params.id);
+
+        if (!Number.isFinite(idNum)) {
+            return NextResponse.json({ error: 'Invalid id parameter' }, { status: 400 });
+        }
+
+        const {
+            title,
+            description,
+            categoryId,
+            timeLimit,
+            status,
+            political,
+            economic,
+            infrastructure,
+            society,
+            environment,
+            responseOptions
+        } = body;
+
+        // Transaction to handle card update and response options replacement
+        const updatedCard = await prisma.$transaction(async (tx) => {
+            // 1. Update basic card details
+            const card = await tx.card.update({
+                where: { id: idNum },
+                data: {
+                    title,
+                    description,
+                    categoryId: Number(categoryId),
+                    timeLimit: Number(timeLimit),
+                    status,
+                    political: Number(political),
+                    economic: Number(economic),
+                    infrastructure: Number(infrastructure),
+                    society: Number(society),
+                    environment: Number(environment),
+                }
+            });
+
+            // 2. Delete existing response options
+            await tx.cardResponse.deleteMany({
+                where: { cardId: idNum }
+            });
+
+            // 3. Create new response options
+            if (responseOptions && Array.isArray(responseOptions)) {
+                await tx.cardResponse.createMany({
+                    data: responseOptions.map((opt: { text: string; politicalEffect: number; economicEffect: number; infrastructureEffect: number; societyEffect: number; environmentEffect: number; score: number }, index: number) => ({
+                        cardId: idNum,
+                        text: opt.text,
+                        politicalEffect: Number(opt.politicalEffect),
+                        economicEffect: Number(opt.economicEffect),
+                        infrastructureEffect: Number(opt.infrastructureEffect),
+                        societyEffect: Number(opt.societyEffect),
+                        environmentEffect: Number(opt.environmentEffect),
+                        score: Number(opt.score),
+                        order: index
+                    }))
+                });
+            }
+
+            // Return updated card with relations
+            return tx.card.findUnique({
+                where: { id: idNum },
+                include: {
+                    category: true,
+                    cardResponses: {
+                        orderBy: { order: 'asc' }
+                    }
+                }
+            });
+        });
+
+        return NextResponse.json({
+            success: true,
+            message: 'Card updated successfully',
+            card: updatedCard
+        });
+
+    } catch (error: unknown) {
+        console.error('Error updating card:', error);
+        return NextResponse.json(
+            { error: 'Failed to update card' },
+            { status: 500 }
+        );
+    }
+}
+
+export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+    try {
+        const body = await request.json();
+        const params = await context.params;
+        const idNum = Number(params.id);
 
         if (!Number.isFinite(idNum)) {
             return NextResponse.json({ error: 'Invalid id parameter' }, { status: 400 });
@@ -67,7 +160,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         });
 
     } catch (error: unknown) {
-        if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+        if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'P2025') {
             return NextResponse.json({ error: 'Card not found' }, { status: 404 });
         }
 
@@ -75,9 +168,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 }
 
-export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
-        const idNum = Number(context.params.id);
+        const params = await context.params;
+        const idNum = Number(params.id);
         if (!Number.isFinite(idNum)) {
             return NextResponse.json({ error: 'Invalid id parameter' }, { status: 400 });
         }
@@ -136,10 +230,10 @@ export async function DELETE(request: NextRequest, context: { params: { id: stri
         console.error('Error deleting card:', error);
 
         if (error && typeof error === 'object' && 'code' in error) {
-            if (error.code === 'P2025') {
+            if ((error as { code: string }).code === 'P2025') {
                 return NextResponse.json({ error: 'Card not found' }, { status: 404 });
             }
-            if (error.code === 'P2003') {
+            if ((error as { code: string }).code === 'P2003') {
                 return NextResponse.json({
                     error: 'Cannot delete card due to existing references'
                 }, { status: 409 });

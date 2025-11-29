@@ -1,6 +1,6 @@
 "use server";
 
-import { generateJWTToken } from "@/utils/auth";
+import { generateJWTToken, verifyJWT } from "@/utils/auth";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma"
 import { loginFormSchema, registerFormSchema } from "@/lib/rules";
@@ -67,7 +67,7 @@ export async function registerAction(
         }
 
         // Hash Password
-        const hashedPassword = await bcrypt.hash(password, 0)
+        const hashedPassword = await bcrypt.hash(password, 10)
 
         const newUser = await prisma.user.create({
             data: {
@@ -235,5 +235,37 @@ export async function logoutAction(prevState: unknown, _formData: FormData) {
     }
     catch {
         return { success: false, message: 'Failed to logout' }
+    }
+}
+
+export async function getCurrentUser() {
+    try {
+        const cookieStore = await cookies();
+        const token = cookieStore.get('token')?.value;
+
+        if (!token) {
+            return null;
+        }
+
+        const decoded = verifyJWT(token);
+        if (!decoded) {
+            return null;
+        }
+
+        // Fetch user from database to get latest info
+        const user = await prisma.user.findUnique({
+            where: { id: parseInt(decoded.userId) },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true
+            }
+        });
+
+        return user;
+    } catch (error) {
+        console.error('Error getting current user:', error);
+        return null;
     }
 }

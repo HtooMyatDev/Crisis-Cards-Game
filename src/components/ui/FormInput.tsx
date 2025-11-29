@@ -16,7 +16,7 @@ export const FormInput: React.FC<FormInputProps> = ({
     helpText
 }) => (
     <div>
-        <label className="block text-sm font-bold text-black mb-2">
+        <label className="block text-sm font-bold text-black dark:text-white mb-2">
             {label} {required && <span className="text-red-500">*</span>}
         </label>
         {children}

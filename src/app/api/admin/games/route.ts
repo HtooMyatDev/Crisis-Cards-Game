@@ -1,41 +1,59 @@
 import { prisma } from "@/lib/prisma";
-import { gameCreateSchema } from "@/lib/rules";
+import { gameSessionSchema } from "@/lib/rules";
 import { NextResponse, NextRequest } from "next/server";
-import { z } from "zod";
+import { getCurrentUser } from "@/app/actions/auth";
+import type { ApiResponse } from "@/types/api";
+import type { GameSession } from "@/types/game";
+
+/**
+ * POST /api/admin/games
+ * Creates a new game session
+ * @requires Authentication
+ */
 export async function POST(request: NextRequest) {
     try {
-        const body = await request.json();
-        const {
-            name,
-            gameCode,
-            gameMode,
-            hostId,
-            categoryIds,
-        } = body;
+        // Get authenticated user
+        const user = await getCurrentUser();
 
-        // Validate required fields
-        if (!name || !gameCode || !hostId || !categoryIds || categoryIds.length === 0 || !gameMode) {
-            return NextResponse.json({
-                message: 'Missing required fields',
-                errors: {
-                    name: !name ? 'Session name is required' : null,
-                    gameCode: !gameCode ? 'Game code is required' : null,
-                    hostId: !hostId ? 'Host ID is required' : null,
-                    categoryIds: !categoryIds || categoryIds.length === 0 ? 'At least one category is required' : null,
-                    gameMode: !gameMode ? 'Game mode is required' : null,
-                }
-            }, { status: 400 })
+        if (!user) {
+            return NextResponse.json<ApiResponse>({
+                success: false,
+                error: 'Unauthorized. Please log in.'
+            }, { status: 401 });
         }
 
-        const validatedFields = gameCreateSchema.safeParse({
-            gameCode
-        })
+        const body = await request.json();
+
+        // Comprehensive validation using Zod schema
+        const validatedFields = gameSessionSchema.safeParse(body);
 
         if (!validatedFields.success) {
-            return NextResponse.json({
+            const fieldErrors: Record<string, string> = {};
+            validatedFields.error.issues.forEach((err) => {
+                if (err.path[0]) {
+                    fieldErrors[err.path[0].toString()] = err.message;
+                }
+            });
+
+            return NextResponse.json<ApiResponse>({
+                success: false,
                 message: 'Validation failed',
-                errors: z.treeifyError(validatedFields.error)
-            }, { status: 400 })
+                errors: fieldErrors
+            }, { status: 400 });
+        }
+
+        const { name, gameCode, gameMode, categoryIds, shuffledCardIds } = validatedFields.data;
+
+        // Verify categories exist
+        const existingCategories = await prisma.category.findMany({
+            where: { id: { in: categoryIds } }
+        });
+
+        if (existingCategories.length !== categoryIds.length) {
+            return NextResponse.json<ApiResponse>({
+                success: false,
+                error: 'One or more selected categories do not exist'
+            }, { status: 400 });
         }
 
         // Create game session with multiple categories
@@ -44,10 +62,11 @@ export async function POST(request: NextRequest) {
                 name,
                 gameCode,
                 gameMode,
-                hostId,
-                status: "WAITING", // Changed from IN_PROGRESS to WAITING
+                hostId: user.id,
+                status: "WAITING",
+                shuffledCardIds: shuffledCardIds || [],
                 categories: {
-                    create: categoryIds.map((categoryId: number) => ({
+                    create: categoryIds.map((categoryId) => ({
                         categoryId: categoryId
                     }))
                 }
@@ -71,28 +90,42 @@ export async function POST(request: NextRequest) {
                     }
                 }
             }
-        })
+        });
 
-        return NextResponse.json({
+        return NextResponse.json<ApiResponse<GameSession>>({
             success: true,
             message: 'Game Session created successfully',
-            data: newGame
-        }, { status: 201 })
+            data: newGame as unknown as GameSession
+        }, { status: 201 });
 
-    }
-    catch (error) {
-        console.error("Failed to create game", error)
+    } catch (error: unknown) {
+        console.error("Failed to create game", error);
 
-        // Handle unique constraint violation for game code
-        if (error.code === 'P2002') {
-            return NextResponse.json({
-                error: 'This game code already exists. Please use a different code.'
-            }, { status: 409 })
+        // Handle Prisma errors
+        if (error && typeof error === 'object' && 'code' in error) {
+            const prismaError = error as { code: string; meta?: { target?: string[] } };
+
+            // Unique constraint violation (duplicate game code)
+            if (prismaError.code === 'P2002') {
+                return NextResponse.json<ApiResponse>({
+                    success: false,
+                    error: 'This game code already exists. Please use a different code.'
+                }, { status: 409 });
+            }
+
+            // Foreign key constraint violation
+            if (prismaError.code === 'P2003') {
+                return NextResponse.json<ApiResponse>({
+                    success: false,
+                    error: 'Invalid reference: One or more related records do not exist'
+                }, { status: 400 });
+            }
         }
 
-        return NextResponse.json({
-            error: 'Failed to create game session'
-        }, { status: 500 })
+        return NextResponse.json<ApiResponse>({
+            success: false,
+            error: 'Failed to create game session. Please try again.'
+        }, { status: 500 });
     }
 }
 export async function GET() {

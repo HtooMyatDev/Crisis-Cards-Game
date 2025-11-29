@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, Tag, Clock, Zap, Shield, TrendingUp, Heart, Users } from 'lucide-react';
+import { Eye, Tag, Clock, Zap, Shield, TrendingUp, Building2, Leaf, Users } from 'lucide-react';
 import { FormState, Category } from '../../types/crisisCard';
 import { getCategoryStyles, formatEffect, getEffectColor } from '../../utils/colorUtils';
 
@@ -61,11 +61,10 @@ export const CardPreview: React.FC<CardPreviewProps> = ({ formData, categories }
                         <h3 className="text-lg font-bold text-gray-900 line-clamp-2">
                             {formData.title || 'Card Title'}
                         </h3>
-                        <span className={`px-2 py-1 text-xs font-semibold rounded border-2 ${
-                            formData.status === 'Active'
+                        <span className={`px-2 py-1 text-xs font-semibold rounded border-2 ${formData.status === 'Active'
                                 ? 'bg-green-100 text-green-800 border-green-800'
                                 : 'bg-red-100 text-red-800 border-red-800'
-                        }`}>
+                            }`}>
                             {formData.status}
                         </span>
                     </div>
@@ -98,12 +97,13 @@ export const CardPreview: React.FC<CardPreviewProps> = ({ formData, categories }
                             <Zap size={16} className="text-gray-500" />
                             <p className="text-sm font-semibold text-gray-700">Card Values:</p>
                         </div>
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-5 gap-2">
                             {[
-                                { value: formData.pwValue, icon: Shield, color: 'text-blue-500' },
-                                { value: formData.efValue, icon: TrendingUp, color: 'text-green-500' },
-                                { value: formData.psValue, icon: Heart, color: 'text-red-500' },
-                                { value: formData.grValue, icon: Users, color: 'text-yellow-500' },
+                                { value: formData.political, icon: Shield, color: 'text-blue-500' },
+                                { value: formData.economic, icon: TrendingUp, color: 'text-green-500' },
+                                { value: formData.infrastructure, icon: Building2, color: 'text-gray-500' },
+                                { value: formData.society, icon: Users, color: 'text-yellow-500' },
+                                { value: formData.environment, icon: Leaf, color: 'text-emerald-500' },
                             ].map(({ value, icon: Icon, color }, index) => (
                                 <div key={index} className="flex items-center justify-center gap-2 p-2 bg-gray-50 rounded border">
                                     <Icon size={14} className={color} />
@@ -123,10 +123,11 @@ export const CardPreview: React.FC<CardPreviewProps> = ({ formData, categories }
                                             <div className="text-gray-700 mb-1">{option.text}</div>
                                             <div className="flex gap-2 text-xs">
                                                 {[
-                                                    { label: 'PW', value: option.pwEffect, icon: Shield },
-                                                    { label: 'EF', value: option.efEffect, icon: TrendingUp },
-                                                    { label: 'PS', value: option.psEffect, icon: Heart },
-                                                    { label: 'GR', value: option.grEffect, icon: Users },
+                                                    { label: 'POL', value: option.politicalEffect, icon: Shield },
+                                                    { label: 'ECO', value: option.economicEffect, icon: TrendingUp },
+                                                    { label: 'INF', value: option.infrastructureEffect, icon: Building2 },
+                                                    { label: 'SOC', value: option.societyEffect, icon: Users },
+                                                    { label: 'ENV', value: option.environmentEffect, icon: Leaf },
                                                 ].map(({ label, value, icon: Icon }) => (
                                                     <span key={label} className={`flex items-center gap-1 font-medium ${getEffectColor(value)}`}>
                                                         <Icon size={10} />

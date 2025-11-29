@@ -3,9 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 // GET - Fetch single color preset
-export async function GET(_request: NextRequest, context: { params: { id: string } }) {
+export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
-        const id = parseInt(context.params.id);
+        const params = await context.params;
+        const id = parseInt(params.id);
         if (!Number.isInteger(id)) {
             return NextResponse.json({ error: 'Invalid preset ID' }, { status: 400 });
         }
@@ -32,9 +33,10 @@ export async function GET(_request: NextRequest, context: { params: { id: string
 }
 
 // PUT - Update color preset
-export async function PUT(request: NextRequest, context: { params: { id: string } }) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
-        const id = parseInt(context.params.id);
+        const params = await context.params;
+        const id = parseInt(params.id);
         if (!Number.isInteger(id)) {
             return NextResponse.json({ error: 'Invalid preset ID' }, { status: 400 });
         }
@@ -123,9 +125,10 @@ export async function PUT(request: NextRequest, context: { params: { id: string 
 }
 
 // DELETE - Delete color preset
-export async function DELETE(_request: NextRequest, context: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
-        const id = parseInt(context.params.id);
+        const params = await context.params;
+        const id = parseInt(params.id);
         if (!Number.isInteger(id)) {
             return NextResponse.json({ error: 'Invalid preset ID' }, { status: 400 });
         }
@@ -168,7 +171,8 @@ export async function DELETE(_request: NextRequest, context: { params: { id: str
 
         // Handle Prisma specific errors
         if (error && typeof error === 'object' && 'code' in error) {
-            if (error.code === 'P2025') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if ((error as any).code === 'P2025') {
                 return NextResponse.json({ error: 'Color preset not found' }, { status: 404 });
             }
         }
@@ -181,9 +185,10 @@ export async function DELETE(_request: NextRequest, context: { params: { id: str
 }
 
 // PATCH - Increment usage count
-export async function PATCH(request: NextRequest, context: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
-        const id = parseInt(context.params.id);
+        const params = await context.params;
+        const id = parseInt(params.id);
         if (!Number.isInteger(id)) {
             return NextResponse.json({ error: 'Invalid preset ID' }, { status: 400 });
         }

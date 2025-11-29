@@ -60,7 +60,7 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
                         Are you sure you want to delete this crisis card?
                     </p>
                     <div className="bg-gray-50 p-3 rounded-lg border-2 border-gray-200">
-                        <p className="font-semibold text-gray-900 text-sm">"{cardTitle}"</p>
+                        <p className="font-semibold text-gray-900 text-sm">&quot;{cardTitle}&quot;</p>
                     </div>
                     <p className="text-sm text-red-600 mt-2 font-medium">
                         This will permanently delete the card and all associated response options.
@@ -93,12 +93,12 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
                                 Deleting...
                             </div>
                         ) : (
-                            'Delete Card'
+                            <>Type &quot;DELETE&quot; to confirm</>
                         )}
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

@@ -7,22 +7,25 @@ import { useRouter } from 'next/navigation'
 // Define the form data type
 interface ResponseOption {
     value: string;
-    pwEffect: number;
-    efEffect: number;
-    psEffect: number;
-    grEffect: number;
+    politicalEffect: number;
+    economicEffect: number;
+    infrastructureEffect: number;
+    societyEffect: number;
+    environmentEffect: number;
+    score: number; // NEW: Score field
 }
 
 interface CardFormData {
     name: string;
-description: string;
+    description: string;
     category: string;
     timeLimit: number;
     // Card base values
-    pwValue: number;
-    efValue: number;
-    psValue: number;
-    grValue: number;
+    political: number;
+    economic: number;
+    infrastructure: number;
+    society: number;
+    environment: number;
     responseOptions: ResponseOption[];
     status: 'Active' | 'Inactive';
 }
@@ -57,17 +60,16 @@ export default function CreateCards() {
             category: '',
             timeLimit: 1,
             // Default card base values
-            pwValue: 0,
-            efValue: 0,
-            psValue: 0,
-            grValue: 0,
-            responseOptions: [{
-                value: '',
-                pwEffect: 0,
-                efEffect: 0,
-                psEffect: 0,
-                grEffect: 0
-            }],
+            political: 0,
+            economic: 0,
+            infrastructure: 0,
+            society: 0,
+            environment: 0,
+            responseOptions: [
+                { value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0 },
+                { value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0 },
+                { value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0 }
+            ],
             status: 'Active'
         }
     });
@@ -83,10 +85,11 @@ export default function CreateCards() {
     const watchedCategory = watch('category');
     const watchedTimeLimit = watch('timeLimit');
     const watchedResponseOptions = watch('responseOptions');
-    const watchedPwValue = watch('pwValue');
-    const watchedEfValue = watch('efValue');
-    const watchedPsValue = watch('psValue');
-    const watchedGrValue = watch('grValue');
+    const watchedPolitical = watch('political');
+    const watchedEconomic = watch('economic');
+    const watchedInfrastructure = watch('infrastructure');
+    const watchedSociety = watch('society');
+    const watchedEnvironment = watch('environment');
 
     // Get selected category with color preset
     const selectedCategory = categories.find(cat => cat.name === watchedCategory);
@@ -184,24 +187,6 @@ export default function CreateCards() {
     // Watch the response options to enforce constraints
     watch('responseOptions');
 
-    const addResponseOption = () => {
-        if (fields.length < 3) {
-            append({
-                value: '',
-                pwEffect: 0,
-                efEffect: 0,
-                psEffect: 0,
-                grEffect: 0
-            });
-        }
-    };
-
-    const removeResponseOption = (index: number) => {
-        if (fields.length > 1) {
-            remove(index);
-        }
-    };
-
     const onSubmit = async (data: CardFormData) => {
         try {
             // Filter out empty response options and format them
@@ -209,10 +194,12 @@ export default function CreateCards() {
                 .filter(option => option.value.trim() !== '')
                 .map(option => ({
                     text: option.value.trim(),
-                    pwEffect: option.pwEffect,
-                    efEffect: option.efEffect,
-                    psEffect: option.psEffect,
-                    grEffect: option.grEffect
+                    politicalEffect: option.politicalEffect,
+                    economicEffect: option.economicEffect,
+                    infrastructureEffect: option.infrastructureEffect,
+                    societyEffect: option.societyEffect,
+                    environmentEffect: option.environmentEffect,
+                    score: option.score // Include score field
                 }));
 
             // Find category ID from category name
@@ -227,15 +214,15 @@ export default function CreateCards() {
                 description: data.description,
                 timeLimit: data.timeLimit,
                 // Card base values
-                pwValue: data.pwValue,
-                efValue: data.efValue,
-                psValue: data.psValue,
-                grValue: data.grValue,
+                political: data.political,
+                economic: data.economic,
+                infrastructure: data.infrastructure,
+                society: data.society,
+                environment: data.environment,
                 // Response options with effects
                 responseOptions: filteredOptions,
                 categoryId: parseInt(selectedCategory.id),
                 status: data.status === 'Active' ? 'OPEN' : 'CLOSED',
-                createdBy: 1, // TODO: Replace with actual user ID from session/auth
                 severity: 'MEDIUM',
                 priority: 'MEDIUM',
             };
@@ -268,13 +255,13 @@ export default function CreateCards() {
     };
 
     return (
-        <div className="w-full p-6 bg-white">
+        <div className="w-full p-6 bg-white dark:bg-gray-900">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Create New Card</h1>
+                <h1 className="text-2xl font-bold text-black dark:text-white">Create New Card</h1>
                 <button
                     type="button"
                     onClick={() => setShowPreview(!showPreview)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 font-medium"
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 font-medium text-black dark:text-white"
                 >
                     <Eye size={16} />
                     {showPreview ? 'Hide' : 'Show'} Preview
@@ -286,18 +273,18 @@ export default function CreateCards() {
                 <div className={showPreview ? '' : 'max-w-4xl'}>
                     <form className="space-y-4">
                         <div>
-                            <label className="block font-bold mb-2">Card Name</label>
+                            <label className="block font-bold mb-2 text-black dark:text-white">Card Name</label>
                             <input
                                 {...register('name', {
                                     required: 'Card name is required',
                                     minLength: { value: 2, message: 'Card name must be at least 2 characters' }
                                 })}
                                 type="text"
-                                className="w-full p-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                className="w-full p-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                 placeholder="Enter card name"
                             />
                             {errors.name && (
-                                <p className="text-red-600 text-sm mt-1">{errors.name.message}</p>
+                                <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.name.message}</p>
                             )}
                         </div>
 
@@ -319,15 +306,16 @@ export default function CreateCards() {
                         <div>
                             <label className="block font-bold mb-2">Category</label>
                             {categoriesLoading ? (
-                                <div className="w-full p-3 border-2 border-gray-300 rounded-lg bg-gray-100 text-gray-500 flex items-center justify-center">
-                                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-500 border-t-transparent mr-2"></div>
+                                <div className="w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-500 dark:border-gray-400 border-t-transparent mr-2"></div>
                                     Loading categories...
                                 </div>
                             ) : (
                                 <>
                                     <select
                                         {...register('category', { required: 'Category is required' })}
-                                        className="w-full p-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                        className="w-full pl-3 pr-10 py-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] appearance-none bg-white dark:bg-gray-800 text-black dark:text-white"
+                                        style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
                                         aria-label="Select card category"
                                     >
                                         <option value="">Select a category</option>
@@ -345,24 +333,24 @@ export default function CreateCards() {
 
                                     {/* Category Color Preview */}
                                     {selectedCategory && selectedCategory.colorPreset && (
-                                        <div className="mt-3 p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                        <div className="mt-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
                                             <div className="flex items-center justify-between mb-2">
-                                                <span className="text-sm font-medium text-gray-700">
+                                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                                     Theme Preview: {selectedCategory.name}
                                                 </span>
                                                 <div className="flex items-center gap-2">
                                                     <div
-                                                        className="w-4 h-4 rounded border border-gray-300"
+                                                        className="w-4 h-4 rounded border border-gray-300 dark:border-gray-600"
                                                         style={{ backgroundColor: selectedCategory.colorPreset.backgroundColor }}
                                                         title="Background Color"
                                                     ></div>
                                                     <div
-                                                        className="w-4 h-4 rounded border border-gray-300"
+                                                        className="w-4 h-4 rounded border border-gray-300 dark:border-gray-600"
                                                         style={{ backgroundColor: selectedCategory.colorPreset.textColor }}
                                                         title="Text Color"
                                                     ></div>
                                                     <div
-                                                        className="w-4 h-4 rounded border border-gray-300"
+                                                        className="w-4 h-4 rounded border border-gray-300 dark:border-gray-600"
                                                         style={{ backgroundColor: selectedCategory.colorPreset.textBoxColor }}
                                                         title="Accent Color"
                                                     ></div>
@@ -405,7 +393,7 @@ export default function CreateCards() {
                                 type="number"
                                 min="1"
                                 max="120"
-                                className="w-full p-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                className="w-full p-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                 placeholder="Enter time limit in minutes (1-120)"
                             />
                             {errors.timeLimit && (
@@ -416,88 +404,108 @@ export default function CreateCards() {
                         {/* Card Base Values Section */}
                         <div>
                             <label className="block font-bold mb-3">Card Base Values</label>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 border-2 border-gray-300 rounded-lg bg-gray-50">
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 border-2 border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">PW (Power)</label>
+                                    <label className="block text-sm font-medium mb-1 text-black dark:text-white">Political</label>
                                     <input
-                                        {...register('pwValue', {
-                                            required: 'PW value is required',
-                                            min: { value: -50, message: 'PW must be at least -50' },
-                                            max: { value: 50, message: 'PW cannot exceed 50' },
+                                        {...register('political', {
+                                            required: 'Political value is required',
+                                            min: { value: -50, message: 'Min -50' },
+                                            max: { value: 50, message: 'Max 50' },
                                             valueAsNumber: true
                                         })}
                                         type="number"
                                         min="-50"
                                         max="50"
-                                        className="w-full p-2 border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                        className="w-full p-2 border-2 border-black dark:border-gray-700 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white"
                                         placeholder="0"
                                     />
-                                    {errors.pwValue && (
-                                        <p className="text-red-600 text-xs mt-1">{errors.pwValue.message}</p>
+                                    {errors.political && (
+                                        <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.political.message}</p>
                                     )}
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">EF (Efficiency)</label>
+                                    <label className="block text-sm font-medium mb-1">Economic</label>
                                     <input
-                                        {...register('efValue', {
-                                            required: 'EF value is required',
-                                            min: { value: -50, message: 'EF must be at least -50' },
-                                            max: { value: 50, message: 'EF cannot exceed 50' },
+                                        {...register('economic', {
+                                            required: 'Economic value is required',
+                                            min: { value: -50, message: 'Min -50' },
+                                            max: { value: 50, message: 'Max 50' },
                                             valueAsNumber: true
                                         })}
                                         type="number"
                                         min="-50"
                                         max="50"
-                                        className="w-full p-2 border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                        className="w-full p-2 border-2 border-black dark:border-gray-700 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white"
                                         placeholder="0"
                                     />
-                                    {errors.efValue && (
-                                        <p className="text-red-600 text-xs mt-1">{errors.efValue.message}</p>
+                                    {errors.economic && (
+                                        <p className="text-red-600 text-xs mt-1">{errors.economic.message}</p>
                                     )}
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">PS (Precision)</label>
+                                    <label className="block text-sm font-medium mb-1">Infrastructure</label>
                                     <input
-                                        {...register('psValue', {
-                                            required: 'PS value is required',
-                                            min: { value: -50, message: 'PS must be at least -50' },
-                                            max: { value: 50, message: 'PS cannot exceed 50' },
+                                        {...register('infrastructure', {
+                                            required: 'Infrastructure value is required',
+                                            min: { value: -50, message: 'Min -50' },
+                                            max: { value: 50, message: 'Max 50' },
                                             valueAsNumber: true
                                         })}
                                         type="number"
                                         min="-50"
                                         max="50"
-                                        className="w-full p-2 border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                        className="w-full p-2 border-2 border-black dark:border-gray-700 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white"
                                         placeholder="0"
                                     />
-                                    {errors.psValue && (
-                                        <p className="text-red-600 text-xs mt-1">{errors.psValue.message}</p>
+                                    {errors.infrastructure && (
+                                        <p className="text-red-600 text-xs mt-1">{errors.infrastructure.message}</p>
                                     )}
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">GR (Growth)</label>
+                                    <label className="block text-sm font-medium mb-1">Society</label>
                                     <input
-                                        {...register('grValue', {
-                                            required: 'GR value is required',
-                                            min: { value: -50, message: 'GR must be at least -50' },
-                                            max: { value: 50, message: 'GR cannot exceed 50' },
+                                        {...register('society', {
+                                            required: 'Society value is required',
+                                            min: { value: -50, message: 'Min -50' },
+                                            max: { value: 50, message: 'Max 50' },
                                             valueAsNumber: true
                                         })}
                                         type="number"
                                         min="-50"
                                         max="50"
-                                        className="w-full p-2 border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                        className="w-full p-2 border-2 border-black dark:border-gray-700 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white"
                                         placeholder="0"
                                     />
-                                    {errors.grValue && (
-                                        <p className="text-red-600 text-xs mt-1">{errors.grValue.message}</p>
+                                    {errors.society && (
+                                        <p className="text-red-600 text-xs mt-1">{errors.society.message}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Environment</label>
+                                    <input
+                                        {...register('environment', {
+                                            required: 'Environment value is required',
+                                            min: { value: -50, message: 'Min -50' },
+                                            max: { value: 50, message: 'Max 50' },
+                                            valueAsNumber: true
+                                        })}
+                                        type="number"
+                                        min="-50"
+                                        max="50"
+                                        className="w-full p-2 border-2 border-black dark:border-gray-700 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white"
+                                        placeholder="0"
+                                    />
+                                    {errors.environment && (
+                                        <p className="text-red-600 text-xs mt-1">{errors.environment.message}</p>
                                     )}
                                 </div>
                             </div>
-                            <p className="text-sm text-gray-600 mt-2">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                                 Set the base values for this card. Range: -50 to +50 for each value.
                             </p>
                         </div>
@@ -507,8 +515,9 @@ export default function CreateCards() {
                             <label className="block font-bold mb-2">Response Options & Effects</label>
                             <div className="space-y-4">
                                 {fields.map((field, index) => (
-                                    <div key={field.id} className="p-4 border-2 border-gray-300 rounded-lg bg-gray-50">
+                                    <div key={field.id} className="p-4 border-2 border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
                                         <div className="flex items-center gap-3 mb-3">
+                                            <span className="font-bold text-gray-500 dark:text-gray-400">#{index + 1}</span>
                                             <input
                                                 {...register(`responseOptions.${index}.value`, {
                                                     required: 'Response option cannot be empty',
@@ -532,90 +541,116 @@ export default function CreateCards() {
                                                     },
                                                 })}
                                                 type="text"
-                                                className="flex-1 p-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                                className="flex-1 p-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                                 placeholder={`Response option ${index + 1}`}
                                             />
-                                            {fields.length > 1 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeResponseOption(index)}
-                                                    className="p-3 border-2 border-red-600 text-red-600 rounded-lg shadow-[2px_2px_0px_0px_rgba(220,38,38,1)] hover:shadow-[1px_1px_0px_0px_rgba(220,38,38,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200"
-                                                    aria-label={`Remove response option ${index + 1}`}
-                                                >
-                                                    <X size={20} />
-                                                </button>
-                                            )}
                                         </div>
 
                                         {/* Effects for this response option */}
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                                             <div>
-                                                <label className="block text-xs font-medium mb-1">PW Effect</label>
+                                                <label className="block text-xs font-medium mb-1">Political</label>
                                                 <input
-                                                    {...register(`responseOptions.${index}.pwEffect`, {
-                                                        required: 'PW effect is required',
-                                                        min: { value: -10, message: 'PW effect must be at least -10' },
-                                                        max: { value: 10, message: 'PW effect cannot exceed 10' },
+                                                    {...register(`responseOptions.${index}.politicalEffect`, {
+                                                        required: 'Required',
+                                                        min: { value: -10, message: 'Min -10' },
+                                                        max: { value: 10, message: 'Max 10' },
                                                         valueAsNumber: true
                                                     })}
                                                     type="number"
                                                     min="-10"
                                                     max="10"
-                                                    className="w-full p-2 text-sm border border-gray-400 rounded"
+                                                    className="w-full p-2 text-sm border border-gray-400 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white"
                                                     placeholder="0"
                                                 />
                                             </div>
 
                                             <div>
-                                                <label className="block text-xs font-medium mb-1">EF Effect</label>
+                                                <label className="block text-xs font-medium mb-1">Economic</label>
                                                 <input
-                                                    {...register(`responseOptions.${index}.efEffect`, {
-                                                        required: 'EF effect is required',
-                                                        min: { value: -10, message: 'EF effect must be at least -10' },
-                                                        max: { value: 10, message: 'EF effect cannot exceed 10' },
+                                                    {...register(`responseOptions.${index}.economicEffect`, {
+                                                        required: 'Required',
+                                                        min: { value: -10, message: 'Min -10' },
+                                                        max: { value: 10, message: 'Max 10' },
                                                         valueAsNumber: true
                                                     })}
                                                     type="number"
                                                     min="-10"
                                                     max="10"
-                                                    className="w-full p-2 text-sm border border-gray-400 rounded"
+                                                    className="w-full p-2 text-sm border border-gray-400 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white"
                                                     placeholder="0"
                                                 />
                                             </div>
 
                                             <div>
-                                                <label className="block text-xs font-medium mb-1">PS Effect</label>
+                                                <label className="block text-xs font-medium mb-1">Infrastructure</label>
                                                 <input
-                                                    {...register(`responseOptions.${index}.psEffect`, {
-                                                        required: 'PS effect is required',
-                                                        min: { value: -10, message: 'PS effect must be at least -10' },
-                                                        max: { value: 10, message: 'PS effect cannot exceed 10' },
+                                                    {...register(`responseOptions.${index}.infrastructureEffect`, {
+                                                        required: 'Required',
+                                                        min: { value: -10, message: 'Min -10' },
+                                                        max: { value: 10, message: 'Max 10' },
                                                         valueAsNumber: true
                                                     })}
                                                     type="number"
                                                     min="-10"
                                                     max="10"
-                                                    className="w-full p-2 text-sm border border-gray-400 rounded"
+                                                    className="w-full p-2 text-sm border border-gray-400 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white"
                                                     placeholder="0"
                                                 />
                                             </div>
 
                                             <div>
-                                                <label className="block text-xs font-medium mb-1">GR Effect</label>
+                                                <label className="block text-xs font-medium mb-1">Society</label>
                                                 <input
-                                                    {...register(`responseOptions.${index}.grEffect`, {
-                                                        required: 'GR effect is required',
-                                                        min: { value: -10, message: 'GR effect must be at least -10' },
-                                                        max: { value: 10, message: 'GR effect cannot exceed 10' },
+                                                    {...register(`responseOptions.${index}.societyEffect`, {
+                                                        required: 'Required',
+                                                        min: { value: -10, message: 'Min -10' },
+                                                        max: { value: 10, message: 'Max 10' },
                                                         valueAsNumber: true
                                                     })}
                                                     type="number"
                                                     min="-10"
                                                     max="10"
-                                                    className="w-full p-2 text-sm border border-gray-400 rounded"
+                                                    className="w-full p-2 text-sm border border-gray-400 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white"
                                                     placeholder="0"
                                                 />
                                             </div>
+
+                                            <div>
+                                                <label className="block text-xs font-medium mb-1">Environment</label>
+                                                <input
+                                                    {...register(`responseOptions.${index}.environmentEffect`, {
+                                                        required: 'Required',
+                                                        min: { value: -10, message: 'Min -10' },
+                                                        max: { value: 10, message: 'Max 10' },
+                                                        valueAsNumber: true
+                                                    })}
+                                                    type="number"
+                                                    min="-10"
+                                                    max="10"
+                                                    className="w-full p-2 text-sm border border-gray-400 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white"
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Score Field */}
+                                        <div className="mt-4">
+                                            <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                                                Score (Points)
+                                            </label>
+                                            <input
+                                                {...register(`responseOptions.${index}.score`, {
+                                                    required: 'Score is required',
+                                                    valueAsNumber: true
+                                                })}
+                                                type="number"
+                                                className="w-full p-3 border-2 border-gray-400 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:outline-none bg-white dark:bg-gray-800 text-black dark:text-white"
+                                                placeholder="e.g., -300, +500, 0"
+                                            />
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                Enter the score value for this response (can be positive or negative)
+                                            </p>
                                         </div>
 
                                         {/* Show validation errors for this response option */}
@@ -624,27 +659,24 @@ export default function CreateCards() {
                                                 {errors.responseOptions[index].value?.message}
                                             </p>
                                         )}
-                                        {(errors.responseOptions?.[index]?.pwEffect ||
-                                            errors.responseOptions?.[index]?.efEffect ||
-                                            errors.responseOptions?.[index]?.psEffect ||
-                                            errors.responseOptions?.[index]?.grEffect) && (
+                                        {(errors.responseOptions?.[index]?.politicalEffect ||
+                                            errors.responseOptions?.[index]?.economicEffect ||
+                                            errors.responseOptions?.[index]?.infrastructureEffect ||
+                                            errors.responseOptions?.[index]?.societyEffect ||
+                                            errors.responseOptions?.[index]?.environmentEffect) && (
                                                 <p className="text-red-600 text-sm mt-2">
                                                     Please check the effect values (range: -10 to +10)
                                                 </p>
                                             )}
+                                        {errors.responseOptions?.[index]?.score && (
+                                            <p className="text-red-600 text-sm mt-2">
+                                                {errors.responseOptions[index].score?.message}
+                                            </p>
+                                        )}
                                     </div>
                                 ))}
 
-                                {fields.length < 3 && (
-                                    <button
-                                        type="button"
-                                        onClick={addResponseOption}
-                                        className="flex items-center gap-2 px-4 py-2 border-2 border-black rounded-lg font-semibold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 bg-white hover:bg-gray-50"
-                                    >
-                                        <Plus size={20} />
-                                        Add Response Option
-                                    </button>
-                                )}
+
                                 <p className="text-sm text-gray-600">
                                     Each response option can have effects on the card values. Effect range: -10 to +10.
                                 </p>
@@ -655,7 +687,8 @@ export default function CreateCards() {
                             <label className="block font-bold mb-2">Status</label>
                             <select
                                 {...register('status')}
-                                className="w-full p-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                className="w-full pl-3 pr-10 py-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] appearance-none bg-white dark:bg-gray-800 text-black dark:text-white"
+                                style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
                                 aria-label="Select card status"
                             >
                                 <option value="Active">Active</option>
@@ -667,7 +700,7 @@ export default function CreateCards() {
                             type="button"
                             onClick={handleSubmit(onSubmit)}
                             disabled={isSubmitting || categoriesLoading}
-                            className="w-full px-6 py-3 bg-black text-white font-bold border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full px-6 py-3 bg-black dark:bg-blue-600 text-white font-bold border-2 border-black dark:border-blue-500 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(37,99,235,0.5)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(37,99,235,0.5)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isSubmitting ? 'Creating Card...' : 'Create Card'}
                         </button>
@@ -678,8 +711,8 @@ export default function CreateCards() {
                 {showPreview && (
                     <div className="flex justify-center">
                         <div className="w-full max-w-md">
-                            <div className="bg-white border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] p-6">
-                                <h3 className="text-lg font-bold mb-4 text-center">Live Preview</h3>
+                            <div className="bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.1)] p-6">
+                                <h3 className="text-lg font-bold mb-4 text-center text-black dark:text-white">Live Preview</h3>
 
                                 {/* Card Style Preview */}
                                 <div
@@ -761,16 +794,16 @@ export default function CreateCards() {
                                                     </div>
 
                                                     {/* Effects Display */}
-                                                    <div className="flex justify-center gap-1 mt-2">
+                                                    <div className="flex justify-center gap-1 mt-2 flex-wrap">
                                                         <div
                                                             className="px-2 py-1 rounded text-xs font-medium"
                                                             style={{
                                                                 backgroundColor: previewColors.textColor,
                                                                 color: 'white'
                                                             }}
-                                                            title="Power Effect"
+                                                            title="Political Effect"
                                                         >
-                                                            PW: {option.pwEffect >= 0 ? '+' : ''}{option.pwEffect}
+                                                            POL: {option.politicalEffect >= 0 ? '+' : ''}{option.politicalEffect}
                                                         </div>
                                                         <div
                                                             className="px-2 py-1 rounded text-xs font-medium"
@@ -778,9 +811,9 @@ export default function CreateCards() {
                                                                 backgroundColor: previewColors.textColor,
                                                                 color: 'white'
                                                             }}
-                                                            title="Efficiency Effect"
+                                                            title="Economic Effect"
                                                         >
-                                                            EF: {option.efEffect >= 0 ? '+' : ''}{option.efEffect}
+                                                            ECO: {option.economicEffect >= 0 ? '+' : ''}{option.economicEffect}
                                                         </div>
                                                         <div
                                                             className="px-2 py-1 rounded text-xs font-medium"
@@ -788,9 +821,9 @@ export default function CreateCards() {
                                                                 backgroundColor: previewColors.textColor,
                                                                 color: 'white'
                                                             }}
-                                                            title="Precision Effect"
+                                                            title="Infrastructure Effect"
                                                         >
-                                                            PS: {option.psEffect >= 0 ? '+' : ''}{option.psEffect}
+                                                            INF: {option.infrastructureEffect >= 0 ? '+' : ''}{option.infrastructureEffect}
                                                         </div>
                                                         <div
                                                             className="px-2 py-1 rounded text-xs font-medium"
@@ -798,9 +831,19 @@ export default function CreateCards() {
                                                                 backgroundColor: previewColors.textColor,
                                                                 color: 'white'
                                                             }}
-                                                            title="Growth Effect"
+                                                            title="Society Effect"
                                                         >
-                                                            GR: {option.grEffect >= 0 ? '+' : ''}{option.grEffect}
+                                                            SOC: {option.societyEffect >= 0 ? '+' : ''}{option.societyEffect}
+                                                        </div>
+                                                        <div
+                                                            className="px-2 py-1 rounded text-xs font-medium"
+                                                            style={{
+                                                                backgroundColor: previewColors.textColor,
+                                                                color: 'white'
+                                                            }}
+                                                            title="Environment Effect"
+                                                        >
+                                                            ENV: {option.environmentEffect >= 0 ? '+' : ''}{option.environmentEffect}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -842,7 +885,7 @@ export default function CreateCards() {
 
                                     {/* Footer with base values */}
                                     <div className="px-6 pb-6">
-                                        <div className="flex justify-center gap-2 mb-3">
+                                        <div className="flex justify-center gap-2 mb-3 flex-wrap">
                                             <div
                                                 className="px-2 py-1 rounded text-xs font-medium"
                                                 style={{
@@ -850,7 +893,7 @@ export default function CreateCards() {
                                                     color: previewColors.textColor
                                                 }}
                                             >
-                                                Base PW: {watchedPwValue >= 0 ? '+' : ''}{watchedPwValue}
+                                                Base POL: {watchedPolitical >= 0 ? '+' : ''}{watchedPolitical}
                                             </div>
                                             <div
                                                 className="px-2 py-1 rounded text-xs font-medium"
@@ -859,7 +902,7 @@ export default function CreateCards() {
                                                     color: previewColors.textColor
                                                 }}
                                             >
-                                                Base EF: {watchedEfValue >= 0 ? '+' : ''}{watchedEfValue}
+                                                Base ECO: {watchedEconomic >= 0 ? '+' : ''}{watchedEconomic}
                                             </div>
                                             <div
                                                 className="px-2 py-1 rounded text-xs font-medium"
@@ -868,7 +911,7 @@ export default function CreateCards() {
                                                     color: previewColors.textColor
                                                 }}
                                             >
-                                                Base PS: {watchedPsValue >= 0 ? '+' : ''}{watchedPsValue}
+                                                Base INF: {watchedInfrastructure >= 0 ? '+' : ''}{watchedInfrastructure}
                                             </div>
                                             <div
                                                 className="px-2 py-1 rounded text-xs font-medium"
@@ -877,7 +920,16 @@ export default function CreateCards() {
                                                     color: previewColors.textColor
                                                 }}
                                             >
-                                                Base GR: {watchedGrValue >= 0 ? '+' : ''}{watchedGrValue}
+                                                Base SOC: {watchedSociety >= 0 ? '+' : ''}{watchedSociety}
+                                            </div>
+                                            <div
+                                                className="px-2 py-1 rounded text-xs font-medium"
+                                                style={{
+                                                    backgroundColor: previewColors.textColor + '20',
+                                                    color: previewColors.textColor
+                                                }}
+                                            >
+                                                Base ENV: {watchedEnvironment >= 0 ? '+' : ''}{watchedEnvironment}
                                             </div>
                                         </div>
 
@@ -898,7 +950,7 @@ export default function CreateCards() {
                                         </div>
                                         <div className="grid grid-cols-1 gap-2">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-gray-600">Background:</span>
+                                                <span className="text-gray-600 dark:text-gray-400">Background:</span>
                                                 <div className="flex items-center gap-2">
                                                     <div
                                                         className="w-4 h-4 border border-gray-300 rounded"

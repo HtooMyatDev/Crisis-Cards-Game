@@ -5,12 +5,14 @@ import Link from 'next/link'
 import { logoutAction } from '@/app/actions/auth';
 import { useRouter } from 'next/navigation';
 
+
 interface AdminSidebarFooterProps {
     isProfileOpen: boolean;
     onToggleProfile: () => void;
     onNavigation: () => void;
     onLogout: () => void;
     pathname: string;
+    isCollapsed?: boolean; // New prop for collapsed state
     userInfo: {
         name: string;
         role: string;
@@ -28,7 +30,7 @@ const AdminSidebarFooter: React.FC<AdminSidebarFooterProps> = ({
 }) => {
     const [mounted, setMounted] = useState(false);
 
-    const [state, formAction, isPending] = useActionState(logoutAction, null);
+    const [state, formAction] = useActionState(logoutAction, null);
     const router = useRouter();
 
     useEffect(() => {
@@ -69,7 +71,7 @@ const AdminSidebarFooter: React.FC<AdminSidebarFooterProps> = ({
                                 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                                 ${mounted && pathname === option.href
                                     ? 'bg-indigo-700 text-white'
-                                    : 'bg-white hover:bg-indigo-50'
+                                    : 'bg-white dark:bg-gray-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-black dark:text-white'
                                 }`}
                             onClick={onNavigation}
                         >
@@ -77,14 +79,15 @@ const AdminSidebarFooter: React.FC<AdminSidebarFooterProps> = ({
                             {option.label}
                         </Link>
                     ))}
+
                     <form action={formAction}>
                         <button
-                            className="w-full flex items-center gap-2.5 px-3 py-1.5 border-2 border-red-600 rounded-md font-semibold text-xs text-red-600
-                            shadow-[2px_2px_0px_0px_rgba(220,38,38,1)] hover:shadow-none
+                            className="w-full flex items-center gap-2.5 px-3 py-1.5 border-2 border-red-600 dark:border-red-500 rounded-md font-semibold text-xs text-red-600 dark:text-red-400
+                            shadow-[2px_2px_0px_0px_rgba(220,38,38,1)] dark:shadow-[2px_2px_0px_0px_rgba(239,68,68,0.5)] hover:shadow-none
                             hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-150
                             active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                             cursor-pointer
-                            bg-white hover:bg-red-50"
+                            bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/30"
                             onClick={onLogout}
                         >
                             <LogOut size={16} />
@@ -102,20 +105,20 @@ const AdminSidebarFooter: React.FC<AdminSidebarFooterProps> = ({
                         active:translate-x-[2px] active:translate-y-[2px] active:shadow-none cursor-pointer
                         ${isProfileSectionActive
                             ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-indigo-800'
-                            : 'bg-gradient-to-r from-white to-gray-50 hover:from-indigo-50 hover:to-indigo-100'
+                            : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-indigo-50 hover:to-indigo-100 dark:hover:from-indigo-900/30 dark:hover:to-indigo-900/20 text-black dark:text-white'
                         }`}
-
+                    title={userInfo.name}
                 >
                     <div className="flex flex-col items-start">
                         <span className="text-xs font-bold">{userInfo.name}</span>
-                        <span className={`text-xs ${isProfileSectionActive ? 'text-indigo-200' : 'text-gray-500'}`}>
+                        <span className={`text-xs ${isProfileSectionActive ? 'text-indigo-200' : 'text-gray-500 dark:text-gray-400'}`}>
                             {userInfo.role}
                         </span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <div className={`w-8 h-8 border-2 border-black rounded-full flex items-center justify-center font-bold text-xs
-                            ${isProfileSectionActive ? 'bg-white text-black' : 'bg-gray-200 text-gray-700'}
+                        <div className={`w-8 h-8 border-2 border-black dark:border-gray-600 rounded-full flex items-center justify-center font-bold text-xs
+                            ${isProfileSectionActive ? 'bg-white text-black' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'}
                         `}>
                             {userInfo.initials}
                         </div>

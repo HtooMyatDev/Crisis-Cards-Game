@@ -10,10 +10,12 @@ export type Category = {
 
 export type ResponseOption = {
     text: string;
-    pwEffect: number;
-    efEffect: number;
-    psEffect: number;
-    grEffect: number;
+    politicalEffect: number;
+    economicEffect: number;
+    infrastructureEffect: number;
+    societyEffect: number;
+    environmentEffect: number;
+    score: number; // Score field for tracking points
 };
 
 export type FormState = {
@@ -23,19 +25,22 @@ export type FormState = {
     categoryName: string;
     status: 'Active' | 'Inactive';
     timeLimit: number;
-    pwValue: number;
-    efValue: number;
-    psValue: number;
-    grValue: number;
+    political: number;
+    economic: number;
+    infrastructure: number;
+    society: number;
+    environment: number;
     responseOptions: ResponseOption[];
 };
 
 export type ResponseOptionErrors = Partial<{
     text: string;
-    pwEffect: string;
-    efEffect: string;
-    psEffect: string;
-    grEffect: string;
+    politicalEffect: string;
+    economicEffect: string;
+    infrastructureEffect: string;
+    societyEffect: string;
+    environmentEffect: string;
+    score: string; // Score validation errors
 }>;
 
 export type FormErrors = Partial<{
@@ -43,9 +48,10 @@ export type FormErrors = Partial<{
     description: string;
     categoryId: string;
     timeLimit: string;
-    pwValue: string;
-    efValue: string;
-    psValue: string;
-    grValue: string;
+    political: string;
+    economic: string;
+    infrastructure: string;
+    society: string;
+    environment: string;
     responseOptions: ResponseOptionErrors[];
 }>;

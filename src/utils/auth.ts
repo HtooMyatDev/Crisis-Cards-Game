@@ -11,6 +11,7 @@ interface JwtPayload {
     userId: string;
     email: string;
     role?: string;
+    name?: string;
 }
 
 export function verifyToken(
@@ -35,7 +36,34 @@ export function verifyToken(
         // Attach user info to req with proper typing
         (req as Request & { user?: JwtPayload }).user = decoded;
         next();
-    } catch (error) {
+    } catch {
         return res.status(403).json({ message: 'Invalid token' });
+    }
+}
+
+export function verifyJWT(token: string): JwtPayload | null {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+        throw new Error('JWT_SECRET is not defined');
+    }
+    try {
+        return jwt.verify(token, secret) as JwtPayload;
+    } catch {
+        return null;
+    }
+}
+
+import { headers } from 'next/headers';
+
+export async function getCurrentUser(): Promise<JwtPayload | null> {
+    try {
+        const headersList = await headers();
+        const token = headersList.get('authorization')?.split(' ')[1];
+
+        if (!token) return null;
+
+        return verifyJWT(token);
+    } catch {
+        return null;
     }
 }

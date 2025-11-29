@@ -71,9 +71,9 @@ const AdminSidebar = () => {
         <>
             <button
                 onClick={toggleSidebar}
-                className="md:hidden fixed top-3 left-3 z-50 p-2 bg-white border-2 border-black rounded-lg
+                className="md:hidden fixed top-3 left-3 z-50 p-2 bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg
                          shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]
-                         hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-150"
+                         hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-150 text-black dark:text-white"
                 aria-label="Toggle sidebar menu"
             >
                 {isOpen ? <X size={20} /> : <Menu size={20} />}
@@ -88,10 +88,11 @@ const AdminSidebar = () => {
             )}
 
             <div className={`
-                fixed left-0 top-0 h-full bg-gradient-to-b from-white to-gray-50
-                border-r-4 border-black z-50 w-56 transform transition-transform duration-300 ease-in-out
+                fixed left-0 top-0 h-full bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900
+                border-r-4 border-black dark:border-gray-700 z-50 transform transition-all duration-300 ease-in-out
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-                md:translate-x-0 shadow-[8px_0px_0px_0px_rgba(0,0,0,0.1)] overflow-hidden
+                md:translate-x-0 shadow-[8px_0px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[8px_0px_0px_0px_rgba(255,255,255,0.05)] overflow-hidden
+                md:w-64 w-64
             `}>
                 <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-red-500"></div>
 

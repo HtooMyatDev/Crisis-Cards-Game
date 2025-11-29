@@ -138,7 +138,8 @@ export default function CreateCategory() {
 
         } catch (err) {
             console.error('Error creating category:', err);
-            alert(`Error: ${err.message || 'Failed to create category'}`);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            alert(`Error: ${(err as any).message || 'Failed to create category'}`);
         }
     };
 
@@ -169,18 +170,18 @@ export default function CreateCategory() {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Create New Category</h1>
+                <h1 className="text-2xl font-bold text-black dark:text-white">Create New Category</h1>
             </div>
 
             <div className="max-w-4xl">
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     {/* Basic Information */}
-                    <div className="bg-white border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] p-6">
-                        <h3 className="text-lg font-bold mb-4">Basic Information</h3>
+                    <div className="bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.1)] p-6">
+                        <h3 className="text-lg font-bold mb-4 text-black dark:text-white">Basic Information</h3>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block font-bold mb-2">
+                                <label className="block font-bold mb-2 text-black dark:text-white">
                                     Category Name <span className="text-red-600">*</span>
                                 </label>
                                 <input
@@ -200,17 +201,17 @@ export default function CreateCategory() {
                                         }
                                     })}
                                     type="text"
-                                    className="w-full p-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                    className="w-full p-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                     placeholder="Enter category name"
                                     disabled={isSubmitting}
                                 />
                                 {errors.name && (
-                                    <p className="text-red-600 text-sm mt-1">{errors.name.message}</p>
+                                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.name.message}</p>
                                 )}
                             </div>
 
                             <div>
-                                <label className="block font-bold mb-2">Description</label>
+                                <label className="block font-bold mb-2 text-black dark:text-white">Description</label>
                                 <textarea
                                     {...register('description', {
                                         maxLength: {
@@ -224,7 +225,7 @@ export default function CreateCategory() {
                                             }
                                         }
                                     })}
-                                    className="w-full p-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] h-24"
+                                    className="w-full p-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] h-24 bg-white dark:bg-gray-800 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                     placeholder="Enter category description (optional)"
                                     disabled={isSubmitting}
                                 />
@@ -234,10 +235,11 @@ export default function CreateCategory() {
                             </div>
 
                             <div>
-                                <label className="block font-bold mb-2">Status</label>
+                                <label className="block font-bold mb-2 text-black dark:text-white">Status</label>
                                 <select
                                     {...register('status')}
-                                    className="w-full p-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                    className="w-full pl-3 pr-10 py-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] appearance-none bg-white dark:bg-gray-800 text-black dark:text-white"
+                                    style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
                                     aria-label="Select category status"
                                     disabled={isSubmitting}
                                 >
@@ -249,8 +251,8 @@ export default function CreateCategory() {
                     </div>
 
                     {/* Color Preset Selection */}
-                    <div className="bg-white border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] p-6">
-                        <h3 className="text-lg font-bold mb-4">Color Theme</h3>
+                    <div className="bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.1)] p-6">
+                        <h3 className="text-lg font-bold mb-4 text-black dark:text-white">Color Theme</h3>
 
                         {presetsError && (
                             <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -261,19 +263,21 @@ export default function CreateCategory() {
                         {isLoadingPresets ? (
                             <div className="flex items-center justify-center py-8">
                                 <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                                <span className="text-gray-600">Loading color presets...</span>
+                                <span className="text-gray-600 dark:text-gray-400">Loading color presets...</span>
                             </div>
                         ) : (
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block font-bold mb-3">
+                                    <label className="block font-bold mb-3 text-black dark:text-white">
                                         Select Color Preset <span className="text-red-600">*</span>
                                     </label>
                                     <select
+                                        id="colorPreset"
                                         {...register('colorPresetId', {
                                             required: 'Please select a color preset'
                                         })}
-                                        className="w-full p-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                        className="w-full pl-3 pr-10 py-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] appearance-none bg-white dark:bg-gray-800 text-black dark:text-white"
+                                        style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
                                         disabled={isSubmitting}
                                     >
                                         <option value="">Select a color theme...</option>
@@ -298,16 +302,16 @@ export default function CreateCategory() {
                                 {/* Color Preset Grid Preview */}
                                 {colorPresets.length > 0 && (
                                     <div>
-                                        <label className="block font-medium mb-3">Available Themes</label>
+                                        <label className="block font-medium mb-3 text-black dark:text-white">Available Themes</label>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                             {colorPresets.map((preset) => (
                                                 <button
                                                     key={preset.id}
                                                     type="button"
                                                     onClick={() => setValue('colorPresetId', preset.id.toString())}
-                                                    className={`p-3 border-2 rounded-lg hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 ${watchedColorPresetId === preset.id.toString()
-                                                            ? `border-2 shadow-[3px_3px_0px_0px_${preset.textBoxColor}]`
-                                                            : 'border-black'
+                                                    className={`p-3 border-2 rounded-lg hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 ${watchedColorPresetId === preset.id.toString()
+                                                        ? `border-2 shadow-[3px_3px_0px_0px_${preset.textBoxColor}]`
+                                                        : 'border-black dark:border-gray-600'
                                                         }`}
                                                     style={{
                                                         backgroundColor: preset.backgroundColor,
@@ -337,11 +341,11 @@ export default function CreateCategory() {
 
                                 {/* Selected Preset Details */}
                                 {selectedPreset && (
-                                    <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                                        <h4 className="font-medium mb-3">Selected Theme: {selectedPreset.name}</h4>
+                                    <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                        <h4 className="font-medium mb-3 text-black dark:text-white">Selected Theme: {selectedPreset.name}</h4>
                                         <div className="grid grid-cols-3 gap-4 text-xs">
                                             <div>
-                                                <span className="block text-gray-600 mb-1">Background</span>
+                                                <span className="block text-gray-600 dark:text-gray-400 mb-1">Background</span>
                                                 <div className="flex items-center gap-2">
                                                     <div
                                                         className="w-4 h-4 border border-gray-300 rounded"
@@ -351,7 +355,7 @@ export default function CreateCategory() {
                                                 </div>
                                             </div>
                                             <div>
-                                                <span className="block text-gray-600 mb-1">Text</span>
+                                                <span className="block text-gray-600 dark:text-gray-400 mb-1">Text</span>
                                                 <div className="flex items-center gap-2">
                                                     <div
                                                         className="w-4 h-4 border border-gray-300 rounded"
@@ -361,7 +365,7 @@ export default function CreateCategory() {
                                                 </div>
                                             </div>
                                             <div>
-                                                <span className="block text-gray-600 mb-1">Accent</span>
+                                                <span className="block text-gray-600 dark:text-gray-400 mb-1">Accent</span>
                                                 <div className="flex items-center gap-2">
                                                     <div
                                                         className="w-4 h-4 border border-gray-300 rounded"
@@ -380,7 +384,7 @@ export default function CreateCategory() {
                     <button
                         type="submit"
                         disabled={isSubmitting || isLoadingPresets}
-                        className="px-6 py-3 bg-black text-white font-bold border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-6 py-3 bg-black dark:bg-blue-600 text-white font-bold border-2 border-black dark:border-blue-500 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(37,99,235,0.5)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(37,99,235,0.5)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Plus size={20} className="inline-block mr-2" />
                         {isSubmitting ? 'Creating...' : 'Create Category'}

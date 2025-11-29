@@ -1,4 +1,4 @@
-import { FormState, FormErrors } from '../types/crisisCard';
+import { FormState, FormErrors, ResponseOption, ResponseOptionErrors } from '../types/crisisCard';
 
 export const useFormValidation = () => {
     const validateForm = (formData: FormState): { isValid: boolean; errors: FormErrors } => {
@@ -26,10 +26,11 @@ export const useFormValidation = () => {
 
         // Base values validation
         const inRange50 = (v: number) => v >= -50 && v <= 50;
-        if (!inRange50(formData.pwValue)) errors.pwValue = 'PW must be between -50 and 50';
-        if (!inRange50(formData.efValue)) errors.efValue = 'EF must be between -50 and 50';
-        if (!inRange50(formData.psValue)) errors.psValue = 'PS must be between -50 and 50';
-        if (!inRange50(formData.grValue)) errors.grValue = 'GR must be between -50 and 50';
+        if (!inRange50(formData.political)) errors.political = 'Political must be between -50 and 50';
+        if (!inRange50(formData.economic)) errors.economic = 'Economic must be between -50 and 50';
+        if (!inRange50(formData.infrastructure)) errors.infrastructure = 'Infrastructure must be between -50 and 50';
+        if (!inRange50(formData.society)) errors.society = 'Society must be between -50 and 50';
+        if (!inRange50(formData.environment)) errors.environment = 'Environment must be between -50 and 50';
 
         // Response options validation
         const optionErrors = validateResponseOptions(formData.responseOptions);
@@ -42,23 +43,32 @@ export const useFormValidation = () => {
         const optionErrors: ResponseOptionErrors[] = [];
         const effectInRange = (v: number) => v >= -10 && v <= 10;
 
+        if (options.length !== 3) {
+            optionErrors[0] = { text: 'Exactly 3 response options are required' };
+        }
+
         const nonEmptyOptions = options.filter(o => o.text.trim().length > 0);
-        if (nonEmptyOptions.length === 0) {
-            optionErrors[0] = { text: 'At least one response option is required' };
+        if (nonEmptyOptions.length < 3) {
+             // This might be redundant if we check length above, but good for sanity if we allow empty strings in the array
+             // actually, let's just rely on the individual field validation below
         }
 
         options.forEach((opt, idx) => {
             const oe: ResponseOptionErrors = {};
             const textLen = opt.text.trim().length;
 
-            if (textLen > 0 && (textLen < 2 || textLen > 100)) {
-                oe.text = 'Text must be 2-100 characters when provided';
+            if (opt.text.trim().length < 2 || opt.text.trim().length > 100) {
+                oe.text = 'Text must be 2-100 characters';
             }
 
-            if (!effectInRange(opt.pwEffect)) oe.pwEffect = 'PW effect must be between -10 and 10';
-            if (!effectInRange(opt.efEffect)) oe.efEffect = 'EF effect must be between -10 and 10';
-            if (!effectInRange(opt.psEffect)) oe.psEffect = 'PS effect must be between -10 and 10';
-            if (!effectInRange(opt.grEffect)) oe.grEffect = 'GR effect must be between -10 and 10';
+            if (!effectInRange(opt.politicalEffect)) oe.politicalEffect = 'Political effect must be between -10 and 10';
+            if (!effectInRange(opt.economicEffect)) oe.economicEffect = 'Economic effect must be between -10 and 10';
+            if (!effectInRange(opt.infrastructureEffect)) oe.infrastructureEffect = 'Infrastructure effect must be between -10 and 10';
+            if (!effectInRange(opt.societyEffect)) oe.societyEffect = 'Society effect must be between -10 and 10';
+            if (!effectInRange(opt.environmentEffect)) oe.environmentEffect = 'Environment effect must be between -10 and 10';
+
+            // Score validation
+            if (opt.score < 0) oe.score = 'Score cannot be negative';
 
             if (Object.keys(oe).length > 0) optionErrors[idx] = oe;
         });

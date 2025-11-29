@@ -48,9 +48,9 @@ export async function POST(request: NextRequest) {
             data: {
                 name: name.trim(),
                 description: description?.trim() || null,
-                colorPresetId: (colorPresetId && colorPresetId !== '0') ? parseInt(colorPresetId) : null,
+                colorPresetId: colorPresetId || null,
                 createdBy,
-                status: dbStatus // Use the mapped status
+                status: 'ACTIVE'
             },
             include: {
                 colorPreset: {
@@ -91,6 +91,7 @@ export async function POST(request: NextRequest) {
             category: newCategory
         }, { status: 201 });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         console.error('Error creating category:', error);
 
@@ -145,7 +146,19 @@ export async function GET(request: NextRequest) {
                     select: {
                         cards: true
                     }
-                }
+                },
+                ...(searchParams.get('includeCards') === 'true' && {
+                    cards: {
+                        where: {
+                            status: 'OPEN',
+                            isArchived: false
+                        },
+                        select: {
+                            id: true,
+                            title: true
+                        }
+                    }
+                })
             },
             orderBy: [
                 { createdAt: 'desc' }
@@ -224,6 +237,7 @@ export async function PUT(request: NextRequest) {
             }
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const updates: any = {};
         if (name !== undefined) updates.name = name.trim();
         if (description !== undefined) updates.description = description?.trim() || null;
@@ -266,6 +280,7 @@ export async function PUT(request: NextRequest) {
             category: updatedCategory
         });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         console.error('Error updating category:', error);
 
@@ -326,11 +341,10 @@ export async function DELETE(request: NextRequest) {
             );
         }
 
-        // If force delete, first remove category from all cards
+        // If force delete, delete all cards in this category
         if (existingCategory._count.cards > 0 && forceDelete) {
-            await prisma.card.updateMany({
-                where: { categoryId: parseInt(id) },
-                data: { categoryId: null }
+            await prisma.card.deleteMany({
+                where: { categoryId: parseInt(id) }
             });
         }
 

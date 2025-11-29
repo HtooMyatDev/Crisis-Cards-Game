@@ -10,11 +10,12 @@ export const useFormState = (initialData: FormState | null) => {
             categoryName: '',
             status: 'Active',
             timeLimit: 15,
-            pwValue: 0,
-            efValue: 0,
-            psValue: 0,
-            grValue: 0,
-            responseOptions: [{ text: '', pwEffect: 0, efEffect: 0, psEffect: 0, grEffect: 0 }]
+            political: 0,
+            economic: 0,
+            infrastructure: 0,
+            society: 0,
+            environment: 0,
+            responseOptions: [{ text: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0 }]
         }
     );
 
@@ -26,7 +27,7 @@ export const useFormState = (initialData: FormState | null) => {
     }, []);
 
     const updateNumberField = useCallback((
-        field: keyof Pick<FormState, 'pwValue' | 'efValue' | 'psValue' | 'grValue' | 'timeLimit'>,
+        field: keyof Pick<FormState, 'political' | 'economic' | 'infrastructure' | 'society' | 'environment' | 'timeLimit'>,
         value: string
     ) => {
         if (value === '') {

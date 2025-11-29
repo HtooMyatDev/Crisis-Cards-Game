@@ -62,7 +62,7 @@ const ComicRegisterPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4 relative overflow-hidden">
             {/* Crisis-themed Pattern Background */}
             <div className="absolute inset-0 opacity-8 pointer-events-none">
                 <div className="absolute top-10 left-10 w-20 h-20 border-4 border-yellow-400 transform rotate-45"></div>
@@ -88,22 +88,22 @@ const ComicRegisterPage: React.FC = () => {
             <div className="w-full max-w-md relative z-10">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="inline-block p-6 bg-white border-4 border-black rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] mb-6 relative">
+                    <div className="inline-block p-6 bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-700 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] mb-6 relative">
                         <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-500 transform rotate-45"></div>
                         <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-400 rounded-full"></div>
                         <UserPlus size={48} className="mx-auto text-green-500" />
                     </div>
-                    <h1 className="text-4xl font-black text-gray-800 mb-2 transform -rotate-1 relative">
-                        <span className="absolute -inset-1 bg-white transform -skew-x-12 -z-10 border-4 border-black"></span>
-                        <span className="relative text-black px-4">Join Crisis Team</span>
+                    <h1 className="text-4xl font-black text-gray-800 dark:text-white mb-2 transform -rotate-1 relative">
+                        <span className="absolute -inset-1 bg-white dark:bg-gray-800 transform -skew-x-12 -z-10 border-4 border-black dark:border-gray-700"></span>
+                        <span className="relative text-black dark:text-white px-4">Join Eco Warriors</span>
                     </h1>
-                    <p className="text-xl font-bold text-gray-600">
+                    <p className="text-xl font-bold text-gray-600 dark:text-gray-400">
                         Ready to make a difference?
                     </p>
                 </div>
 
                 {/* Form Container */}
-                <div className="bg-white border-4 border-black rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] p-8 relative">
+                <div className="bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-700 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] p-8 relative">
                     {/* Decorative Elements */}
                     <div className="absolute -top-3 -left-3 w-6 h-6 bg-green-500 transform rotate-45"></div>
                     <div className="absolute -top-3 -right-3 w-6 h-6 bg-blue-400 rounded-full"></div>
@@ -136,7 +136,7 @@ const ComicRegisterPage: React.FC = () => {
                         {/* Name Input */}
                         <div>
                             <div className="relative transition-all duration-200 focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
-                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 z-10">
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400 z-10">
                                     <User size={20} />
                                 </div>
                                 <input
@@ -147,16 +147,16 @@ const ComicRegisterPage: React.FC = () => {
                                     onChange={handleChange}
                                     placeholder="Full Name"
                                     className={`w-full pl-12 pr-4 py-4 border-4 rounded-lg font-semibold text-lg
-                                        bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                                        focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                                        transition-all duration-200 focus:outline-none placeholder-gray-500
-                                        ${(state.errors as Record<string, string>).name ? 'border-red-500' : 'border-black'}`}
+                                        bg-white dark:bg-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] text-black dark:text-white
+                                        focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]
+                                        transition-all duration-200 focus:outline-none placeholder-gray-500 dark:placeholder-gray-400
+                                        ${(state.errors as Record<string, string>).name ? 'border-red-500 dark:border-red-600' : 'border-black dark:border-gray-700'}`}
                                 />
                             </div>
                             {(state.errors as Record<string, string>).name && (
                                 <div className="mt-2 flex items-center gap-2">
                                     <AlertTriangle size={16} className="text-red-500" />
-                                    <p className="text-red-600 font-bold text-sm">{state.errors.name}</p>
+                                    <p className="text-red-600 font-bold text-sm">{(state.errors as Record<string, string>).name}</p>
                                 </div>
                             )}
                         </div>
@@ -164,7 +164,7 @@ const ComicRegisterPage: React.FC = () => {
                         {/* Email Input */}
                         <div>
                             <div className="relative transition-all duration-200 focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
-                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 z-10">
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400 z-10">
                                     <Mail size={20} />
                                 </div>
                                 <input
@@ -175,16 +175,16 @@ const ComicRegisterPage: React.FC = () => {
                                     onChange={handleChange}
                                     placeholder="Email Address"
                                     className={`w-full pl-12 pr-4 py-4 border-4 rounded-lg font-semibold text-lg
-                                        bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                                        focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                                        transition-all duration-200 focus:outline-none placeholder-gray-500
-                                        ${(state.errors as Record<string, string>).email ? 'border-red-500' : 'border-black'}`}
+                                        bg-white dark:bg-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] text-black dark:text-white
+                                        focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]
+                                        transition-all duration-200 focus:outline-none placeholder-gray-500 dark:placeholder-gray-400
+                                        ${(state.errors as Record<string, string>).email ? 'border-red-500 dark:border-red-600' : 'border-black dark:border-gray-700'}`}
                                 />
                             </div>
                             {(state.errors as Record<string, string>).email && (
                                 <div className="mt-2 flex items-center gap-2">
                                     <AlertTriangle size={16} className="text-red-500" />
-                                    <p className="text-red-600 font-bold text-sm">{state.errors.email}</p>
+                                    <p className="text-red-600 font-bold text-sm">{(state.errors as Record<string, string>).email}</p>
                                 </div>
                             )}
                         </div>
@@ -192,7 +192,7 @@ const ComicRegisterPage: React.FC = () => {
                         {/* Password Input */}
                         <div>
                             <div className="relative transition-all duration-200 focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
-                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 z-10">
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400 z-10">
                                     <Lock size={20} />
                                 </div>
                                 <input
@@ -203,15 +203,15 @@ const ComicRegisterPage: React.FC = () => {
                                     onChange={handleChange}
                                     placeholder="Password"
                                     className={`w-full pl-12 pr-12 py-4 border-4 rounded-lg font-semibold text-lg
-                                        bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                                        focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                                        transition-all duration-200 focus:outline-none placeholder-gray-500
-                                        ${(state.errors as Record<string, string>).password ? 'border-red-500' : 'border-black'}`}
+                                        bg-white dark:bg-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] text-black dark:text-white
+                                        focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]
+                                        transition-all duration-200 focus:outline-none placeholder-gray-500 dark:placeholder-gray-400
+                                        ${(state.errors as Record<string, string>).password ? 'border-red-500 dark:border-red-600' : 'border-black dark:border-gray-700'}`}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors z-10"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors z-10"
                                 >
                                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
@@ -219,7 +219,7 @@ const ComicRegisterPage: React.FC = () => {
                             {(state.errors as Record<string, string>).password && (
                                 <div className="mt-2 flex items-center gap-2">
                                     <AlertTriangle size={16} className="text-red-500" />
-                                    <p className="text-red-600 font-bold text-sm">{state.errors.password}</p>
+                                    <p className="text-red-600 font-bold text-sm">{(state.errors as Record<string, string>).password}</p>
                                 </div>
                             )}
                         </div>
@@ -227,7 +227,7 @@ const ComicRegisterPage: React.FC = () => {
                         {/* Confirm Password Input */}
                         <div>
                             <div className="relative transition-all duration-200 focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
-                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 z-10">
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400 z-10">
                                     <Lock size={20} />
                                 </div>
                                 <input
@@ -238,15 +238,15 @@ const ComicRegisterPage: React.FC = () => {
                                     onChange={handleChange}
                                     placeholder="Confirm Password"
                                     className={`w-full pl-12 pr-12 py-4 border-4 rounded-lg font-semibold text-lg
-                                        bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                                        focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                                        transition-all duration-200 focus:outline-none placeholder-gray-500
-                                        ${(state.errors as Record<string, string>).confirmPassword ? 'border-red-500' : 'border-black'}`}
+                                        bg-white dark:bg-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] text-black dark:text-white
+                                        focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]
+                                        transition-all duration-200 focus:outline-none placeholder-gray-500 dark:placeholder-gray-400
+                                        ${(state.errors as Record<string, string>).confirmPassword ? 'border-red-500 dark:border-red-600' : 'border-black dark:border-gray-700'}`}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors z-10"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors z-10"
                                 >
                                     {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
@@ -254,7 +254,7 @@ const ComicRegisterPage: React.FC = () => {
                             {(state.errors as Record<string, string>).confirmPassword && (
                                 <div className="mt-2 flex items-center gap-2">
                                     <AlertTriangle size={16} className="text-red-500" />
-                                    <p className="text-red-600 font-bold text-sm">{state.errors.confirmPassword}</p>
+                                    <p className="text-red-600 font-bold text-sm">{(state.errors as Record<string, string>).confirmPassword}</p>
                                 </div>
                             )}
                         </div>
@@ -276,12 +276,12 @@ const ComicRegisterPage: React.FC = () => {
                             {pending ? (
                                 <>
                                     <Loader2 size={20} className="relative z-10 animate-spin" />
-                                    <span className="relative z-10">Joining Crisis Team...</span>
+                                    <span className="relative z-10">Registering...</span>
                                 </>
                             ) : (
                                 <>
                                     <UserPlus size={20} className="relative z-10" />
-                                    <span className="relative z-10">Join Crisis Response</span>
+                                    <span className="relative z-10">Register</span>
                                 </>
                             )}
                         </button>
@@ -289,18 +289,18 @@ const ComicRegisterPage: React.FC = () => {
 
                     {/* Terms */}
                     <div className="mt-6">
-                        <p className="text-sm text-gray-600 text-center">
-                            By joining the team, you agree to our{' '}
-                            <span className="text-black font-semibold hover:underline cursor-pointer">Crisis Response Protocol</span>{' '}
+                        <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+                            By joining, you agree to our{' '}
+                            <span className="text-black dark:text-white font-semibold hover:underline cursor-pointer">Terms of Service</span>{' '}
                             and{' '}
-                            <span className="text-black font-semibold hover:underline cursor-pointer">Emergency Privacy Policy</span>
+                            <span className="text-black dark:text-white font-semibold hover:underline cursor-pointer">Privacy Policy</span>
                         </p>
                     </div>
 
                     {/* Login Link */}
-                    <div className="mt-8 pt-6 border-t-4 border-black">
-                        <p className="text-center text-gray-700 font-semibold mb-4">
-                            Already part of Crisis Command?
+                    <div className="mt-8 pt-6 border-t-4 border-black dark:border-gray-700">
+                        <p className="text-center text-gray-700 dark:text-gray-300 font-semibold mb-4">
+                            Already have an account?
                         </p>
                         <Link
                             href="/auth/login"
@@ -313,29 +313,17 @@ const ComicRegisterPage: React.FC = () => {
                         >
                             <div className="absolute inset-0 bg-white transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-500 opacity-20"></div>
                             <LogIn size={20} className="relative z-10" />
-                            <span className="relative z-10">Access Crisis Command</span>
+                            <span className="relative z-10">Login</span>
                         </Link>
                     </div>
                 </div>
 
                 {/* Footer */}
                 <div className="text-center mt-8">
-                    <div className="inline-block bg-white px-6 py-2 border-4 border-black transform -skew-x-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]">
-                        <p className="text-black font-bold transform skew-x-12">
-                            Ready to respond to the crisis? 🚨
+                    <div className="inline-block bg-white dark:bg-gray-800 px-6 py-2 border-4 border-black dark:border-gray-700 transform -skew-x-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)]">
+                        <p className="text-black dark:text-white font-bold transform skew-x-12">
+                            Ready to make an impact? 🌍
                         </p>
-                    </div>
-                </div>
-
-                {/* Crisis Status Indicators */}
-                <div className="mt-8 grid grid-cols-2 gap-4">
-                    <div className="bg-blue-400 border-4 border-black rounded-lg p-3 text-center">
-                        <div className="text-white font-bold text-sm">Team Status</div>
-                        <div className="text-white font-black text-lg">RECRUITING</div>
-                    </div>
-                    <div className="bg-purple-500 border-4 border-black rounded-lg p-3 text-center">
-                        <div className="text-white font-bold text-sm">Response Level</div>
-                        <div className="text-white font-black text-lg">STANDBY</div>
                     </div>
                 </div>
             </div>

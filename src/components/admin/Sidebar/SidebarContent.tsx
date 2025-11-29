@@ -116,13 +116,13 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
     const filteredItems = searchQuery
         ? allMenuItems.filter(item =>
             item.label.toLowerCase().includes(searchQuery.toLowerCase())
-          )
+        )
         : [];
 
     const Badge = ({ count }: { count?: number }) => {
         if (!count) return null;
         return (
-            <span className="ml-auto bg-black text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+            <span className="ml-auto bg-black dark:bg-gray-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                 {count}
             </span>
         );
@@ -134,29 +134,30 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                 {/* Search Bar */}
                 <div className="mb-2 relative">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
                         <input
                             type="text"
                             placeholder="Search menu..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-3 py-2 border-2 border-black rounded-lg text-sm
-                                shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                                focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full pl-9 pr-3 py-2 border-2 border-black dark:border-gray-700 rounded-lg text-sm
+                            shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]
+                            focus:outline-none focus:ring-2 focus:ring-blue-500
+                            bg-white dark:bg-gray-700 text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-400"
                         />
                     </div>
 
                     {/* Search Results Dropdown */}
                     {searchQuery && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-black rounded-lg
-                            shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] z-50 max-h-64 overflow-y-auto">
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg
+                        shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] z-50 max-h-64 overflow-y-auto">
                             {filteredItems.length > 0 ? (
                                 <div className="p-2">
                                     {filteredItems.map((item) => (
                                         <Link
                                             key={item.href}
                                             href={item.href}
-                                            className="block px-3 py-2 hover:bg-blue-50 rounded text-sm font-medium"
+                                            className="block px-3 py-2 hover:bg-blue-50 dark:hover:bg-gray-700 rounded text-sm font-medium text-black dark:text-white"
                                             onClick={() => {
                                                 setSearchQuery('');
                                                 onNavigation();
@@ -167,7 +168,7 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                                     ))}
                                 </div>
                             ) : (
-                                <div className="p-4 text-center text-sm text-gray-500">
+                                <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
                                     No results found
                                 </div>
                             )}
@@ -184,12 +185,12 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                         active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                         ${pathname === '/admin/dashboard'
                             ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-800'
-                            : 'bg-gradient-to-r from-white to-gray-50 hover:from-blue-50 hover:to-blue-100'
+                            : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-blue-50 hover:to-blue-100 dark:hover:from-blue-900/30 dark:hover:to-blue-900/20 text-black dark:text-white'
                         }`}
                     onClick={onNavigation}
                 >
                     <LayoutDashboard size={18} />
-                    Dashboard
+                    <span>Dashboard</span>
                 </a>
 
                 {/* Game Sessions Dropdown */}
@@ -202,12 +203,12 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                             active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                             ${pathname.includes('/admin/games')
                                 ? 'bg-gradient-to-r from-green-600 to-green-700 text-white border-green-800'
-                                : 'bg-gradient-to-r from-white to-gray-50 hover:from-green-50 hover:to-green-100'
+                                : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-green-50 hover:to-green-100 dark:hover:from-green-900/30 dark:hover:to-green-900/20 text-black dark:text-white'
                             }`}
                     >
                         <div className="flex items-center gap-2.5">
                             <Gamepad2 size={18} />
-                            Game Sessions
+                            <span>Game Sessions</span>
                         </div>
                         <div className={`transition-transform duration-200 ${isGamesOpen ? 'rotate-90' : 'rotate-0'}`}>
                             <ChevronRight size={16} />
@@ -229,7 +230,7 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                                         active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                                         ${pathname === option.href
                                             ? 'bg-green-700 text-white'
-                                            : 'bg-white hover:bg-green-50'
+                                            : 'bg-white dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-green-900/30 text-black dark:text-white'
                                         }`}
                                     onClick={onNavigation}
                                 >
@@ -251,12 +252,12 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                         active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                         ${pathname === '/admin/users'
                             ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white border-purple-800'
-                            : 'bg-gradient-to-r from-white to-gray-50 hover:from-purple-50 hover:to-purple-100'
+                            : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-purple-50 hover:to-purple-100 dark:hover:from-purple-900/30 dark:hover:to-purple-900/20 text-black dark:text-white'
                         }`}
                     onClick={onNavigation}
                 >
                     <Users size={18} />
-                    User Management
+                    <span>User Management</span>
                     <Badge count={pendingUsersCount} />
                 </a>
 
@@ -270,12 +271,12 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                             active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                             ${pathname.includes('/admin/cards')
                                 ? 'bg-gradient-to-r from-red-600 to-red-700 text-white border-red-800'
-                                : 'bg-gradient-to-r from-white to-gray-50 hover:from-red-50 hover:to-red-100'
+                                : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/30 dark:hover:to-red-900/20 text-black dark:text-white'
                             }`}
                     >
                         <div className="flex items-center gap-2.5">
                             <CreditCard size={18} />
-                            Crisis Cards
+                            <span>Crisis Cards</span>
                         </div>
                         <div className={`transition-transform duration-200 ${isCardsOpen ? 'rotate-90' : 'rotate-0'}`}>
                             <ChevronRight size={16} />
@@ -297,7 +298,7 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                                         active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                                         ${pathname === option.href
                                             ? 'bg-red-700 text-white'
-                                            : 'bg-white hover:bg-red-50'
+                                            : 'bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/30 text-black dark:text-white'
                                         }`}
                                     onClick={onNavigation}
                                 >
@@ -320,12 +321,12 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                             active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                             ${pathname.includes('/admin/categories')
                                 ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white border-orange-800'
-                                : 'bg-gradient-to-r from-white to-gray-50 hover:from-orange-50 hover:to-orange-100'
+                                : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-orange-50 hover:to-orange-100 dark:hover:from-orange-900/30 dark:hover:to-orange-900/20 text-black dark:text-white'
                             }`}
                     >
                         <div className="flex items-center gap-2.5">
                             <Tag size={18} />
-                            Categories
+                            <span>Categories</span>
                         </div>
                         <div className={`transition-transform duration-200 ${isCategoriesOpen ? 'rotate-90' : 'rotate-0'}`}>
                             <ChevronRight size={16} />
@@ -347,7 +348,7 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                                         active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                                         ${pathname === option.href
                                             ? 'bg-orange-700 text-white'
-                                            : 'bg-white hover:bg-orange-50'
+                                            : 'bg-white dark:bg-gray-700 hover:bg-orange-50 dark:hover:bg-orange-900/30 text-black dark:text-white'
                                         }`}
                                     onClick={onNavigation}
                                 >
@@ -360,7 +361,7 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                 </div>
 
                 {/* Divider */}
-                <div className="border-t-2 border-gray-300 my-2"></div>
+                <div className="border-t-2 border-gray-300 dark:border-gray-700 my-2"></div>
 
                 {/* Analytics & Reports */}
                 <a
@@ -371,12 +372,12 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                         active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                         ${pathname === '/admin/analytics'
                             ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 text-white border-cyan-800'
-                            : 'bg-gradient-to-r from-white to-gray-50 hover:from-cyan-50 hover:to-cyan-100'
+                            : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-cyan-50 hover:to-cyan-100 dark:hover:from-cyan-900/30 dark:hover:to-cyan-900/20 text-black dark:text-white'
                         }`}
                     onClick={onNavigation}
                 >
                     <BarChart3 size={18} />
-                    Analytics & Reports
+                    <span>Analytics & Reports</span>
                 </a>
 
                 {/* Audit Logs */}
@@ -388,12 +389,12 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                         active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                         ${pathname === '/admin/audit-logs'
                             ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white border-slate-800'
-                            : 'bg-gradient-to-r from-white to-gray-50 hover:from-slate-50 hover:to-slate-100'
+                            : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-slate-50 hover:to-slate-100 dark:hover:from-slate-900/30 dark:hover:to-slate-900/20 text-black dark:text-white'
                         }`}
                     onClick={onNavigation}
                 >
                     <FileText size={18} />
-                    Audit Logs
+                    <span>Audit Logs</span>
                 </a>
 
                 {/* Settings */}
@@ -405,12 +406,12 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                         active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                         ${pathname === '/admin/settings'
                             ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white border-gray-800'
-                            : 'bg-gradient-to-r from-white to-gray-50 hover:from-gray-50 hover:to-gray-100'
+                            : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-700 text-black dark:text-white'
                         }`}
                     onClick={onNavigation}
                 >
                     <Settings size={18} />
-                    Settings
+                    <span>Settings</span>
                 </a>
 
                 {/* Help & Documentation */}
@@ -422,12 +423,12 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                         active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                         ${pathname === '/admin/help'
                             ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-indigo-800'
-                            : 'bg-gradient-to-r from-white to-gray-50 hover:from-indigo-50 hover:to-indigo-100'
+                            : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-indigo-50 hover:to-indigo-100 dark:hover:from-indigo-900/30 dark:hover:to-indigo-900/20 text-black dark:text-white'
                         }`}
                     onClick={onNavigation}
                 >
                     <HelpCircle size={18} />
-                    Help & Documentation
+                    <span>Help & Documentation</span>
                 </a>
             </div>
         </nav>

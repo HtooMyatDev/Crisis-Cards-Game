@@ -18,6 +18,9 @@ model User {
 id Int @id @default(autoincrement())
 email String @unique
 name String?
+username String? // Display username
+bio String? // User biography
+location String? // User location
 password String
 role UserRole @default(USER)
 isActive Boolean @default(true)
@@ -34,8 +37,42 @@ createdCategories Category[] @relation("CategoryCreator")
 createdTemplates Template[] @relation("TemplateCreator")
 ColorPreset ColorPreset[]
 hostedGames GameSession[]
+    playedGames Player[]
+    achievements UserAchievement[]
+    notifications Notification[]
+    settings UserSettings?
 
 @@map("users")
+}
+
+model Achievement {
+    id          Int      @id @default(autoincrement())
+    name        String   @unique
+    description String
+    icon        String   @default("Trophy") // Lucide icon name
+    condition   String   // JSON string or code describing unlock condition
+    points      Int      @default(10)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    // Relations
+    users UserAchievement[]
+
+    @@map("achievements")
+}
+
+model UserAchievement {
+    id            Int      @id @default(autoincrement())
+    userId        Int
+    achievementId Int
+    unlockedAt    DateTime @default(now())
+
+    // Relations
+    user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+    achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+    @@unique([userId, achievementId])
+    @@map("user_achievements")
 }
 
 model ColorPreset {
@@ -66,10 +103,12 @@ model GameSession {
   hostId           Int
   status           GameStatus @default(WAITING)
   currentCardIndex Int      @default(0)
+  lastCardStartedAt DateTime?
   startedAt        DateTime?
   endedAt          DateTime?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  shuffledCardIds  Int[]    @default([]) // Store shuffled card IDs for deterministic order
 
   @@index([hostId])
 
@@ -119,18 +158,24 @@ model Category {
 
 // Player - anonymous player in a game
 model Player {
-id Int @id @default(autoincrement())
-gameSessionId String
-nickname String // Display name chosen by player
-score Int @default(0)
-joinedAt DateTime @default(now())
-isConnected Boolean @default(true)
+  id            Int      @id @default(autoincrement())
+  gameSessionId String
+  nickname      String // Display name chosen by player
+  score         Int      @default(0)
+  joinedAt      DateTime @default(now())
+  isConnected   Boolean  @default(true)
+  team          String? // "RED" or "BLUE"
+  isLeader      Boolean  @default(false) // Team leader flag
+  lastSeen      DateTime @default(now()) // Track last activity for heartbeat
+  userId        Int? // Optional link to registered user
 
-// Relations
-gameSession GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+  // Relations
+  gameSession GameSession      @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+  user        User?            @relation(fields: [userId], references: [id])
+  responses   PlayerResponse[]
 
-@@unique([gameSessionId, nickname]) // Unique nickname per game
-@@map("players")
+  @@unique([gameSessionId, nickname]) // Unique nickname per game
+  @@map("players")
 }
 
 // Main crisis cards
@@ -139,8 +184,7 @@ id Int @id @default(autoincrement())
 title String
 description String?
 timeLimit Int?
-responseOptions String[]
-status String
+status String @default("OPEN")
 categoryId Int
 createdBy Int
 assignedTo Int?
@@ -151,10 +195,11 @@ createdAt DateTime @default(now())
 updatedAt DateTime @updatedAt
 
 // New card base values
-pwValue Int @default(0) // Power value
-efValue Int @default(0) // Efficiency value
-psValue Int @default(0) // Precision value
-grValue Int @default(0) // Growth value
+  political Int @default(0)
+  economic Int @default(0)
+  infrastructure Int @default(0)
+  society Int @default(0)
+  environment Int @default(0)
 
 // Relations
 category Category @relation(fields: [categoryId], references: [id])
@@ -165,7 +210,12 @@ comments Comment[]
 activities Activity[]
 attachments Attachment[]
 cardResponses CardResponse[] // New relation for response options
+  playerResponses PlayerResponse[]
 
+  @@index([status])
+  @@index([categoryId])
+  @@index([isArchived])
+  @@index([title])
 @@map("cards")
 }
 
@@ -177,16 +227,21 @@ text String
 order Int @default(0) // To maintain order of responses
 
 // Response option effects on card values
-pwEffect Int @default(0) // How much this response changes PW
-efEffect Int @default(0) // How much this response changes EF
-psEffect Int @default(0) // How much this response changes PS
-grEffect Int @default(0) // How much this response changes GR
+  politicalEffect Int @default(0)
+  economicEffect Int @default(0)
+  infrastructureEffect Int @default(0)
+  societyEffect Int @default(0)
+  environmentEffect Int @default(0)
+
+// Score field for tracking points
+  score Int @default(0)
 
 createdAt DateTime @default(now())
-updatedAt DateTime @updatedAt
+updatedAt DateTime @default(now())
 
 // Relations
 card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  playerResponses PlayerResponse[]
 
 @@map("card_responses")
 }
@@ -199,7 +254,7 @@ cardId Int
 userId Int
 isInternal Boolean @default(false) // Internal comments vs public updates
 createdAt DateTime @default(now())
-updatedAt DateTime @updatedAt
+updatedAt DateTime @default(now())
 
 // Relations
 card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
@@ -259,7 +314,7 @@ createdBy Int
 tags String[] // Default tags
 isActive Boolean @default(true)
 createdAt DateTime @default(now())
-updatedAt DateTime @updatedAt
+updatedAt DateTime @default(now())
 
 // Relations
 category Category @relation(fields: [categoryId], references: [id])
@@ -270,16 +325,36 @@ creator User @relation("TemplateCreator", fields: [createdBy], references: [id])
 
 // Notifications for users
 model Notification {
-id Int @id @default(autoincrement())
-userId Int
-title String
-message String
-type NotificationType @default(INFO)
-isRead Boolean @default(false)
-cardId Int? // Optional link to related card
-createdAt DateTime @default(now())
+    id        Int              @id @default(autoincrement())
+    userId    Int
+    title     String
+    message   String
+    type      NotificationType @default(INFO)
+    isRead    Boolean          @default(false)
+    cardId    Int? // Optional link to related card
+    createdAt DateTime         @default(now())
 
-@@map("notifications")
+    // Relations
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@map("notifications")
+}
+
+model UserSettings {
+    id                   Int     @id @default(autoincrement())
+    userId               Int     @unique
+    emailNotifications   Boolean @default(true)
+    pushNotifications    Boolean @default(false)
+    soundEffects         Boolean @default(true)
+    autoSave             Boolean @default(true)
+    difficulty           String  @default("medium") // easy, medium, hard
+    createdAt            DateTime @default(now())
+    updatedAt            DateTime @updatedAt
+
+    // Relations
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@map("user_settings")
 }
 
 // Enums
@@ -290,10 +365,7 @@ USER
 VIEWER
 }
 
-enum CategoryStatus {
-ACTIVE
-INACTIVE
-}
+
 
 enum Severity {
 LOW
@@ -312,14 +384,6 @@ LOW
 MEDIUM
 HIGH
 URGENT
-}
-
-enum CardStatus {
-OPEN
-IN_PROGRESS
-BLOCKED
-RESOLVED
-CLOSED
 }
 
 enum ActivityType {
@@ -347,5 +411,21 @@ SUCCESS
 enum GameStatus {
 WAITING // Waiting for players to join
 IN_PROGRESS // Game is active
-FINISHED // Game completed
+PAUSED // Game is paused
+COMPLETED // Game completed
+}
+
+model PlayerResponse {
+  id          String   @id @default(cuid())
+  playerId    Int
+  cardId      Int
+  responseId  Int
+  respondedAt DateTime @default(now())
+
+  player   Player       @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  card     Card         @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  response CardResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, cardId]) // One response per card per player
+  @@map("player_responses")
 }

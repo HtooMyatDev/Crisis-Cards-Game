@@ -1,36 +1,48 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma'; // Adjust the import path as needed
+import { getCurrentUser } from '@/app/actions/auth';
+import { Prisma } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
     try {
+        const user = await getCurrentUser();
+
+        if (!user) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
+
         const body = await request.json();
         const {
             title,
             description,
-            createdBy,
             timeLimit,
             status,
             responseOptions, // This now contains objects with text and effects
             categoryId,
             // New card base values
-            pwValue,
-            efValue,
-            psValue,
-            grValue
+            political,
+            economic,
+            infrastructure,
+            society,
+            environment
         } = body;
 
         // Validate required fields
-        if (!title || !description || !createdBy || !categoryId) {
+        if (!title || !description || !categoryId) {
             return NextResponse.json(
-                { error: 'Missing required fields: title, description, createdBy, or categoryId' },
+                { error: 'Missing required fields: title, description, or categoryId' },
                 { status: 400 }
             );
         }
 
         // Validate card base values
-        if (pwValue === undefined || efValue === undefined || psValue === undefined || grValue === undefined) {
+        if (political === undefined || economic === undefined || infrastructure === undefined || society === undefined || environment === undefined) {
             return NextResponse.json(
-                { error: 'Missing required card base values: pwValue, efValue, psValue, grValue' },
+                { error: 'Missing required card base values: political, economic, infrastructure, society, environment' },
                 { status: 400 }
             );
         }
@@ -54,7 +66,7 @@ export async function POST(request: NextRequest) {
             }
 
             // Check if effect values exist and are numbers
-            const effects = ['pwEffect', 'efEffect', 'psEffect', 'grEffect'];
+            const effects = ['politicalEffect', 'economicEffect', 'infrastructureEffect', 'societyEffect', 'environmentEffect'];
             for (const effect of effects) {
                 if (option[effect] === undefined || typeof option[effect] !== 'number') {
                     return NextResponse.json(
@@ -62,6 +74,14 @@ export async function POST(request: NextRequest) {
                         { status: 400 }
                     );
                 }
+            }
+
+            // Validate score field
+            if (option.score !== undefined && typeof option.score !== 'number') {
+                return NextResponse.json(
+                    { error: `Response option ${i + 1} must have valid score value (number)` },
+                    { status: 400 }
+                );
             }
         }
 
@@ -75,12 +95,13 @@ export async function POST(request: NextRequest) {
                     timeLimit,
                     status,
                     categoryId,
-                    createdBy: 2,
+                    createdBy: user.id,
                     // Add the new card base values
-                    pwValue,
-                    efValue,
-                    psValue,
-                    grValue,
+                    political,
+                    economic,
+                    infrastructure,
+                    society,
+                    environment,
                     // Remove responseOptions from here since we're handling them separately
                 },
             });
@@ -93,10 +114,12 @@ export async function POST(request: NextRequest) {
                             cardId: newCard.id,
                             text: option.text.trim(),
                             order: index + 1, // Maintain the order of responses
-                            pwEffect: option.pwEffect,
-                            efEffect: option.efEffect,
-                            psEffect: option.psEffect,
-                            grEffect: option.grEffect,
+                            politicalEffect: option.politicalEffect,
+                            economicEffect: option.economicEffect,
+                            infrastructureEffect: option.infrastructureEffect,
+                            societyEffect: option.societyEffect,
+                            environmentEffect: option.environmentEffect,
+                            score: option.score ?? 0, // Default to 0 if not provided
                         }
                     })
                 )
@@ -147,22 +170,58 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
         const isArchivedParam = searchParams.get('isArchived');
+        const page = parseInt(searchParams.get('page') || '1');
+        const limit = parseInt(searchParams.get('limit') || '10');
+        const search = searchParams.get('search') || '';
+        const status = searchParams.get('status');
+        const category = searchParams.get('category');
 
-        const whereClause = isArchivedParam !== null
-            ? { isArchived: isArchivedParam === 'true' }
-            : { isArchived: false }
+        const skip = (page - 1) * limit;
 
-        const cards = await prisma.card.findMany({
-            where: whereClause,
-            include: {
-                category: true,
-                cardResponses: true
-            }
-        });
+        const whereClause: Prisma.CardWhereInput = {
+            isArchived: isArchivedParam === 'true',
+        };
+
+        if (search) {
+            whereClause.OR = [
+                { title: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+            ];
+        }
+
+        if (status && status !== 'All') {
+            whereClause.status = status;
+        }
+
+        if (category && category !== 'All') {
+            whereClause.category = {
+                name: category
+            };
+        }
+
+        const [cards, total] = await Promise.all([
+            prisma.card.findMany({
+                where: whereClause,
+                include: {
+                    category: true,
+                    cardResponses: true
+                },
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' }
+            }),
+            prisma.card.count({ where: whereClause })
+        ]);
 
         return NextResponse.json({
             success: true,
-            cards
+            cards,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
         })
     }
     catch (error: unknown) {

@@ -215,7 +215,7 @@ export default function ListCategories() {
         return (
             <div
                 key={category.id}
-                className="bg-white border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] p-5 hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 group overflow-hidden"
+                className="bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.1)] p-5 hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 group overflow-hidden"
             >
                 {/* Color preset indicator at top */}
                 <div
@@ -233,7 +233,7 @@ export default function ListCategories() {
                         <div>
                             <h3 className="font-bold text-lg truncate">{category.name}</h3>
                             {colors.presetName && (
-                                <p className="text-xs text-gray-500">{colors.presetName} preset</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{colors.presetName} preset</p>
                             )}
                         </div>
                     </div>
@@ -245,7 +245,7 @@ export default function ListCategories() {
                                 e.stopPropagation();
                                 handleCategoryAction(category.id, 'view');
                             }}
-                            className="p-1 hover:bg-gray-100 rounded"
+                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                             title="View category"
                         >
                             <Eye size={14} />
@@ -255,7 +255,7 @@ export default function ListCategories() {
                                 e.stopPropagation();
                                 handleCategoryAction(category.id, 'edit');
                             }}
-                            className="p-1 hover:bg-gray-100 rounded"
+                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                             title="Edit category"
                         >
                             <Edit size={14} />
@@ -265,7 +265,7 @@ export default function ListCategories() {
                                 e.stopPropagation();
                                 handleCategoryAction(category.id, 'archive');
                             }}
-                            className="p-1 hover:bg-gray-100 rounded text-red-600"
+                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-red-600 dark:text-red-400"
                             title="Archive category"
                         >
                             <Archive size={14} />
@@ -274,27 +274,26 @@ export default function ListCategories() {
                 </div>
 
                 {/* Description */}
-                <p className="text-gray-600 mb-4 text-sm line-clamp-2">{category.description}</p>
+                <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm line-clamp-2">{category.description}</p>
 
                 {/* Item Count and Status */}
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                         <Tag size={14} />
                         <span>{category._count?.cards || 0} cards</span>
                     </div>
-                    <div className={`text-xs px-2 py-1 rounded font-medium border ${
-                        category.status && category.status.toUpperCase() === 'ACTIVE'
-                            ? 'text-green-700 bg-green-100 border-green-200'
-                            : category.status && category.status.toUpperCase() === 'INACTIVE'
-                                ? 'text-orange-700 bg-orange-100 border-orange-200'
-                                : 'text-gray-700 bg-gray-100 border-gray-200'
-                    }`}>
+                    <div className={`text-xs px-2 py-1 rounded font-medium border ${category.status && category.status.toUpperCase() === 'ACTIVE'
+                        ? 'text-green-700 bg-green-100 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
+                        : category.status && category.status.toUpperCase() === 'INACTIVE'
+                            ? 'text-orange-700 bg-orange-100 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800'
+                            : 'text-gray-700 bg-gray-100 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+                        }`}>
                         {category.status}
                     </div>
                 </div>
 
                 {/* Creator info */}
-                <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+                <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
                     Created by {category.creator?.name || 'Unknown'}
                 </div>
             </div>
@@ -307,7 +306,7 @@ export default function ListCategories() {
         return (
             <div
                 key={category.id}
-                className="bg-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] p-4 hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 group"
+                className="bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] p-4 hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 group"
             >
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -319,26 +318,25 @@ export default function ListCategories() {
                             <div className="flex items-center gap-2">
                                 <h3 className="font-bold text-lg truncate">{category.name}</h3>
                                 {colors.presetName && (
-                                    <span className="text-xs bg-gray-100 px-2 py-1 rounded">{colors.presetName}</span>
+                                    <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{colors.presetName}</span>
                                 )}
                             </div>
-                            <p className="text-gray-600 text-sm truncate">{category.description}</p>
+                            <p className="text-gray-600 dark:text-gray-400 text-sm truncate">{category.description}</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                             <Tag size={14} />
                             <span>{category._count?.cards || 0} cards</span>
                         </div>
 
-                        <div className={`text-xs px-2 py-1 rounded font-medium border ${
-                            category.status && category.status.toUpperCase() === 'ACTIVE'
-                                ? 'text-green-700 bg-green-100 border-green-200'
-                                : category.status && category.status.toUpperCase() === 'INACTIVE'
-                                    ? 'text-orange-700 bg-orange-100 border-orange-200'
-                                    : 'text-gray-700 bg-gray-100 border-gray-200'
-                        }`}>
+                        <div className={`text-xs px-2 py-1 rounded font-medium border ${category.status && category.status.toUpperCase() === 'ACTIVE'
+                            ? 'text-green-700 bg-green-100 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
+                            : category.status && category.status.toUpperCase() === 'INACTIVE'
+                                ? 'text-orange-700 bg-orange-100 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800'
+                                : 'text-gray-700 bg-gray-100 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+                            }`}>
                             {category.status}
                         </div>
 
@@ -346,21 +344,21 @@ export default function ListCategories() {
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                                 onClick={() => handleCategoryAction(category.id, 'view')}
-                                className="p-1 hover:bg-gray-100 rounded"
+                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                                 title="View category"
                             >
                                 <Eye size={14} />
                             </button>
                             <button
                                 onClick={() => handleCategoryAction(category.id, 'edit')}
-                                className="p-1 hover:bg-gray-100 rounded"
+                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                                 title="Edit category"
                             >
                                 <Edit size={14} />
                             </button>
                             <button
                                 onClick={() => handleCategoryAction(category.id, 'archive')}
-                                className="p-1 hover:bg-gray-100 rounded text-red-600"
+                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-red-600 dark:text-red-400"
                                 title="Archive category"
                             >
                                 <Archive size={14} />
@@ -378,7 +376,7 @@ export default function ListCategories() {
                 <div className="flex justify-between items-start">
                     <div>
                         <h1 className="text-2xl font-bold">Categories</h1>
-                        <p className="text-gray-600 mt-1">
+                        <p className="text-gray-600 dark:text-gray-400 mt-1">
                             Manage your product categories {!loading && `(${filteredCategories.length}
                             ${statusFilter !== 'all' ? ` ${statusFilter}` : ''} categories shown)`}
                         </p>
@@ -387,15 +385,14 @@ export default function ListCategories() {
                         <button
                             onClick={fetchCategories}
                             disabled={loading}
-                            className="px-4 py-2 bg-gray-100 text-gray-700 font-medium border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 disabled:opacity-50"
+                            className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 disabled:opacity-50"
                         >
                             <RefreshCw size={16} className={`inline-block mr-2 ${loading ? 'animate-spin' : ''}`} />
                             Refresh
                         </button>
                         <button
                             onClick={handleCreateCategory}
-                            className="px-4 py-2 bg-black text-white font-medium border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]
-                            hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200"
+                            className="px-4 py-2 bg-black dark:bg-blue-600 text-white font-medium border-2 border-black dark:border-blue-500 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(37,99,235,0.5)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(37,99,235,0.5)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200"
                         >
                             <Plus size={16} className="inline-block mr-2" />
                             New Category
@@ -415,11 +412,11 @@ export default function ListCategories() {
             {!loading && (
                 <div className="flex flex-col sm:flex-row gap-4 mb-6">
                     <div className="flex-1 relative">
-                        <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                        <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" />
                         <input
                             type="text"
                             placeholder="Search categories..."
-                            className="w-full pl-10 pr-4 py-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[1px] focus:translate-y-[1px] transition-all duration-200"
+                            className="w-full pl-10 pr-4 py-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] focus:translate-x-[1px] focus:translate-y-[1px] transition-all duration-200 bg-white dark:bg-gray-800 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -428,7 +425,7 @@ export default function ListCategories() {
                     <div className="flex gap-2">
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className={`px-4 py-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 font-medium ${showFilters ? 'bg-black text-white' : 'bg-white text-black'
+                            className={`px-4 py-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 font-medium ${showFilters ? 'bg-black dark:bg-gray-700 text-white' : 'bg-white dark:bg-gray-800 text-black dark:text-white'
                                 }`}
                         >
                             <Filter size={16} className="inline-block mr-2" />
@@ -438,14 +435,14 @@ export default function ListCategories() {
                         <div className="flex border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
                             <button
                                 onClick={() => setViewMode('grid')}
-                                className={`px-3 py-3 font-medium transition-colors ${viewMode === 'grid' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'
+                                className={`px-3 py-3 font-medium transition-colors ${viewMode === 'grid' ? 'bg-black dark:bg-gray-700 text-white' : 'bg-white dark:bg-gray-800 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
                                     }`}
                             >
                                 <Grid size={16} />
                             </button>
                             <button
                                 onClick={() => setViewMode('list')}
-                                className={`px-3 py-3 font-medium transition-colors border-l-2 border-black ${viewMode === 'list' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'
+                                className={`px-3 py-3 font-medium transition-colors border-l-2 border-black dark:border-gray-700 ${viewMode === 'list' ? 'bg-black dark:bg-gray-700 text-white' : 'bg-white dark:bg-gray-800 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
                                     }`}
                             >
                                 <List size={16} />
@@ -457,12 +454,12 @@ export default function ListCategories() {
 
             {/* Extended Filters - Hidden during loading */}
             {!loading && showFilters && (
-                <div className="mb-6 p-4 bg-gray-50 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium mb-2">Status</label>
                             <select
-                                className="w-full px-3 py-2 border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                                className="w-full px-3 py-2 border-2 border-black dark:border-gray-700 rounded-lg shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white"
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
@@ -476,7 +473,7 @@ export default function ListCategories() {
                         <div>
                             <label className="block text-sm font-medium mb-2">Sort By</label>
                             <select
-                                className="w-full px-3 py-2 border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                                className="w-full px-3 py-2 border-2 border-black dark:border-gray-700 rounded-lg shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white"
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
                             >
@@ -517,11 +514,11 @@ export default function ListCategories() {
                             )}
                         </div>
                     ) : (
-                        <div className="text-center py-12 bg-gray-50 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                        <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]">
                             {searchTerm || statusFilter !== 'all' ? (
                                 <>
-                                    <div className="text-gray-500 text-lg mb-2">No categories found</div>
-                                    <div className="text-gray-400 text-sm mb-4">
+                                    <div className="text-gray-500 dark:text-gray-400 text-lg mb-2">No categories found</div>
+                                    <div className="text-gray-400 dark:text-gray-500 text-sm mb-4">
                                         {searchTerm && `No results for "${searchTerm}"`}
                                         {searchTerm && statusFilter !== 'all' && ' with '}
                                         {statusFilter !== 'all' && `status "${statusFilter}"`}
@@ -531,18 +528,18 @@ export default function ListCategories() {
                                             setSearchTerm('');
                                             setStatusFilter('all');
                                         }}
-                                        className="px-4 py-2 bg-black text-white font-medium border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200"
+                                        className="px-4 py-2 bg-black dark:bg-blue-600 text-white font-medium border-2 border-black dark:border-blue-500 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(37,99,235,0.5)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(37,99,235,0.5)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200"
                                     >
                                         Clear Filters
                                     </button>
                                 </>
                             ) : (
                                 <>
-                                    <div className="text-gray-500 text-lg mb-2">No categories available</div>
-                                    <div className="text-gray-400 text-sm mb-4">Get started by creating your first category</div>
+                                    <div className="text-gray-500 dark:text-gray-400 text-lg mb-2">No categories available</div>
+                                    <div className="text-gray-400 dark:text-gray-500 text-sm mb-4">Get started by creating your first category</div>
                                     <button
                                         onClick={handleCreateCategory}
-                                        className="px-6 py-3 bg-black text-white font-bold border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200"
+                                        className="px-6 py-3 bg-black dark:bg-blue-600 text-white font-bold border-2 border-black dark:border-blue-500 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(37,99,235,0.5)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(37,99,235,0.5)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200"
                                     >
                                         <Plus size={16} className="inline-block mr-2" />
                                         Create First Category
@@ -556,26 +553,26 @@ export default function ListCategories() {
 
             {/* Stats Summary - Only show when not loading and categories exist */}
             {!loading && categories.length > 0 && (
-                <div className="mt-8 bg-white border-2 border-black rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] p-6">
-                    <h3 className="font-bold text-lg mb-4">Category Statistics</h3>
+                <div className="mt-8 bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.1)] p-6">
+                    <h3 className="font-bold text-lg mb-4 text-black dark:text-white">Category Statistics</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div className="text-center">
-                            <div className="text-2xl font-bold text-black">{categories.length}</div>
-                            <div className="text-sm text-gray-600">Total Categories</div>
+                            <div className="text-2xl font-bold text-black dark:text-white">{categories.length}</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">Total Categories</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-2xl font-bold text-green-600">{activeCategories.length}</div>
-                            <div className="text-sm text-gray-600">Active Categories</div>
+                            <div className="text-2xl font-bold text-green-600 dark:text-green-400">{activeCategories.length}</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">Active Categories</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-2xl font-bold text-blue-600">
+                            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                                 {categories.reduce((sum, cat) => sum + (cat._count?.cards || 0), 0)}
                             </div>
-                            <div className="text-sm text-gray-600">Total Cards</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">Total Cards</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-2xl font-bold text-purple-600">{filteredCategories.length}</div>
-                            <div className="text-sm text-gray-600">Showing</div>
+                            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{filteredCategories.length}</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">Showing</div>
                         </div>
                     </div>
                 </div>
@@ -591,14 +588,14 @@ export default function ListCategories() {
                     ></div>
 
                     {/* Modal Content */}
-                    <div className="relative bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] max-w-md w-full mx-4 p-6">
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    <div className="relative bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] max-w-md w-full mx-4 p-6">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                             Archive Category
                         </h3>
-                        <p className="text-gray-600 mb-2">
-                            Are you sure you want to archive <span className="font-semibold">"{categoryToArchive.name}"</span>?
+                        <p className="text-gray-600 dark:text-gray-300 mb-2">
+                            Are you sure you want to archive <span className="font-semibold">&quot;{categoryToArchive.name}&quot;</span>?
                         </p>
-                        <p className="text-sm text-gray-500 mb-6">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
                             This category has {categoryToArchive._count?.cards || 0} card(s). You can restore it later if needed.
                         </p>
 
@@ -606,14 +603,14 @@ export default function ListCategories() {
                             <button
                                 onClick={closeArchiveModal}
                                 disabled={isArchiving}
-                                className="px-4 py-2 text-gray-700 bg-white font-medium border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 disabled:opacity-50"
+                                className="px-4 py-2 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 font-medium border-2 border-black dark:border-gray-500 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 disabled:opacity-50"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={archiveCategory}
                                 disabled={isArchiving}
-                                className="px-4 py-2 bg-red-600 text-white font-medium border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
+                                className="px-4 py-2 bg-red-600 text-white font-medium border-2 border-black dark:border-red-400 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(239,68,68,0.5)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(239,68,68,0.5)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
                             >
                                 {isArchiving ? (
                                     <>

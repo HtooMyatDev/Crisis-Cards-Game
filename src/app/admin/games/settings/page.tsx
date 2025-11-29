@@ -3,25 +3,20 @@ import React, { useState } from 'react';
 import {
     Settings,
     Save,
-    RotateCcw,
-    Shield,
     Users,
-    Clock,
     MessageCircle,
     Eye,
-    Volume2,
     Gamepad2,
-    Target,
-    AlertCircle,
-    CheckCircle,
-    Info,
     Zap,
-    Lock,
-    Unlock,
-    ArrowLeft,
     Plus,
     Minus,
-    X
+    AlertCircle,
+    CheckCircle,
+    ArrowLeft,
+    HelpCircle,
+    Lock,
+    Unlock,
+    RotateCcw
 } from 'lucide-react';
 
 const SessionSettings = () => {
@@ -86,7 +81,7 @@ const SessionSettings = () => {
     const [activeTab, setActiveTab] = useState('general');
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [showSaveSuccess, setShowSaveSuccess] = useState(false);
-    const [errors, setErrors] = useState({});
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     const tabs = [
         { id: 'general', label: 'General', icon: Settings },
@@ -100,7 +95,7 @@ const SessionSettings = () => {
     const gameModes = ['Team Challenge', 'Solo Practice', 'Group Learning', 'Time Trial', 'Competitive Mode', 'Training Mode'];
     const difficultyLevels = ['Easy', 'Medium', 'Hard', 'Expert', 'Custom'];
 
-    const handleInputChange = (field, value) => {
+    const handleInputChange = (field: string, value: string | number | boolean) => {
         setSettings(prev => ({
             ...prev,
             [field]: value
@@ -113,9 +108,9 @@ const SessionSettings = () => {
         }
     };
 
-    const handleNumberChange = (field, increment, min = 1, max = 999, step = 1) => {
+    const handleNumberChange = (field: string, increment: boolean, min: number = 1, max: number = 999, step: number = 1) => {
         setSettings(prev => {
-            const currentValue = prev[field];
+            const currentValue = prev[field as keyof typeof prev] as number;
             const newValue = increment ? currentValue + step : currentValue - step;
             const clampedValue = Math.max(min, Math.min(max, newValue));
 
@@ -125,7 +120,7 @@ const SessionSettings = () => {
     };
 
     const validateSettings = () => {
-        const newErrors = {};
+        const newErrors: Record<string, string> = {};
 
         if (!settings.sessionName.trim()) {
             newErrors.sessionName = 'Session name is required';
@@ -161,7 +156,7 @@ const SessionSettings = () => {
             setTimeout(() => setShowSaveSuccess(false), 3000);
 
             console.log('Settings saved:', settings);
-        } catch (error) {
+        } catch {
             setErrors({ submit: 'Failed to save settings. Please try again.' });
         }
     };
@@ -193,9 +188,8 @@ const SessionSettings = () => {
                         type="text"
                         value={settings.sessionName}
                         onChange={(e) => handleInputChange('sessionName', e.target.value)}
-                        className={`w-full px-4 py-3 border-2 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            errors.sessionName ? 'border-red-500' : 'border-black'
-                        }`}
+                        className={`w-full px-4 py-3 border-2 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.sessionName ? 'border-red-500' : 'border-black'
+                            }`}
                         placeholder="Enter session name..."
                     />
                     {errors.sessionName && (
@@ -273,9 +267,8 @@ const SessionSettings = () => {
                             type="password"
                             value={settings.password}
                             onChange={(e) => handleInputChange('password', e.target.value)}
-                            className={`w-full px-4 py-3 border-2 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                errors.password ? 'border-red-500' : 'border-black'
-                            }`}
+                            className={`w-full px-4 py-3 border-2 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.password ? 'border-red-500' : 'border-black'
+                                }`}
                             placeholder="Enter password..."
                         />
                         {errors.password && (
@@ -295,7 +288,8 @@ const SessionSettings = () => {
                     <select
                         value={settings.gameMode}
                         onChange={(e) => handleInputChange('gameMode', e.target.value)}
-                        className="w-full px-4 py-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                        className="w-full px-3 pr-10 py-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                        style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
                     >
                         {gameModes.map(mode => (
                             <option key={mode} value={mode}>{mode}</option>
@@ -308,7 +302,8 @@ const SessionSettings = () => {
                     <select
                         value={settings.difficulty}
                         onChange={(e) => handleInputChange('difficulty', e.target.value)}
-                        className="w-full px-4 py-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                        className="w-full px-3 pr-10 py-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                        style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
                     >
                         {difficultyLevels.map(level => (
                             <option key={level} value={level}>{level}</option>
@@ -379,7 +374,7 @@ const SessionSettings = () => {
                     <label key={option.key} className="flex items-center gap-3 cursor-pointer p-4 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                         <input
                             type="checkbox"
-                            checked={settings[option.key]}
+                            checked={settings[option.key as keyof typeof settings] as boolean}
                             onChange={(e) => handleInputChange(option.key, e.target.checked)}
                             className="w-5 h-5 text-blue-600 border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                         />
@@ -405,7 +400,7 @@ const SessionSettings = () => {
                     <label key={option.key} className="flex items-center gap-3 cursor-pointer p-4 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                         <input
                             type="checkbox"
-                            checked={settings[option.key]}
+                            checked={settings[option.key as keyof typeof settings] as boolean}
                             onChange={(e) => handleInputChange(option.key, e.target.checked)}
                             className="w-5 h-5 text-blue-600 border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                         />
@@ -431,7 +426,7 @@ const SessionSettings = () => {
                     <label key={option.key} className="flex items-center gap-3 cursor-pointer p-4 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                         <input
                             type="checkbox"
-                            checked={settings[option.key]}
+                            checked={settings[option.key as keyof typeof settings] as boolean}
                             onChange={(e) => handleInputChange(option.key, e.target.checked)}
                             className="w-5 h-5 text-blue-600 border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                         />
@@ -487,7 +482,7 @@ const SessionSettings = () => {
                     <label key={option.key} className="flex items-center gap-3 cursor-pointer p-4 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                         <input
                             type="checkbox"
-                            checked={settings[option.key]}
+                            checked={settings[option.key as keyof typeof settings] as boolean}
                             onChange={(e) => handleInputChange(option.key, e.target.checked)}
                             className="w-5 h-5 text-blue-600 border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                         />
@@ -570,7 +565,7 @@ const SessionSettings = () => {
                     <label key={option.key} className="flex items-center gap-3 cursor-pointer p-4 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                         <input
                             type="checkbox"
-                            checked={settings[option.key]}
+                            checked={settings[option.key as keyof typeof settings] as boolean}
                             onChange={(e) => handleInputChange(option.key, e.target.checked)}
                             className="w-5 h-5 text-blue-600 border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                         />
@@ -658,7 +653,7 @@ const SessionSettings = () => {
                         </div>
                         <div>
                             <h3 className="font-bold text-yellow-800">Unsaved Changes</h3>
-                            <p className="text-yellow-700 text-sm">You have unsaved changes. Don't forget to save before leaving.</p>
+                            <p className="text-yellow-700 text-sm">You have unsaved changes. Don&apos;t forget to save before leaving.</p>
                         </div>
                     </div>
                 </div>
@@ -673,11 +668,10 @@ const SessionSettings = () => {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-colors border-r-2 border-black last:border-r-0 ${
-                                    activeTab === tab.id
-                                        ? 'bg-blue-500 text-white'
-                                        : 'hover:bg-gray-100 text-gray-700'
-                                }`}
+                                className={`flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-colors border-r-2 border-black last:border-r-0 ${activeTab === tab.id
+                                    ? 'bg-blue-500 text-white'
+                                    : 'hover:bg-gray-100 text-gray-700'
+                                    }`}
                             >
                                 <Icon size={16} />
                                 <span className="hidden sm:inline">{tab.label}</span>

@@ -1,0 +1,107 @@
+
+> crisis-card-game-app@0.1.0 build
+> next build --turbopack
+
+   ▲ Next.js 15.5.2 (Turbopack)
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Finished writing to disk in 281ms
+ ✓ Compiled successfully in 2.9s
+   Linting and checking validity of types ...
+
+Failed to compile.
+
+./src/app/admin/cards/archive/page.tsx
+3:69  Warning: 'AlertTriangle' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/categories/manage/page.tsx
+3:43  Warning: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+3:51  Warning: 'MoreVertical' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/dashboard/page.tsx
+13:5  Warning: 'UserPlus' is defined but never used.  @typescript-eslint/no-unused-vars
+15:86  Warning: 'BarChart' is defined but never used.  @typescript-eslint/no-unused-vars
+15:96  Warning: 'Bar' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/games/[id]/host/page.tsx
+8:18  Warning: 'TrendingUp' is defined but never used.  @typescript-eslint/no-unused-vars
+8:30  Warning: 'TrendingDown' is defined but never used.  @typescript-eslint/no-unused-vars
+97:8  Warning: React Hook useEffect has a missing dependency: 'fetchHostData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/admin/games/[id]/page.tsx
+11:5  Warning: 'Wifi' is defined but never used.  @typescript-eslint/no-unused-vars
+12:5  Warning: 'WifiOff' is defined but never used.  @typescript-eslint/no-unused-vars
+15:5  Warning: 'Calendar' is defined but never used.  @typescript-eslint/no-unused-vars
+32:8  Warning: React Hook useEffect has a missing dependency: 'fetchGameDetails'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/admin/games/active/[id].tsx
+4:5  Warning: 'Play' is defined but never used.  @typescript-eslint/no-unused-vars
+8:5  Warning: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+10:5  Warning: 'Settings' is defined but never used.  @typescript-eslint/no-unused-vars
+13:5  Warning: 'Mic' is defined but never used.  @typescript-eslint/no-unused-vars
+14:5  Warning: 'MicOff' is defined but never used.  @typescript-eslint/no-unused-vars
+18:5  Warning: 'Trophy' is defined but never used.  @typescript-eslint/no-unused-vars
+20:5  Warning: 'CheckCircle' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/games/manage/page.tsx
+16:5  Warning: 'Timer' is defined but never used.  @typescript-eslint/no-unused-vars
+30:12  Warning: 'showCreateModal' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+30:29  Warning: 'setShowCreateModal' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/games/settings/page.tsx
+16:5  Warning: 'HelpCircle' is defined but never used.  @typescript-eslint/no-unused-vars
+665:37  Warning: 'index' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/notifications/page.tsx
+11:5  Warning: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+12:5  Warning: 'Search' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/users/page.tsx
+3:39  Warning: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+3:47  Warning: 'MoreVertical' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/api/admin/categories/[id]/route.ts
+43:28  Warning: '_request' is defined but never used.  @typescript-eslint/no-unused-vars
+155:31  Warning: '_request' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/api/admin/categories/route.ts
+42:15  Warning: 'dbStatus' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/api/auth/register/route.ts
+4:8  Warning: 'bcrypt' is defined but never used.  @typescript-eslint/no-unused-vars
+52:12  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/api/game/[gameCode]/check-response/route.ts
+9:17  Warning: 'gameCode' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/api/game/[gameCode]/leave/route.ts
+9:17  Warning: 'gameCode' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/api/game/[gameCode]/next/route.ts
+51:9  Warning: Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any').
+53:31  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/api/game/[gameCode]/start/route.ts
+3:10  Warning: 'GameStatus' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/api/game/[gameCode]/votes/route.ts
+9:17  Warning: 'gameCode' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/host/[gameCode]/page.tsx
+5:85  Warning: 'Save' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/play/[gameCode]/page.tsx
+5:26  Warning: 'StaggerContainer' is defined but never used.  @typescript-eslint/no-unused-vars
+5:44  Warning: 'StaggerItem' is defined but never used.  @typescript-eslint/no-unused-vars
+7:10  Warning: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+7:18  Warning: 'AnimatePresence' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/user/home/page.tsx
+3:28  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+3:41  Warning: 'TrendingUp' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/user/profile/page.tsx
+16:5  Warning: 'Bell' is defined but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules

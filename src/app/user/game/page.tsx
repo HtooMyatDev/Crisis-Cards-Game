@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from 'react';
-import { Play, RotateCcw, Trophy, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Play, RotateCcw, Trophy, Clock, CheckCircle } from 'lucide-react';
 
 const UserGamePage = () => {
     const [gameStarted, setGameStarted] = useState(false);

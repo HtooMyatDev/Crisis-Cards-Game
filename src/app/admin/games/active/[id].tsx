@@ -87,13 +87,13 @@ const ActiveSessionMonitor = () => {
         return () => clearInterval(timer);
     }, []);
 
-    const formatTime = (seconds) => {
+    const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const getPlayerStatusColor = (status) => {
+    const getPlayerStatusColor = (status: string) => {
         switch (status) {
             case 'active': return 'bg-green-100 text-green-800 border-green-300';
             case 'idle': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
@@ -102,7 +102,7 @@ const ActiveSessionMonitor = () => {
         }
     };
 
-    const getChatMessageType = (type) => {
+    const getChatMessageType = (type: string) => {
         switch (type) {
             case 'urgent': return 'border-l-4 border-red-500 bg-red-50';
             case 'success': return 'border-l-4 border-green-500 bg-green-50';
@@ -112,7 +112,7 @@ const ActiveSessionMonitor = () => {
         }
     };
 
-    const handleSessionControl = (action) => {
+    const handleSessionControl = (action: string) => {
         setSessionData(prev => ({
             ...prev,
             status: action === 'pause' ? 'Paused' : action === 'stop' ? 'Completed' : 'Active'
@@ -133,7 +133,7 @@ const ActiveSessionMonitor = () => {
         }
     };
 
-    const getScenarioIcon = (category) => {
+    const getScenarioIcon = (category: string) => {
         switch (category) {
             case 'Medical Crisis': return <Heart size={16} className="text-red-500" />;
             case 'Fire Emergency': return <Flame size={16} className="text-orange-500" />;

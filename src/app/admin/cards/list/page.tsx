@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 // Added Archive icon
-import { Edit, Plus, Search, Filter, Clock, Tag, Zap, Shield, TrendingUp, Heart, Users, Archive } from 'lucide-react';
+import { Edit, Plus, Search, Filter, Clock, Tag, Zap, Shield, TrendingUp, Building2, Users, Leaf, Archive, ChevronLeft, ChevronRight } from 'lucide-react';
 import SkeletonCardGrid from '@/components/skeletons/CardSkeletonGrid';
 import { useRouter } from 'next/navigation';
 
@@ -10,10 +10,11 @@ interface CardResponse {
     id: number;
     text: string;
     order: number;
-    pwEffect: number;
-    efEffect: number;
-    psEffect: number;
-    grEffect: number;
+    politicalEffect: number;
+    economicEffect: number;
+    infrastructureEffect: number;
+    societyEffect: number;
+    environmentEffect: number;
     cardId?: string;
 }
 
@@ -22,12 +23,12 @@ interface CrisisCard {
     title: string;
     description: string;
     timeLimit: number;
-    pwValue: number;
-    efValue: number;
-    psValue: number;
-    grValue: number;
+    political: number;
+    economic: number;
+    infrastructure: number;
+    society: number;
+    environment: number;
     cardResponses?: CardResponse[];
-    responseOptions?: string[];
     status: string;
     createdAt: string;
     updatedAt: string;
@@ -42,8 +43,16 @@ export default function CrisisCardList() {
     const [cards, setCards] = useState<CrisisCard[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
     const [categoryFilter, setCategoryFilter] = useState<string>('All');
+
+    // Pagination state
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalCards, setTotalCards] = useState(0);
+    const LIMIT = 9;
+
     const router = useRouter();
 
     // Archive modal states
@@ -95,52 +104,73 @@ export default function CrisisCardList() {
         return 'text-gray-600';
     };
 
+    // Debounce search term
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+            setPage(1); // Reset to first page on search
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    // Reset page when filters change
+    useEffect(() => {
+        setPage(1);
+    }, [statusFilter, categoryFilter]);
+
     useEffect(() => {
         const fetchCards = async () => {
+            setLoading(true);
             try {
-                const response = await fetch('/api/admin/cards?isArchived=false', {
+                const params = new URLSearchParams({
+                    page: page.toString(),
+                    limit: LIMIT.toString(),
+                    isArchived: 'false'
+                });
+
+                if (debouncedSearch) params.append('search', debouncedSearch);
+                if (statusFilter !== 'All') params.append('status', statusFilter);
+                if (categoryFilter !== 'All') params.append('category', categoryFilter);
+
+                const response = await fetch(`/api/admin/cards?${params.toString()}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
                     }
-                })
+                });
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const data = await response.json()
-                const cardsData = data.cards || data.data || data
+                const data = await response.json();
 
-                if (Array.isArray(cardsData)) {
-                    setCards(cardsData)
+                if (data.success) {
+                    setCards(data.cards || []);
+                    if (data.pagination) {
+                        setTotalPages(data.pagination.totalPages);
+                        setTotalCards(data.pagination.total);
+                    }
                 } else {
-                    console.error('Expected array of cards, got:', cardsData);
+                    console.error('Failed to fetch cards:', data.error);
                     setCards([]);
                 }
             } catch (error) {
                 console.error('Error fetching cards:', error);
-                setLoading(false);
+                setCards([]);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchCards();
-    }, []);
+    }, [page, debouncedSearch, statusFilter, categoryFilter]);
 
     const categories = ['All', ...new Set(cards.map(card => card.category?.name).filter(Boolean))];
 
-    const filteredCards = cards.filter(card => {
-        const matchesSearch = card.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            card.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            card.category?.name?.toLowerCase().includes(searchTerm.toLowerCase());
-
-        const matchesStatus = statusFilter === 'All' || card.status === statusFilter;
-        const matchesCategory = categoryFilter === 'All' || card.category?.name === categoryFilter;
-
-        return matchesSearch && matchesStatus && matchesCategory;
-    });
+    // No client-side filtering needed anymore
+    const filteredCards = cards;
 
     const openArchiveModal = (id: string, title: string) => {
         setCardToArchive({ id, title });
@@ -191,13 +221,13 @@ export default function CrisisCardList() {
             <div>
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-bold">Crisis Cards</h1>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-black text-white font-bold border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-pulse">
+                    <button className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-blue-600 text-white font-bold border-2 border-black dark:border-blue-500 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(37,99,235,0.5)] animate-pulse">
                         <Plus size={20} />
                         Create New Card
                     </button>
                 </div>
 
-                <div className="bg-gray-50 p-4 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-6 animate-pulse">
+                <div className="bg-gray-50 dark:bg-gray-800/50 p-4 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] mb-6 animate-pulse">
                     <div className="flex flex-col md:flex-row gap-4">
                         <div className="flex-1 h-10 bg-gray-200 rounded-lg"></div>
                         <div className="w-32 h-10 bg-gray-200 rounded-lg"></div>
@@ -228,27 +258,27 @@ export default function CrisisCardList() {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Crisis Cards</h1>
+                <h1 className="text-2xl font-bold text-black dark:text-white">Crisis Cards</h1>
                 <button
                     onClick={handleCreateNew}
-                    className="flex items-center gap-2 px-4 py-2 bg-black text-white font-bold border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200"
+                    className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-blue-600 text-white font-bold border-2 border-black dark:border-blue-500 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(37,99,235,0.5)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(37,99,235,0.5)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200"
                 >
                     <Plus size={20} />
                     Create New Card
                 </button>
             </div>
 
-            <div className="bg-gray-50 p-4 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-6">
+            <div className="bg-gray-50 dark:bg-gray-800/50 p-4 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] mb-6">
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="flex-1">
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={20} />
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" size={20} />
                             <input
                                 type="text"
                                 placeholder="Search cards..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                className="w-full pl-10 pr-4 py-2 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                             />
                         </div>
                     </div>
@@ -258,7 +288,8 @@ export default function CrisisCardList() {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value as 'All' | 'Active' | 'Inactive')}
-                            className="px-3 py-2 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                            className="px-3 pr-10 py-2 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] appearance-none bg-white dark:bg-gray-800 text-black dark:text-white"
+                            style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
                         >
                             <option value="All">All Status</option>
                             <option value="Active">Active</option>
@@ -271,7 +302,8 @@ export default function CrisisCardList() {
                         <select
                             value={categoryFilter}
                             onChange={(e) => setCategoryFilter(e.target.value)}
-                            className="px-3 py-2 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                            className="px-3 pr-10 py-2 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] appearance-none bg-white dark:bg-gray-800 text-black dark:text-white"
+                            style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
                         >
                             {categories.map(category => (
                                 <option key={category} value={category}>
@@ -309,14 +341,14 @@ export default function CrisisCardList() {
             </div>
 
             <div className="mb-4">
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-400">
                     Showing {filteredCards.length} of {cards.length} cards
                 </p>
             </div>
 
             {filteredCards.length === 0 ? (
                 <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg mb-4">No cards found matching your criteria</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">No cards found matching your criteria</p>
                     <button
                         onClick={handleCreateNew}
                         className="px-4 py-2 bg-black text-white font-bold border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200"
@@ -329,12 +361,11 @@ export default function CrisisCardList() {
                     {filteredCards.map((card) => {
                         const styles = getCategoryStyles(card.category || { name: 'Unknown' });
                         const responses = card.cardResponses || [];
-                        const legacyOptions = card.responseOptions || [];
 
                         return (
                             <div
                                 key={card.id}
-                                className="bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 relative"
+                                className="bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] p-6 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 relative"
                             >
                                 <div
                                     className="absolute top-0 left-0 w-full h-1 rounded-t-md"
@@ -342,29 +373,29 @@ export default function CrisisCardList() {
                                 ></div>
 
                                 <div className="flex justify-between items-start mb-3">
-                                    <h3 className="text-lg font-bold text-gray-900 line-clamp-2">
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2">
                                         {card.title}
                                     </h3>
                                     <span className={`px-2 py-1 text-xs font-semibold rounded border-2 ${card.status === 'Active'
-                                        ? 'bg-green-100 text-green-800 border-green-800'
-                                        : 'bg-red-100 text-red-800 border-red-800'
+                                        ? 'bg-green-100 text-green-800 border-green-800 dark:bg-green-900/30 dark:text-green-400 dark:border-green-500'
+                                        : 'bg-red-100 text-red-800 border-red-800 dark:bg-red-900/30 dark:text-red-400 dark:border-red-500'
                                         }`}>
                                         {card.status}
                                     </span>
                                 </div>
 
-                                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
                                     {card.description}
                                 </p>
 
                                 <div className="space-y-2 mb-4">
                                     <div className="flex items-center gap-2 text-sm">
-                                        <Tag size={16} className="text-gray-500" />
+                                        <Tag size={16} className="text-gray-500 dark:text-gray-400" />
                                         <span
-                                            className="font-medium px-2 py-1 border-2 border-gray-200 rounded-full text-xs"
+                                            className="font-medium px-2 py-1 border-2 rounded-full text-xs text-gray-700 dark:text-gray-300"
                                             style={{
                                                 ...styles.bgStyle,
-                                                ...styles.textStyle
+                                                ...styles.borderStyle
                                             }}
                                         >
                                             {card.category?.name || 'Unknown'}
@@ -376,71 +407,73 @@ export default function CrisisCardList() {
                                         )}
                                     </div>
                                     <div className="flex items-center gap-2 text-sm">
-                                        <Clock size={16} className="text-gray-500" />
-                                        <span className="text-gray-700">{card.timeLimit} minutes</span>
+                                        <Clock size={16} className="text-gray-500 dark:text-gray-400" />
+                                        <span className="text-gray-700 dark:text-gray-300">{card.timeLimit} minutes</span>
                                     </div>
                                 </div>
 
                                 <div className="mb-4">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <Zap size={16} className="text-gray-500" />
-                                        <p className="text-sm font-semibold text-gray-700">Card Values:</p>
+                                        <Zap size={16} className="text-gray-500 dark:text-gray-400" />
+                                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Card Values:</p>
                                     </div>
-                                    <div className="grid grid-cols-4 gap-2">
-                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 rounded border">
+                                    <div className="grid grid-cols-5 gap-2">
+                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-300 dark:border-gray-600">
                                             <Shield size={16} className="text-blue-500" />
-                                            <span className="text-sm font-bold text-gray-800">{card.pwValue || 0}</span>
+                                            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{card.political || 0}</span>
                                         </div>
-                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 rounded border">
+                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-300 dark:border-gray-600">
                                             <TrendingUp size={16} className="text-green-500" />
-                                            <span className="text-sm font-bold text-gray-800">{card.efValue || 0}</span>
+                                            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{card.economic || 0}</span>
                                         </div>
-                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 rounded border">
-                                            <Heart size={16} className="text-red-500" />
-                                            <span className="text-sm font-bold text-gray-800">{card.psValue || 0}</span>
+                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-300 dark:border-gray-600">
+                                            <Building2 size={16} className="text-gray-500 dark:text-gray-400" />
+                                            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{card.infrastructure || 0}</span>
                                         </div>
-                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 rounded border">
-                                            <Users size={16} className="text-yellow-500" />
-                                            <span className="text-sm font-bold text-gray-800">{card.grValue || 0}</span>
+                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-300 dark:border-gray-600">
+                                            <Users size={16} className="text-purple-500" />
+                                            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{card.society || 0}</span>
+                                        </div>
+                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-300 dark:border-gray-600">
+                                            <Leaf size={16} className="text-emerald-500" />
+                                            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{card.environment || 0}</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="mb-4">
-                                    <p className="text-sm font-semibold mb-2 text-gray-700">Response Options:</p>
+                                    <p className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Response Options:</p>
                                     <div className="space-y-2">
                                         {responses.length > 0 ? (
                                             responses.slice(0, 2).map((response) => (
-                                                <div key={response.id} className="text-xs bg-gray-100 p-2 rounded border border-gray-300">
-                                                    <div className="text-gray-700 mb-1">{response.text}</div>
+                                                <div key={response.id} className="text-xs bg-gray-100 dark:bg-gray-700/50 p-2 rounded border border-gray-300 dark:border-gray-600">
+                                                    <div className="text-gray-700 dark:text-gray-200 mb-1">{response.text}</div>
                                                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
-                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.pwEffect)}`}>
+                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.politicalEffect)}`}>
                                                             <Shield size={12} />
-                                                            <span>PW: {formatEffect(response.pwEffect)}</span>
+                                                            <span>POL: {formatEffect(response.politicalEffect)}</span>
                                                         </span>
-                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.efEffect)}`}>
+                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.economicEffect)}`}>
                                                             <TrendingUp size={12} />
-                                                            <span>EF: {formatEffect(response.efEffect)}</span>
+                                                            <span>ECO: {formatEffect(response.economicEffect)}</span>
                                                         </span>
-                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.psEffect)}`}>
-                                                            <Heart size={12} />
-                                                            <span>PS: {formatEffect(response.psEffect)}</span>
+                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.infrastructureEffect)}`}>
+                                                            <Building2 size={12} />
+                                                            <span>INF: {formatEffect(response.infrastructureEffect)}</span>
                                                         </span>
-                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.grEffect)}`}>
+                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.societyEffect)}`}>
                                                             <Users size={12} />
-                                                            <span>GR: {formatEffect(response.grEffect)}</span>
+                                                            <span>SOC: {formatEffect(response.societyEffect)}</span>
+                                                        </span>
+                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.environmentEffect)}`}>
+                                                            <Leaf size={12} />
+                                                            <span>ENV: {formatEffect(response.environmentEffect)}</span>
                                                         </span>
                                                     </div>
                                                 </div>
                                             ))
-                                        ) : legacyOptions.length > 0 ? (
-                                            legacyOptions.slice(0, 2).map((option, index) => (
-                                                <div key={index} className="text-xs bg-gray-100 px-2 py-1 rounded border border-gray-300 text-gray-700" >
-                                                    {option}
-                                                </div>
-                                            ))
                                         ) : (
-                                            <div className="text-xs text-gray-500 bg-yellow-50 p-2 rounded border border-yellow-200">
+                                            <div className="text-xs text-gray-500 dark:text-yellow-200/70 bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded border border-yellow-200 dark:border-yellow-700/50">
                                                 No response options found for this card
                                             </div>
                                         )}
@@ -450,25 +483,20 @@ export default function CrisisCardList() {
                                                 +{responses.length - 2} more options
                                             </div>
                                         )}
-                                        {legacyOptions.length > 2 && responses.length === 0 && (
-                                            <div className="text-xs text-gray-500">
-                                                +{legacyOptions.length - 2} more options
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
 
                                 <div className="flex gap-2 pt-4 border-t border-gray-200">
                                     <button
                                         onClick={() => handleEdit(card.id)}
-                                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border-2 border-blue-600 text-blue-600 rounded-lg font-semibold shadow-[2px_2px_0px_0px_rgba(37,99,235,1)] hover:shadow-[1px_1px_0px_0px_rgba(37,99,235,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 bg-white hover:bg-blue-50"
+                                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border-2 border-blue-600 text-blue-600 dark:text-blue-400 rounded-lg font-semibold shadow-[2px_2px_0px_0px_rgba(37,99,235,1)] hover:shadow-[1px_1px_0px_0px_rgba(37,99,235,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/30"
                                     >
                                         <Edit size={16} />
                                         Edit
                                     </button>
                                     <button
                                         onClick={() => openArchiveModal(card.id, card.title)}
-                                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border-2 border-orange-600 text-orange-600 rounded-lg font-semibold shadow-[2px_2px_0px_0px_rgba(234,88,12,1)] hover:shadow-[1px_1px_0px_0px_rgba(234,88,12,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 bg-white hover:bg-orange-50"
+                                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border-2 border-orange-600 text-orange-600 dark:text-orange-400 rounded-lg font-semibold shadow-[2px_2px_0px_0px_rgba(234,88,12,1)] hover:shadow-[1px_1px_0px_0px_rgba(234,88,12,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 bg-white dark:bg-gray-800 hover:bg-orange-50 dark:hover:bg-orange-900/30"
                                     >
                                         <Archive size={16} />
                                         Archive
@@ -485,6 +513,33 @@ export default function CrisisCardList() {
                 </div>
             )}
 
+            {/* Pagination Controls */}
+            {filteredCards.length > 0 && (
+                <div className="flex justify-center items-center gap-4 mt-8 mb-8">
+                    <button
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <ChevronLeft size={20} />
+                        Previous
+                    </button>
+
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">
+                        Page {page} of {totalPages}
+                    </span>
+
+                    <button
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        disabled={page === totalPages}
+                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Next
+                        <ChevronRight size={20} />
+                    </button>
+                </div>
+            )}
+
             {/* Archive Confirmation Modal */}
             {showArchiveModal && cardToArchive && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -493,14 +548,14 @@ export default function CrisisCardList() {
                         onClick={closeArchiveModal}
                     ></div>
 
-                    <div className="relative bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] max-w-md w-full mx-4 p-6">
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    <div className="relative bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] max-w-md w-full mx-4 p-6">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                             Archive Card
                         </h3>
-                        <p className="text-gray-600 mb-2">
-                            Are you sure you want to archive <span className="font-semibold">"{cardToArchive.title}"</span>?
+                        <p className="text-gray-600 dark:text-gray-300 mb-2">
+                            Are you sure you want to archive <span className="font-semibold">&quot;{cardToArchive.title}&quot;</span>?
                         </p>
-                        <p className="text-sm text-gray-500 mb-6">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
                             This card will be hidden from the active list. You can restore it later if needed.
                         </p>
 
@@ -508,7 +563,7 @@ export default function CrisisCardList() {
                             <button
                                 onClick={closeArchiveModal}
                                 disabled={isArchiving}
-                                className="px-4 py-2 text-gray-700 bg-white font-medium border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 disabled:opacity-50"
+                                className="px-4 py-2 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 font-medium border-2 border-black dark:border-gray-500 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 disabled:opacity-50"
                             >
                                 Cancel
                             </button>

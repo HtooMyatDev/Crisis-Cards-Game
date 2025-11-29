@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from 'react';
-import { ArrowLeft, Save, Plus, AlertCircle, Shield, TrendingUp, Heart, Users } from 'lucide-react';
+import { ArrowLeft, Save, Plus, AlertCircle, Shield, TrendingUp, Building2, Leaf, Users } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 
 // Import all the components and hooks
@@ -8,12 +8,12 @@ import { FormState, ResponseOption, FormErrors } from '@/types/crisisCard';
 import { useCrisisCardData } from '@/hooks/useCrisisCardData';
 import { useFormState } from '@/hooks/useFormState'
 import { useFormValidation } from '@/hooks/useFormValidation';
-import FormInput from '@/components/common/forms/FormInput';
-import NumberInput from '@/components/common/forms/NumberInput';
+import { FormInput } from '@/components/ui/FormInput';
+import { NumberInput } from '@/components/ui/NumberInput';
 import { ResponseOptionEditor } from '@/components/previews/ResponseOptionEditor';
-import LoadingSpinner from '@/components/common/feedback/LoadingSpinner';
-import { CardPreview } from '@/components/previews/CardPreview';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import UnsavedChangesModal from '@/components/modals/UnsavedChangesModal';
+import EditCardSkeleton from '@/components/skeletons/EditCardSkeleton';
 
 export default function EditCrisisCardDesign() {
     const router = useRouter();
@@ -54,7 +54,7 @@ export default function EditCrisisCardDesign() {
 
     const handleResponseOptionEffect = (
         index: number,
-        field: keyof Pick<ResponseOption, 'pwEffect' | 'efEffect' | 'psEffect' | 'grEffect'>,
+        field: keyof Pick<ResponseOption, 'politicalEffect' | 'economicEffect' | 'infrastructureEffect' | 'societyEffect' | 'environmentEffect' | 'score'>,
         value: string
     ) => {
         const numValue = value === '' ? 0 : Number(value);
@@ -65,20 +65,7 @@ export default function EditCrisisCardDesign() {
         }
     };
 
-    const addResponseOption = () => {
-        if (formData.responseOptions.length < 3) {
-            updateResponseOptions(options => [
-                ...options,
-                { text: '', pwEffect: 0, efEffect: 0, psEffect: 0, grEffect: 0 }
-            ]);
-        }
-    };
 
-    const removeResponseOption = (index: number) => {
-        if (formData.responseOptions.length > 1) {
-            updateResponseOptions(options => options.filter((_, i) => i !== index));
-        }
-    };
 
     const handleSave = async () => {
         const { isValid, errors } = validateForm(formData);
@@ -94,7 +81,10 @@ export default function EditCrisisCardDesign() {
             const response = await fetch(`/api/admin/cards/${cardId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                body: JSON.stringify({
+                    ...formData,
+                    status: formData.status === 'Active' ? 'OPEN' : 'CLOSED'
+                })
             });
 
             if (response.ok) {
@@ -118,27 +108,27 @@ export default function EditCrisisCardDesign() {
         }
     };
 
-    if (loading) return <LoadingSpinner />;
+    if (loading) return <EditCardSkeleton />;
     if (error) return <div className="max-w-7xl mx-auto px-6 py-2 text-red-600">Error: {error}</div>;
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white dark:bg-gray-900">
             {/* Header */}
-            <div className="bg-gray-50 border-b-2 border-black sticky top-0 z-10">
+            <div className="bg-gray-50 dark:bg-gray-900 border-b-2 border-black dark:border-gray-700 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={handleBackToList}
-                                className="flex items-center gap-2 px-4 py-2 text-black bg-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 font-bold"
+                                className="flex items-center gap-2 px-4 py-2 text-black dark:text-white bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 font-bold"
                             >
                                 <ArrowLeft size={18} />
                                 Back to List
                             </button>
-                            <div className="h-6 w-px bg-black"></div>
+                            <div className="h-6 w-px bg-black dark:bg-gray-700"></div>
                             <div>
-                                <h1 className="text-2xl font-bold text-black">Edit Crisis Card</h1>
-                                <p className="text-sm text-gray-600 mt-1">Modify card details and response options</p>
+                                <h1 className="text-2xl font-bold text-black dark:text-white">Edit Crisis Card</h1>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Modify card details and response options</p>
                             </div>
                         </div>
                         {hasUnsavedChanges && (
@@ -151,15 +141,15 @@ export default function EditCrisisCardDesign() {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 py-8">
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <div className="max-w-5xl mx-auto px-6 py-8">
+                <div className="space-y-6">
                     {/* Form Section */}
                     <div className="space-y-6">
                         {/* Card Details */}
-                        <div className="bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                            <div className="bg-gray-50 px-6 py-4 border-b-2 border-black">
-                                <h2 className="text-lg font-bold text-black">Card Details</h2>
-                                <p className="text-sm text-gray-600 mt-1">Basic information about the crisis card</p>
+                        <div className="bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)]">
+                            <div className="bg-gray-50 dark:bg-gray-900 px-6 py-4 border-b-2 border-black dark:border-gray-700">
+                                <h2 className="text-lg font-bold text-black dark:text-white">Card Details</h2>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Basic information about the crisis card</p>
                             </div>
                             <div className="p-6 space-y-6">
                                 <FormInput label="Card Title" required error={formErrors.title}>
@@ -167,7 +157,7 @@ export default function EditCrisisCardDesign() {
                                         type="text"
                                         value={formData.title}
                                         onChange={(e) => updateField('title', e.target.value)}
-                                        className="w-full px-4 py-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[1px] focus:translate-y-[1px] transition-all duration-200 outline-none"
+                                        className="w-full px-4 py-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] focus:translate-x-[1px] focus:translate-y-[1px] transition-all duration-200 outline-none bg-white dark:bg-gray-800 text-black dark:text-white"
                                         placeholder="Enter a clear, descriptive title"
                                     />
                                 </FormInput>
@@ -176,12 +166,12 @@ export default function EditCrisisCardDesign() {
                                     <textarea
                                         value={formData.description}
                                         onChange={(e) => updateField('description', e.target.value)}
-                                        className="w-full px-4 py-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[1px] focus:translate-y-[1px] transition-all duration-200 outline-none h-32 resize-none"
+                                        className="w-full px-4 py-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] focus:translate-x-[1px] focus:translate-y-[1px] transition-all duration-200 outline-none h-32 resize-none bg-white dark:bg-gray-800 text-black dark:text-white"
                                         placeholder="Describe the crisis scenario and context"
-                                    />
+                                    ></textarea>
                                     <div className="flex justify-between mt-2">
-                                        <p className="text-xs text-gray-500">Provide clear context for responders</p>
-                                        <p className="text-xs text-gray-500">{formData.description.length}/500</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Provide clear context for responders</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">{formData.description.length}/500</p>
                                     </div>
                                 </FormInput>
 
@@ -192,7 +182,8 @@ export default function EditCrisisCardDesign() {
                                             aria-label="Category"
                                             value={formData.categoryId}
                                             onChange={(e) => handleCategoryChange(e.target.value)}
-                                            className="w-full px-4 py-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[1px] focus:translate-y-[1px] transition-all duration-200 outline-none"
+                                            className="w-full pl-4 pr-10 py-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] focus:translate-x-[1px] focus:translate-y-[1px] transition-all duration-200 outline-none appearance-none bg-white dark:bg-gray-800 text-black dark:text-white"
+                                            style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
                                         >
                                             <option value="">Select category...</option>
                                             {categories.map(category => (
@@ -209,7 +200,8 @@ export default function EditCrisisCardDesign() {
                                             aria-label="Status"
                                             value={formData.status}
                                             onChange={(e) => updateField('status', e.target.value as FormState['status'])}
-                                            className="w-full px-4 py-3 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[1px] focus:translate-y-[1px] transition-all duration-200 outline-none"
+                                            className="w-full pl-4 pr-10 py-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] focus:translate-x-[1px] focus:translate-y-[1px] transition-all duration-200 outline-none appearance-none bg-white dark:bg-gray-800 text-black dark:text-white"
+                                            style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
                                         >
                                             <option value="Active">Active</option>
                                             <option value="Inactive">Inactive</option>
@@ -219,18 +211,19 @@ export default function EditCrisisCardDesign() {
 
                                 {/* Card Base Values */}
                                 <div>
-                                    <label className="block text-sm font-bold text-black mb-3">Card Base Values</label>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 border-2 border-gray-300 rounded-lg bg-gray-50">
+                                    <label className="block text-sm font-bold text-black dark:text-white mb-3">Card Base Values</label>
+                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 border-2 border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
                                         {[
-                                            { key: 'pwValue' as const, label: 'PW (Power)', icon: Shield, color: 'text-blue-500', error: formErrors.pwValue },
-                                            { key: 'efValue' as const, label: 'EF (Efficiency)', icon: TrendingUp, color: 'text-green-500', error: formErrors.efValue },
-                                            { key: 'psValue' as const, label: 'PS (Precision)', icon: Heart, color: 'text-red-500', error: formErrors.psValue },
-                                            { key: 'grValue' as const, label: 'GR (Growth)', icon: Users, color: 'text-yellow-500', error: formErrors.grValue },
+                                            { key: 'political' as const, label: 'Political', icon: Shield, color: 'text-blue-500', error: formErrors.political },
+                                            { key: 'economic' as const, label: 'Economic', icon: TrendingUp, color: 'text-green-500', error: formErrors.economic },
+                                            { key: 'infrastructure' as const, label: 'Infrastructure', icon: Building2, color: 'text-gray-500', error: formErrors.infrastructure },
+                                            { key: 'society' as const, label: 'Society', icon: Users, color: 'text-yellow-500', error: formErrors.society },
+                                            { key: 'environment' as const, label: 'Environment', icon: Leaf, color: 'text-emerald-500', error: formErrors.environment },
                                         ].map(({ key, label, icon: Icon, color, error }) => (
                                             <div key={key}>
-                                                <label className="flex items-center gap-2 text-xs font-medium mb-2 h-5">
-                                                    <Icon size={14} className={color} />
-                                                    {label}
+                                                <label className="flex items-center gap-2 text-xs font-medium mb-2 min-h-[24px] text-black dark:text-white">
+                                                    <Icon size={18} className={color} />
+                                                    <span>{label}</span>
                                                 </label>
                                                 <NumberInput
                                                     value={formData[key]}
@@ -244,7 +237,7 @@ export default function EditCrisisCardDesign() {
                                             </div>
                                         ))}
                                     </div>
-                                    <p className="text-xs text-gray-600 mt-2">Set base values. Range: -50 to +50.</p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">Set base values. Range: -50 to +50.</p>
                                 </div>
 
                                 <FormInput
@@ -266,12 +259,12 @@ export default function EditCrisisCardDesign() {
                         </div>
 
                         {/* Response Options */}
-                        <div className="bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                            <div className="bg-gray-50 px-6 py-4 border-b-2 border-black">
-                                <h2 className="text-lg font-bold text-black">
+                        <div className="bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)]">
+                            <div className="bg-gray-50 dark:bg-gray-900 px-6 py-4 border-b-2 border-black dark:border-gray-700">
+                                <h2 className="text-lg font-bold text-black dark:text-white">
                                     Response Options <span className="text-red-500">*</span>
                                 </h2>
-                                <p className="text-sm text-gray-600 mt-1">Available actions for crisis response (1-3 options)</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Available actions for crisis response (1-3 options)</p>
                             </div>
                             <div className="p-6">
                                 <div className="space-y-4">
@@ -283,20 +276,10 @@ export default function EditCrisisCardDesign() {
                                             errors={formErrors.responseOptions?.[index]}
                                             onTextChange={handleResponseOptionText}
                                             onEffectChange={handleResponseOptionEffect}
-                                            onRemove={removeResponseOption}
-                                            canRemove={formData.responseOptions.length > 1}
                                         />
                                     ))}
 
-                                    {formData.responseOptions.length < 3 && (
-                                        <button
-                                            onClick={addResponseOption}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-blue-600 bg-white border-2 border-blue-600 rounded-lg shadow-[2px_2px_0px_0px_rgba(59,130,246,1)] hover:shadow-[1px_1px_0px_0px_rgba(59,130,246,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 font-bold"
-                                        >
-                                            <Plus size={18} />
-                                            Add Response Option
-                                        </button>
-                                    )}
+
                                 </div>
                             </div>
                         </div>
@@ -305,16 +288,11 @@ export default function EditCrisisCardDesign() {
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-black text-white font-bold border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-black dark:bg-blue-600 text-white font-bold border-2 border-black dark:border-blue-500 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(37,99,235,0.5)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(37,99,235,0.5)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Save size={20} />
                             {saving ? 'Saving Changes...' : 'Update Crisis Card'}
                         </button>
-                    </div>
-
-                    {/* Preview Section */}
-                    <div className="space-y-6">
-                        <CardPreview formData={formData} categories={categories} />
                     </div>
                 </div>
             </div>
@@ -328,6 +306,6 @@ export default function EditCrisisCardDesign() {
                 }}
                 onCancel={() => setShowUnsavedModal(false)}
             />
-        </div>
+        </div >
     );
 }

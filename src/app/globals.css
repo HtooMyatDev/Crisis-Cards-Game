@@ -116,7 +116,48 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  html {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
   body {
     @apply bg-background text-foreground;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Smooth transitions for theme changes - applied globally */
+  html.theme-transition,
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms !important;
+  }
+
+  /* Ensure smooth transitions for common elements */
+  html.theme-transition body,
+  html.theme-transition div,
+  html.theme-transition section,
+  html.theme-transition article,
+  html.theme-transition nav,
+  html.theme-transition header,
+  html.theme-transition footer,
+  html.theme-transition main {
+    transition-property: background-color, border-color, color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms !important;
+  }
+
+  /* Faster transitions for interactive elements (not during theme change) */
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
   }
 }

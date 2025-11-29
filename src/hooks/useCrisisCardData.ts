@@ -33,26 +33,31 @@ export const useCrisisCardData = (cardId: string) => {
         fetchData();
     }, [cardId]);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const transformCardDataToFormState = (card: any): FormState => ({
         title: card.title || '',
         description: card.description || '',
         categoryId: typeof card.categoryId === 'number' ? card.categoryId : '',
         categoryName: card.category?.name || '',
-        status: card.status || 'Active',
+        status: (card.status === 'OPEN' || card.status === 'IN_PROGRESS') ? 'Active' : 'Inactive',
         timeLimit: typeof card.timeLimit === 'number' ? card.timeLimit : 15,
-        pwValue: typeof card.pwValue === 'number' ? card.pwValue : 0,
-        efValue: typeof card.efValue === 'number' ? card.efValue : 0,
-        psValue: typeof card.psValue === 'number' ? card.psValue : 0,
-        grValue: typeof card.grValue === 'number' ? card.grValue : 0,
+        political: typeof card.political === 'number' ? card.political : 0,
+        economic: typeof card.economic === 'number' ? card.economic : 0,
+        infrastructure: typeof card.infrastructure === 'number' ? card.infrastructure : 0,
+        society: typeof card.society === 'number' ? card.society : 0,
+        environment: typeof card.environment === 'number' ? card.environment : 0,
         responseOptions: Array.isArray(card.cardResponses) && card.cardResponses.length > 0
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ? card.cardResponses.map((r: any) => ({
                 text: typeof r.text === 'string' ? r.text : '',
-                pwEffect: typeof r.pwEffect === 'number' ? r.pwEffect : 0,
-                efEffect: typeof r.efEffect === 'number' ? r.efEffect : 0,
-                psEffect: typeof r.psEffect === 'number' ? r.psEffect : 0,
-                grEffect: typeof r.grEffect === 'number' ? r.grEffect : 0,
+                politicalEffect: typeof r.politicalEffect === 'number' ? r.politicalEffect : 0,
+                economicEffect: typeof r.economicEffect === 'number' ? r.economicEffect : 0,
+                infrastructureEffect: typeof r.infrastructureEffect === 'number' ? r.infrastructureEffect : 0,
+                societyEffect: typeof r.societyEffect === 'number' ? r.societyEffect : 0,
+                environmentEffect: typeof r.environmentEffect === 'number' ? r.environmentEffect : 0,
+                score: typeof r.score === 'number' ? r.score : 0,
             }))
-            : [{ text: '', pwEffect: 0, efEffect: 0, psEffect: 0, grEffect: 0 }]
+            : [{ text: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0 }]
     });
 
     return { loading, error, categories, initialFormData };

@@ -67,24 +67,24 @@ export default function ManageCategories() {
     // Filter categories based on search and status
     const filteredCategories = categories.filter(category => {
         const matchesSearch = category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            category.description.toLowerCase().includes(searchTerm.toLowerCase());
+            category.description.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'All' || category.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
 
-    const handleEdit = (categoryId) => {
+    const handleEdit = (categoryId: number) => {
         // Navigate to edit page with category ID
         // In a real app, you'd use Next.js router or similar
         window.location.href = `/admin/categories/edit/${categoryId}`;
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = (id: number) => {
         if (confirm('Are you sure you want to delete this category?')) {
             setCategories(categories.filter(cat => cat.id !== id));
         }
     };
 
-    const toggleStatus = (id) => {
+    const toggleStatus = (id: number) => {
         setCategories(categories.map(cat =>
             cat.id === id
                 ? { ...cat, status: cat.status === 'Active' ? 'Inactive' : 'Active' }
@@ -97,7 +97,7 @@ export default function ManageCategories() {
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-2xl font-bold">Manage Categories</h1>
-                    <p className="text-gray-600 mt-1">Edit, disable, or delete existing categories</p>
+                    <p className="text-gray-600 dark:text-gray-400 mt-1">Edit, disable, or delete existing categories</p>
                 </div>
                 <a href="/admin/categories/create" className="px-4 py-2 bg-blue-500 text-white font-bold border-2 border-blue-600 rounded-lg shadow-[2px_2px_0px_0px_rgba(37,99,235,1)] hover:shadow-[1px_1px_0px_0px_rgba(37,99,235,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200">
                     <Plus size={16} className="inline-block mr-2" />
@@ -141,11 +141,10 @@ export default function ManageCategories() {
                                 ></div>
                                 <div>
                                     <h3 className="font-bold text-lg">{category.name}</h3>
-                                    <span className={`text-xs px-2 py-1 rounded font-medium ${
-                                        category.status === 'Active'
-                                            ? 'bg-green-100 text-green-800'
-                                            : 'bg-red-100 text-red-800'
-                                    }`}>
+                                    <span className={`text-xs px-2 py-1 rounded font-medium ${category.status === 'Active'
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-red-100 text-red-800'
+                                        }`}>
                                         {category.status}
                                     </span>
                                 </div>
@@ -172,11 +171,10 @@ export default function ManageCategories() {
                             </button>
                             <button
                                 onClick={() => toggleStatus(category.id)}
-                                className={`flex-1 px-3 py-2 font-medium rounded border-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.4)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.4)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 ${
-                                    category.status === 'Active'
-                                        ? 'bg-orange-400 border-orange-500 text-orange-900'
-                                        : 'bg-emerald-400 border-emerald-500 text-emerald-900'
-                                }`}
+                                className={`flex-1 px-3 py-2 font-medium rounded border-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.4)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.4)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 ${category.status === 'Active'
+                                    ? 'bg-orange-400 border-orange-500 text-orange-900'
+                                    : 'bg-emerald-400 border-emerald-500 text-emerald-900'
+                                    }`}
                             >
                                 <Eye size={14} className="inline-block mr-1" />
                                 {category.status === 'Active' ? 'Disable' : 'Enable'}
