@@ -150,7 +150,6 @@ export async function GET(request: NextRequest) {
                 ...(searchParams.get('includeCards') === 'true' && {
                     cards: {
                         where: {
-                            status: 'OPEN',
                             isArchived: false
                         },
                         select: {
