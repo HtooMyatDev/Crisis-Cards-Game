@@ -72,54 +72,14 @@ export const GameSuccessModal: React.FC<GameSuccessModalProps> = ({
                 </div>
 
                 {/* Action Buttons */}
-                <div className="space-y-3">
-                    {/* Primary Actions Row */}
-                    <div className="grid grid-cols-2 gap-3">
-                        {/* Copy Game Code */}
-                        <button
-                            onClick={() => {
-                                navigator.clipboard.writeText(game.gameCode);
-                            }}
-                            className="px-4 py-3 bg-purple-500 hover:bg-purple-600 text-white font-bold border-2 border-purple-600 dark:border-purple-500 rounded-lg shadow-[2px_2px_0px_0px_rgba(147,51,234,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400"
-                            aria-label="Copy game code to clipboard"
-                        >
-                            <span className="flex items-center justify-center gap-2 text-sm">
-                                📋 Copy Code
-                            </span>
-                        </button>
-
-                        {/* View Game Details */}
-                        <button
-                            onClick={() => window.location.href = `/admin/games/${game.id}`}
-                            className="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold border-2 border-blue-600 dark:border-blue-500 rounded-lg shadow-[2px_2px_0px_0px_rgba(37,99,235,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-                            aria-label="View game details"
-                        >
-                            <span className="flex items-center justify-center gap-2 text-sm">
-                                👁️ View Details
-                            </span>
-                        </button>
-                    </div>
-
-                    {/* Start Hosting - Full Width */}
-                    <button
-                        onClick={() => onStartHosting(game.id)}
-                        className="w-full px-6 py-4 bg-green-500 hover:bg-green-600 text-white font-bold border-2 border-green-600 dark:border-green-500 rounded-lg shadow-[4px_4px_0px_0px_rgba(34,197,94,1)] dark:shadow-[4px_4px_0px_0px_rgba(34,197,94,1)] hover:shadow-[2px_2px_0px_0px_rgba(34,197,94,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-                        aria-label="Start hosting the game"
-                    >
-                        <span className="flex items-center justify-center gap-2">
-                            🎯 Start Hosting Game
-                        </span>
-                    </button>
-
-                    {/* View All Sessions */}
+                <div className="flex justify-center">
+                    {/* Simple Done Button */}
                     <button
                         onClick={() => window.location.href = '/admin/games/manage'}
-                        className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200"
-                        aria-label="View all game sessions"
+                        className="px-8 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium border border-gray-300 dark:border-gray-600 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500"
+                        aria-label="Close modal"
                     >
-                        <span className="flex items-center justify-center gap-2 text-sm">
-                            📊 View All Sessions
-                        </span>
+                        Done
                     </button>
                 </div>
             </div>

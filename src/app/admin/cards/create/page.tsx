@@ -12,7 +12,8 @@ interface ResponseOption {
     infrastructureEffect: number;
     societyEffect: number;
     environmentEffect: number;
-    score: number; // NEW: Score field
+    score: number;
+    cost: number; // Cost field (negative values = spending)
 }
 
 interface CardFormData {
@@ -20,12 +21,7 @@ interface CardFormData {
     description: string;
     category: string;
     timeLimit: number;
-    // Card base values
-    political: number;
-    economic: number;
-    infrastructure: number;
-    society: number;
-    environment: number;
+    // Card base values removed - now on Team model
     responseOptions: ResponseOption[];
     status: 'Active' | 'Inactive';
 }
@@ -59,16 +55,10 @@ export default function CreateCards() {
             description: '',
             category: '',
             timeLimit: 1,
-            // Default card base values
-            political: 0,
-            economic: 0,
-            infrastructure: 0,
-            society: 0,
-            environment: 0,
             responseOptions: [
-                { value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0 },
-                { value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0 },
-                { value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0 }
+                { value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, cost: 0 },
+                { value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, cost: 0 },
+                { value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, cost: 0 }
             ],
             status: 'Active'
         }
@@ -85,11 +75,6 @@ export default function CreateCards() {
     const watchedCategory = watch('category');
     const watchedTimeLimit = watch('timeLimit');
     const watchedResponseOptions = watch('responseOptions');
-    const watchedPolitical = watch('political');
-    const watchedEconomic = watch('economic');
-    const watchedInfrastructure = watch('infrastructure');
-    const watchedSociety = watch('society');
-    const watchedEnvironment = watch('environment');
 
     // Get selected category with color preset
     const selectedCategory = categories.find(cat => cat.name === watchedCategory);
@@ -199,7 +184,8 @@ export default function CreateCards() {
                     infrastructureEffect: option.infrastructureEffect,
                     societyEffect: option.societyEffect,
                     environmentEffect: option.environmentEffect,
-                    score: option.score // Include score field
+                    score: option.score,
+                    cost: option.cost // Include cost field
                 }));
 
             // Find category ID from category name
@@ -213,13 +199,8 @@ export default function CreateCards() {
                 title: data.name,
                 description: data.description,
                 timeLimit: data.timeLimit,
-                // Card base values
-                political: data.political,
-                economic: data.economic,
-                infrastructure: data.infrastructure,
-                society: data.society,
-                environment: data.environment,
-                // Response options with effects
+                // Card base values removed - now on Team model
+                // Response options with effects and cost
                 responseOptions: filteredOptions,
                 categoryId: parseInt(selectedCategory.id),
                 status: data.status === 'Active' ? 'OPEN' : 'CLOSED',
@@ -401,123 +382,27 @@ export default function CreateCards() {
                             )}
                         </div>
 
-                        {/* Card Base Values Section */}
-                        <div>
-                            <label className="block font-bold mb-3">Card Base Values</label>
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 border-2 border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1 text-black dark:text-white">Political</label>
-                                    <input
-                                        {...register('political', {
-                                            required: 'Political value is required',
-                                            min: { value: -50, message: 'Min -50' },
-                                            max: { value: 50, message: 'Max 50' },
-                                            valueAsNumber: true
-                                        })}
-                                        type="number"
-                                        min="-50"
-                                        max="50"
-                                        className="w-full p-2 border-2 border-black dark:border-gray-700 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white"
-                                        placeholder="0"
-                                    />
-                                    {errors.political && (
-                                        <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.political.message}</p>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Economic</label>
-                                    <input
-                                        {...register('economic', {
-                                            required: 'Economic value is required',
-                                            min: { value: -50, message: 'Min -50' },
-                                            max: { value: 50, message: 'Max 50' },
-                                            valueAsNumber: true
-                                        })}
-                                        type="number"
-                                        min="-50"
-                                        max="50"
-                                        className="w-full p-2 border-2 border-black dark:border-gray-700 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white"
-                                        placeholder="0"
-                                    />
-                                    {errors.economic && (
-                                        <p className="text-red-600 text-xs mt-1">{errors.economic.message}</p>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Infrastructure</label>
-                                    <input
-                                        {...register('infrastructure', {
-                                            required: 'Infrastructure value is required',
-                                            min: { value: -50, message: 'Min -50' },
-                                            max: { value: 50, message: 'Max 50' },
-                                            valueAsNumber: true
-                                        })}
-                                        type="number"
-                                        min="-50"
-                                        max="50"
-                                        className="w-full p-2 border-2 border-black dark:border-gray-700 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white"
-                                        placeholder="0"
-                                    />
-                                    {errors.infrastructure && (
-                                        <p className="text-red-600 text-xs mt-1">{errors.infrastructure.message}</p>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Society</label>
-                                    <input
-                                        {...register('society', {
-                                            required: 'Society value is required',
-                                            min: { value: -50, message: 'Min -50' },
-                                            max: { value: 50, message: 'Max 50' },
-                                            valueAsNumber: true
-                                        })}
-                                        type="number"
-                                        min="-50"
-                                        max="50"
-                                        className="w-full p-2 border-2 border-black dark:border-gray-700 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white"
-                                        placeholder="0"
-                                    />
-                                    {errors.society && (
-                                        <p className="text-red-600 text-xs mt-1">{errors.society.message}</p>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Environment</label>
-                                    <input
-                                        {...register('environment', {
-                                            required: 'Environment value is required',
-                                            min: { value: -50, message: 'Min -50' },
-                                            max: { value: 50, message: 'Max 50' },
-                                            valueAsNumber: true
-                                        })}
-                                        type="number"
-                                        min="-50"
-                                        max="50"
-                                        className="w-full p-2 border-2 border-black dark:border-gray-700 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white"
-                                        placeholder="0"
-                                    />
-                                    {errors.environment && (
-                                        <p className="text-red-600 text-xs mt-1">{errors.environment.message}</p>
-                                    )}
-                                </div>
-                            </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                Set the base values for this card. Range: -50 to +50 for each value.
-                            </p>
-                        </div>
-
                         {/* Response Options with Effects */}
                         <div>
                             <label className="block font-bold mb-2">Response Options & Effects</label>
                             <div className="space-y-4">
                                 {fields.map((field, index) => (
-                                    <div key={field.id} className="p-4 border-2 border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
-                                        <div className="flex items-center gap-3 mb-3">
+                                    <div key={field.id} className="p-4 border-2 border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 relative group">
+                                        <div className="flex items-center justify-between mb-3">
                                             <span className="font-bold text-gray-500 dark:text-gray-400">#{index + 1}</span>
+                                            {fields.length > 2 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => remove(index)}
+                                                    className="p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                                                    title="Remove option"
+                                                >
+                                                    <X size={18} />
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="flex items-center gap-3 mb-3">
                                             <input
                                                 {...register(`responseOptions.${index}.value`, {
                                                     required: 'Response option cannot be empty',
@@ -553,13 +438,13 @@ export default function CreateCards() {
                                                 <input
                                                     {...register(`responseOptions.${index}.politicalEffect`, {
                                                         required: 'Required',
-                                                        min: { value: -10, message: 'Min -10' },
-                                                        max: { value: 10, message: 'Max 10' },
+                                                        min: { value: -5, message: 'Min -5' },
+                                                        max: { value: 5, message: 'Max 5' },
                                                         valueAsNumber: true
                                                     })}
                                                     type="number"
-                                                    min="-10"
-                                                    max="10"
+                                                    min="-5"
+                                                    max="5"
                                                     className="w-full p-2 text-sm border border-gray-400 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white"
                                                     placeholder="0"
                                                 />
@@ -570,13 +455,13 @@ export default function CreateCards() {
                                                 <input
                                                     {...register(`responseOptions.${index}.economicEffect`, {
                                                         required: 'Required',
-                                                        min: { value: -10, message: 'Min -10' },
-                                                        max: { value: 10, message: 'Max 10' },
+                                                        min: { value: -5, message: 'Min -5' },
+                                                        max: { value: 5, message: 'Max 5' },
                                                         valueAsNumber: true
                                                     })}
                                                     type="number"
-                                                    min="-10"
-                                                    max="10"
+                                                    min="-5"
+                                                    max="5"
                                                     className="w-full p-2 text-sm border border-gray-400 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white"
                                                     placeholder="0"
                                                 />
@@ -587,13 +472,13 @@ export default function CreateCards() {
                                                 <input
                                                     {...register(`responseOptions.${index}.infrastructureEffect`, {
                                                         required: 'Required',
-                                                        min: { value: -10, message: 'Min -10' },
-                                                        max: { value: 10, message: 'Max 10' },
+                                                        min: { value: -5, message: 'Min -5' },
+                                                        max: { value: 5, message: 'Max 5' },
                                                         valueAsNumber: true
                                                     })}
                                                     type="number"
-                                                    min="-10"
-                                                    max="10"
+                                                    min="-5"
+                                                    max="5"
                                                     className="w-full p-2 text-sm border border-gray-400 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white"
                                                     placeholder="0"
                                                 />
@@ -604,13 +489,13 @@ export default function CreateCards() {
                                                 <input
                                                     {...register(`responseOptions.${index}.societyEffect`, {
                                                         required: 'Required',
-                                                        min: { value: -10, message: 'Min -10' },
-                                                        max: { value: 10, message: 'Max 10' },
+                                                        min: { value: -5, message: 'Min -5' },
+                                                        max: { value: 5, message: 'Max 5' },
                                                         valueAsNumber: true
                                                     })}
                                                     type="number"
-                                                    min="-10"
-                                                    max="10"
+                                                    min="-5"
+                                                    max="5"
                                                     className="w-full p-2 text-sm border border-gray-400 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white"
                                                     placeholder="0"
                                                 />
@@ -621,13 +506,13 @@ export default function CreateCards() {
                                                 <input
                                                     {...register(`responseOptions.${index}.environmentEffect`, {
                                                         required: 'Required',
-                                                        min: { value: -10, message: 'Min -10' },
-                                                        max: { value: 10, message: 'Max 10' },
+                                                        min: { value: -5, message: 'Min -5' },
+                                                        max: { value: 5, message: 'Max 5' },
                                                         valueAsNumber: true
                                                     })}
                                                     type="number"
-                                                    min="-10"
-                                                    max="10"
+                                                    min="-5"
+                                                    max="5"
                                                     className="w-full p-2 text-sm border border-gray-400 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white"
                                                     placeholder="0"
                                                 />
@@ -653,6 +538,25 @@ export default function CreateCards() {
                                             </p>
                                         </div>
 
+                                        {/* Cost Field */}
+                                        <div className="mt-4">
+                                            <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                                                Cost (Budget Impact)
+                                            </label>
+                                            <input
+                                                {...register(`responseOptions.${index}.cost`, {
+                                                    required: 'Cost is required',
+                                                    valueAsNumber: true
+                                                })}
+                                                type="number"
+                                                className="w-full p-3 border-2 border-gray-400 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:outline-none bg-white dark:bg-gray-800 text-black dark:text-white"
+                                                placeholder="e.g., -1000 (spending), 0, +500 (income)"
+                                            />
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                Enter the budget cost (negative = spending, positive = income)
+                                            </p>
+                                        </div>
+
                                         {/* Show validation errors for this response option */}
                                         {errors.responseOptions?.[index]?.value && (
                                             <p className="text-red-600 text-sm mt-2">
@@ -665,7 +569,7 @@ export default function CreateCards() {
                                             errors.responseOptions?.[index]?.societyEffect ||
                                             errors.responseOptions?.[index]?.environmentEffect) && (
                                                 <p className="text-red-600 text-sm mt-2">
-                                                    Please check the effect values (range: -10 to +10)
+                                                    Please check the effect values (range: -5 to +5)
                                                 </p>
                                             )}
                                         {errors.responseOptions?.[index]?.score && (
@@ -676,9 +580,19 @@ export default function CreateCards() {
                                     </div>
                                 ))}
 
+                                {fields.length < 4 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => append({ value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, cost: 0 })}
+                                        className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-gray-500 dark:text-gray-400 hover:border-gray-400 dark:hover:border-gray-600 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center justify-center gap-2 font-medium"
+                                    >
+                                        <Plus size={20} />
+                                        Add Response Option
+                                    </button>
+                                )}
 
-                                <p className="text-sm text-gray-600">
-                                    Each response option can have effects on the card values. Effect range: -10 to +10.
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    Each response option can have effects on the card values. Effect range: -5 to +5.
                                 </p>
                             </div>
                         </div>
@@ -850,7 +764,7 @@ export default function CreateCards() {
                                             ))}
 
                                             {/* Show placeholders for remaining slots */}
-                                            {fields.length < 3 && [...Array(3 - fields.length)].map((_, index) => (
+                                            {fields.length < 4 && [...Array(4 - fields.length)].map((_, index) => (
                                                 <div key={`placeholder-${index}`} className="relative opacity-50">
                                                     <div
                                                         className="p-4 rounded-lg border-2 border-dashed"
@@ -883,56 +797,8 @@ export default function CreateCards() {
                                         </div>
                                     </div>
 
-                                    {/* Footer with base values */}
+                                    {/* Footer */}
                                     <div className="px-6 pb-6">
-                                        <div className="flex justify-center gap-2 mb-3 flex-wrap">
-                                            <div
-                                                className="px-2 py-1 rounded text-xs font-medium"
-                                                style={{
-                                                    backgroundColor: previewColors.textColor + '20',
-                                                    color: previewColors.textColor
-                                                }}
-                                            >
-                                                Base POL: {watchedPolitical >= 0 ? '+' : ''}{watchedPolitical}
-                                            </div>
-                                            <div
-                                                className="px-2 py-1 rounded text-xs font-medium"
-                                                style={{
-                                                    backgroundColor: previewColors.textColor + '20',
-                                                    color: previewColors.textColor
-                                                }}
-                                            >
-                                                Base ECO: {watchedEconomic >= 0 ? '+' : ''}{watchedEconomic}
-                                            </div>
-                                            <div
-                                                className="px-2 py-1 rounded text-xs font-medium"
-                                                style={{
-                                                    backgroundColor: previewColors.textColor + '20',
-                                                    color: previewColors.textColor
-                                                }}
-                                            >
-                                                Base INF: {watchedInfrastructure >= 0 ? '+' : ''}{watchedInfrastructure}
-                                            </div>
-                                            <div
-                                                className="px-2 py-1 rounded text-xs font-medium"
-                                                style={{
-                                                    backgroundColor: previewColors.textColor + '20',
-                                                    color: previewColors.textColor
-                                                }}
-                                            >
-                                                Base SOC: {watchedSociety >= 0 ? '+' : ''}{watchedSociety}
-                                            </div>
-                                            <div
-                                                className="px-2 py-1 rounded text-xs font-medium"
-                                                style={{
-                                                    backgroundColor: previewColors.textColor + '20',
-                                                    color: previewColors.textColor
-                                                }}
-                                            >
-                                                Base ENV: {watchedEnvironment >= 0 ? '+' : ''}{watchedEnvironment}
-                                            </div>
-                                        </div>
-
                                         <p
                                             className="text-xs text-center opacity-60"
                                             style={{ color: previewColors.textColor }}

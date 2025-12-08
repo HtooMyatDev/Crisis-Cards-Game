@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/app/actions/auth";
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { gameCode, nickname, team } = body;
+        const { gameCode, nickname } = body; // Removed team parameter
 
         // Get current user if logged in
         const user = await getCurrentUser();
@@ -41,11 +41,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Check if nickname is already taken in this session
+        // Check if nickname is already taken in this session (case-insensitive)
         const existingPlayer = await prisma.player.findFirst({
             where: {
                 gameSessionId: gameSession.id,
-                nickname: nickname
+                nickname: {
+                    equals: nickname,
+                    mode: 'insensitive'
+                }
             }
         });
 
@@ -58,12 +61,12 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Create new player
+        // Create new player (team will be assigned later by admin)
         const player = await prisma.player.create({
             data: {
                 gameSessionId: gameSession.id,
                 nickname: nickname,
-                team: team || null,
+                teamId: null, // Teams are assigned by admin via /assign-teams endpoint
                 isConnected: true,
                 userId: userId || null // Link to user if logged in
             }

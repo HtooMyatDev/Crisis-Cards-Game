@@ -35,9 +35,28 @@ export async function GET(
                         id: true,
                         nickname: true,
                         score: true,
-                        team: true,
+                        teamId: true,
+                        team: {
+                            select: {
+                                id: true,
+                                name: true,
+                                color: true
+                            }
+                        },
                         isLeader: true,
                         isConnected: true
+                    }
+                },
+                teams: {
+                    select: {
+                        id: true,
+                        name: true,
+                        color: true,
+                        budget: true,
+                        order: true
+                    },
+                    orderBy: {
+                        order: 'asc'
                     }
                 },
                 categories: {
@@ -46,7 +65,7 @@ export async function GET(
                             include: {
                                 cards: {
                                     where: {
-                                        status: 'OPEN',
+                                        status: 'Active',
                                         isArchived: false
                                     },
                                     select: {
@@ -78,6 +97,7 @@ export async function GET(
             currentCardIndex: gameSession.currentCardIndex,
             lastCardStartedAt: gameSession.lastCardStartedAt,
             players: gameSession.players,
+            teams: gameSession.teams,
         };
 
         // If game is in progress, fetch ONLY the current card

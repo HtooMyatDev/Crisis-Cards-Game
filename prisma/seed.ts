@@ -29,6 +29,7 @@ async function main() {
                 email,
                 password: hashedPassword,
                 name: 'Super Admin',
+                username: 'admin',
                 role: 'ADMIN',
                 isActive: true,
             }
@@ -219,11 +220,7 @@ async function main() {
                     categoryId: category.id,
                     createdBy: adminUser.id,
                     status: 'OPEN',
-                    political: cardData.political || 0,
-                    economic: cardData.economic || 0,
-                    infrastructure: cardData.infrastructure || 0,
-                    society: cardData.society || 0,
-                    environment: cardData.environment || 0,
+                    // Card base values removed - now on Team model
                     cardResponses: {
                         create: cardData.responses.map((r: any) => ({
                             text: r.text,
@@ -232,7 +229,8 @@ async function main() {
                             infrastructureEffect: r.infrastructureEffect || 0,
                             societyEffect: r.societyEffect || 0,
                             environmentEffect: r.environmentEffect || 0,
-                            score: r.score || 0
+                            score: r.score || 0,
+                            cost: 0 // Default cost
                         }))
                     }
                 }

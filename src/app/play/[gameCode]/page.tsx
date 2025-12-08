@@ -2,9 +2,17 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Loader2, User, Gamepad2, AlertTriangle, Clock, CheckCircle } from 'lucide-react'
+import { useGamePolling } from '@/hooks/useGamePolling'
 import PageTransition, { StaggerContainer, StaggerItem } from '@/components/ui/PageTransition'
 import ConfettiEffect, { CelebrationBanner } from '@/components/ui/ConfettiEffect'
 import { motion, AnimatePresence } from 'framer-motion'
+
+interface Team {
+    id: string;
+    name: string;
+    color: string;
+    budget: number;
+}
 
 interface GameState {
     id: string
@@ -13,6 +21,7 @@ interface GameState {
     currentCardIndex: number
     cards?: GameCard[]
     players?: Player[]
+    teams?: Team[]
     lastCardStartedAt?: string | null
 }
 
@@ -21,6 +30,7 @@ import { GameInstructions } from '@/components/game/GameInstructions'
 import { LobbyView } from '@/components/game/LobbyView'
 import { LeaveGameModal } from '@/components/game/LeaveGameModal'
 import { ResultsModal } from '@/components/game/ResultsModal'
+import { RoundIndicator } from '@/components/game/RoundIndicator'
 
 interface GameCard {
     id: number;
@@ -58,7 +68,7 @@ interface CardResponse {
 interface Player {
     id: number;
     nickname: string;
-    team?: string;
+    teamId?: string | null;
     score: number;
     isLeader: boolean;
 }
@@ -66,15 +76,14 @@ interface Player {
 interface GameResults {
     gameName: string;
     gameCode: string;
-    winner: 'RED' | 'BLUE' | 'TIE';
-    scores: {
-        red: number;
-        blue: number;
-    };
-    teams: {
-        red: Array<{ id: number; nickname: string; responsesCount: number }>;
-        blue: Array<{ id: number; nickname: string; responsesCount: number }>;
-    };
+    winnerTeamId: string | null; // null for tie
+    teams: Array<{
+        id: string;
+        name: string;
+        color: string;
+        score: number;
+        players: Array<{ id: number; nickname: string; responsesCount: number }>;
+    }>;
 }
 
 const GameLobbyPage = () => {
@@ -89,7 +98,7 @@ const GameLobbyPage = () => {
     const [timeLeft, setTimeLeft] = useState<number>(30)
     const [gameResults, setGameResults] = useState<GameResults | null>(null)
 
-    const [team, setTeam] = useState<'RED' | 'BLUE' | null>(null)
+    const [team, setTeam] = useState<Team | null>(null)
     const [joiningTeam, setJoiningTeam] = useState(false)
     const [isLeader, setIsLeader] = useState(false)
     const [votes, setVotes] = useState<Record<number, number>>({})
@@ -98,16 +107,14 @@ const GameLobbyPage = () => {
 
     // Results modal state
     const [showResultsModal, setShowResultsModal] = useState(false)
-    const [previousRedScore, setPreviousRedScore] = useState(0)
-    const [previousBlueScore, setPreviousBlueScore] = useState(0)
-    const [redScoreChange, setRedScoreChange] = useState(0)
-    const [blueScoreChange, setBlueScoreChange] = useState(0)
+    const [previousTeamScores, setPreviousTeamScores] = useState<Record<string, number>>({})
+    const [teamScoreChanges, setTeamScoreChanges] = useState<Record<string, number>>({})
     const [selectedResponseText, setSelectedResponseText] = useState<string>('')
 
     useEffect(() => {
         // Retrieve player info from session
-        const storedNickname = sessionStorage.getItem('currentNickname')
-        const storedPlayerId = sessionStorage.getItem('currentPlayerId')
+        const storedNickname = localStorage.getItem('currentNickname')
+        const storedPlayerId = localStorage.getItem('currentPlayerId')
 
         if (!storedNickname || !storedPlayerId) {
             // If no session, redirect back to join page
@@ -121,9 +128,9 @@ const GameLobbyPage = () => {
                 const res = await fetch(`/api/game/${gameCode}/validate-player?playerId=${storedPlayerId}`);
                 if (!res.ok) {
                     // Player doesn't exist anymore, clear session and redirect
-                    sessionStorage.removeItem('currentPlayerId');
-                    sessionStorage.removeItem('currentNickname');
-                    sessionStorage.removeItem('currentTeam');
+                    localStorage.removeItem('currentPlayerId');
+                    localStorage.removeItem('currentNickname');
+                    // Team is now derived from player data, not stored separately
                     router.push(`/play?code=${gameCode}&error=session_expired`);
                     return false;
                 }
@@ -148,47 +155,57 @@ const GameLobbyPage = () => {
     }, [router, gameCode])
 
     // Polling for game status and votes
-    useEffect(() => {
-        const fetchGameStatusAndVotes = async () => {
-            try {
-                const res = await fetch(`/api/game/${gameCode}`)
-                if (res.ok) {
-                    const data = await res.json()
-                    setGameState(data)
-                }
-            } catch (error) {
-                console.error('Error fetching game status:', error)
-            }
+    const fetchGameStatusAndVotes = React.useCallback(async () => {
+        try {
+            const res = await fetch(`/api/game/${gameCode}`)
+            if (res.ok) {
+                const data = await res.json()
+                setGameState(data)
 
-            // Update isLeader status from game state
-            if (gameState?.players) {
-                const storedPlayerId = sessionStorage.getItem('currentPlayerId');
-                if (storedPlayerId) {
-                    const currentPlayer = gameState.players.find(p => p.id === parseInt(storedPlayerId));
-                    if (currentPlayer) {
-                        setIsLeader(currentPlayer.isLeader);
+                // Update isLeader status and team from FRESH data (not stale gameState)
+                if (data?.players && data?.teams) {
+                    const storedPlayerId = localStorage.getItem('currentPlayerId');
+                    if (storedPlayerId) {
+                        const currentPlayer = data.players.find((p: any) => p.id === parseInt(storedPlayerId));
+                        if (currentPlayer) {
+                            setIsLeader(currentPlayer.isLeader);
+
+                            // Update current team object
+                            if (currentPlayer.teamId) {
+                                const currentTeam = data.teams.find((t: any) => t.id === currentPlayer.teamId);
+                                if (currentTeam) {
+                                    setTeam(currentTeam);
+                                }
+                            } else {
+                                setTeam(null);
+                            }
+
+                            // Poll for votes if leader (using fresh data)
+                            if (currentPlayer.isLeader && data.status === 'IN_PROGRESS' && data.cards && data.cards.length > 0) {
+                                const currentCard = data.cards[data.currentCardIndex % data.cards.length];
+                                fetch(`/api/game/${gameCode}/votes?playerId=${storedPlayerId}&cardId=${currentCard.id}`)
+                                    .then(res => res.json())
+                                    .then(voteData => setVotes(voteData))
+                                    .catch(err => console.error('Error fetching votes:', err));
+                            }
+                        }
                     }
                 }
             }
+        } catch (error) {
+            console.error('Error fetching game status:', error)
+        }
+    }, [gameCode]);
 
-            // Poll for votes if leader
-            if (isLeader && gameState?.status === 'IN_PROGRESS' && gameState?.cards && gameState.cards.length > 0) {
-                const currentCard = gameState.cards[gameState.currentCardIndex % gameState.cards.length];
-                const storedPlayerId = sessionStorage.getItem('currentPlayerId');
-                if (storedPlayerId) {
-                    fetch(`/api/game/${gameCode}/votes?playerId=${storedPlayerId}&cardId=${currentCard.id}`)
-                        .then(res => res.json())
-                        .then(data => setVotes(data))
-                        .catch(err => console.error('Error fetching votes:', err));
-                }
-            }
-        };
+    // Use the custom polling hook
+    // Poll faster (1s) when game is in progress, slower (3s) otherwise
+    const pollInterval = gameState?.status === 'IN_PROGRESS' ? 1000 : 3000;
 
-        fetchGameStatusAndVotes(); // Initial fetch
-        const interval = setInterval(fetchGameStatusAndVotes, 3000) // Poll every 3 seconds
-
-        return () => clearInterval(interval)
-    }, [gameCode, gameState, isLeader])
+    useGamePolling({
+        interval: pollInterval,
+        enabled: true,
+        onPoll: fetchGameStatusAndVotes
+    });
 
     // Auto-advance when both team leaders have made their decisions
     const hasAdvancedRef = React.useRef<boolean>(false);
@@ -235,22 +252,7 @@ const GameLobbyPage = () => {
     // Or we can just check local state if we persist it
 
     // Let's add a check for team
-    useEffect(() => {
-        const checkTeam = async () => {
-            const storedPlayerId = sessionStorage.getItem('currentPlayerId');
-            if (!storedPlayerId) return;
-
-            // Ideally we should have an endpoint to get player details
-            // For now, we'll rely on the user selecting a team if they haven't
-            // But if they refresh, they might be asked again if we don't persist it
-            // Let's store team in session storage too
-            const storedTeam = sessionStorage.getItem('currentTeam');
-            if (storedTeam) {
-                setTeam(storedTeam as 'RED' | 'BLUE');
-            }
-        };
-        checkTeam();
-    }, []);
+    // Team check is now handled in fetchGameStatusAndVotes
 
     // Fetch results when game is completed
     useEffect(() => {
@@ -270,42 +272,15 @@ const GameLobbyPage = () => {
         }
     }, [gameState?.status, gameCode, gameResults]);
 
-    const handleSelectTeam = async (selectedTeam: 'RED' | 'BLUE') => {
-        setJoiningTeam(true);
-        try {
-            const storedPlayerId = sessionStorage.getItem('currentPlayerId');
-            if (!storedPlayerId) return;
-
-            const res = await fetch(`/api/game/${gameCode}/team`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    playerId: storedPlayerId,
-                    team: selectedTeam
-                })
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                setTeam(selectedTeam);
-                sessionStorage.setItem('currentTeam', selectedTeam);
-                setIsLeader(data.isLeader || false);
-            } else {
-                console.error('Failed to select team');
-            }
-        } catch (error) {
-            console.error('Error selecting team:', error);
-        } finally {
-            setJoiningTeam(false);
-        }
-    };
+    // Team selection is now handled by admin
+    // const handleSelectTeam = ... (removed)
 
     const handleLeaveGame = async () => {
         // Close modal
         setShowLeaveModal(false);
 
         try {
-            const storedPlayerId = sessionStorage.getItem('currentPlayerId');
+            const storedPlayerId = localStorage.getItem('currentPlayerId');
             if (storedPlayerId) {
                 // Use sendBeacon for reliable delivery on unload
                 const data = JSON.stringify({ playerId: storedPlayerId });
@@ -315,9 +290,8 @@ const GameLobbyPage = () => {
         } catch (error) {
             console.error('Error leaving game:', error);
         } finally {
-            sessionStorage.removeItem('currentPlayerId');
-            sessionStorage.removeItem('currentNickname');
-            sessionStorage.removeItem('currentTeam');
+            localStorage.removeItem('currentPlayerId');
+            localStorage.removeItem('currentNickname');
             router.push('/play');
         }
     };
@@ -325,7 +299,7 @@ const GameLobbyPage = () => {
     // Handle browser refresh/close
     useEffect(() => {
         const handleBeforeUnload = () => {
-            const storedPlayerId = sessionStorage.getItem('currentPlayerId');
+            const storedPlayerId = localStorage.getItem('currentPlayerId');
             if (storedPlayerId) {
                 const data = JSON.stringify({ playerId: storedPlayerId });
                 const blob = new Blob([data], { type: 'application/json' });
@@ -343,7 +317,7 @@ const GameLobbyPage = () => {
 
     // Check if player has already responded to the current card
     const checkExistingResponse = React.useCallback(async () => {
-        const playerId = sessionStorage.getItem('currentPlayerId');
+        const playerId = localStorage.getItem('currentPlayerId');
         const currentCard = gameState?.cards?.[gameState?.currentCardIndex % (gameState?.cards?.length || 1)];
 
         if (!playerId || !currentCard || !gameState) return;
@@ -366,24 +340,18 @@ const GameLobbyPage = () => {
 
     useEffect(() => {
         const checkAndShowScoreChanges = async () => {
-            if (gameState?.status === 'IN_PROGRESS' && gameState?.players) {
-                const redScore = gameState.players
-                    ?.filter(p => p.team === 'RED')
-                    .reduce((acc, p) => acc + p.score, 0) || 0;
-
-                const blueScore = gameState.players
-                    ?.filter(p => p.team === 'BLUE')
-                    .reduce((acc, p) => acc + p.score, 0) || 0;
+            if (gameState?.status === 'IN_PROGRESS' && gameState?.teams) {
+                // Create a map of current team scores
+                const currentTeamScores: Record<string, number> = {};
+                gameState.teams.forEach(t => {
+                    currentTeamScores[t.id] = t.budget; // Using budget as score for now, or we can add score to team model
+                });
 
                 // Check if card index changed (new card)
                 if (gameState.currentCardIndex !== previousCardIndexRef.current && previousCardIndexRef.current !== -1) {
                     console.log('Card changed! Waiting for score update...', {
                         previousIndex: previousCardIndexRef.current,
-                        currentIndex: gameState.currentCardIndex,
-                        previousRedScore,
-                        previousBlueScore,
-                        currentRedScore: redScore,
-                        currentBlueScore: blueScore
+                        currentIndex: gameState.currentCardIndex
                     });
 
                     // Wait and poll for updated scores
@@ -394,26 +362,15 @@ const GameLobbyPage = () => {
                             if (res.ok) {
                                 const freshData = await res.json();
 
-                                const updatedRedScore = freshData.players
-                                    ?.filter((p: Player) => p.team === 'RED')
-                                    .reduce((acc: number, p: Player) => acc + p.score, 0) || 0;
+                                const updatedTeamScores: Record<string, number> = {};
+                                const scoreChanges: Record<string, number> = {};
 
-                                const updatedBlueScore = freshData.players
-                                    ?.filter((p: Player) => p.team === 'BLUE')
-                                    .reduce((acc: number, p: Player) => acc + p.score, 0) || 0;
-
-                                // Calculate score changes
-                                const redChange = updatedRedScore - previousRedScore;
-                                const blueChange = updatedBlueScore - previousBlueScore;
-
-                                console.log('Score changes after refresh:', {
-                                    redChange,
-                                    blueChange,
-                                    updatedRedScore,
-                                    updatedBlueScore,
-                                    previousRedScore,
-                                    previousBlueScore
-                                });
+                                if (freshData.teams) {
+                                    freshData.teams.forEach((t: Team) => {
+                                        updatedTeamScores[t.id] = t.budget;
+                                        scoreChanges[t.id] = t.budget - (previousTeamScores[t.id] || 0);
+                                    });
+                                }
 
                                 // Get the response text from the previous card
                                 const previousCard = gameState.cards?.[previousCardIndexRef.current % (gameState.cards?.length || 1)];
@@ -425,13 +382,11 @@ const GameLobbyPage = () => {
                                 }
 
                                 // Always show modal when card changes
-                                setRedScoreChange(redChange);
-                                setBlueScoreChange(blueChange);
+                                setTeamScoreChanges(scoreChanges);
                                 setShowResultsModal(true);
 
                                 // Update previous scores
-                                setPreviousRedScore(updatedRedScore);
-                                setPreviousBlueScore(updatedBlueScore);
+                                setPreviousTeamScores(updatedTeamScores);
                             }
                         } catch (error) {
                             console.error('Error fetching updated scores:', error);
@@ -441,15 +396,14 @@ const GameLobbyPage = () => {
                     previousCardIndexRef.current = gameState.currentCardIndex;
                 } else if (previousCardIndexRef.current === -1) {
                     // First time initialization
-                    setPreviousRedScore(redScore);
-                    setPreviousBlueScore(blueScore);
+                    setPreviousTeamScores(currentTeamScores);
                     previousCardIndexRef.current = gameState.currentCardIndex;
                 }
             }
         };
 
         checkAndShowScoreChanges();
-    }, [gameState?.currentCardIndex, gameState?.players, gameState?.status, gameState?.cards, selectedResponse, previousRedScore, previousBlueScore, gameCode]);
+    }, [gameState?.currentCardIndex, gameState?.teams, gameState?.status, gameState?.cards, selectedResponse, previousTeamScores, gameCode]);
 
     useEffect(() => {
         if (gameState?.lastCardStartedAt && gameState?.cards) {
@@ -514,67 +468,53 @@ const GameLobbyPage = () => {
 
     // GAME RESULTS SCREEN
     if (gameState.status === 'COMPLETED' && gameResults) {
-        const winnerColor = gameResults.winner === 'RED' ? 'bg-red-500' : gameResults.winner === 'BLUE' ? 'bg-blue-500' : 'bg-gray-500';
-        const winnerText = gameResults.winner === 'TIE' ? 'It&apos;s a Tie!' : `Team ${gameResults.winner} Wins!`;
+        const winnerTeam = gameResults.teams.find(t => t.id === gameResults.winnerTeamId);
+        const winnerText = winnerTeam ? `${winnerTeam.name} Wins!` : 'It\'s a Tie!';
+        const winnerColor = winnerTeam ? winnerTeam.color : '#808080';
 
         return (
-            <div className="min-h-screen bg-gradient-to-br from-purple-100 to-blue-100 dark:from-gray-900 dark:to-gray-800 p-4 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 p-4 flex items-center justify-center">
                 <div className="max-w-4xl w-full">
                     {/* Winner Banner */}
-                    <div className={`${winnerColor} border-4 border-black rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8 mb-6`}>
+                    <div className="border-4 border-black rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8 mb-6" style={{ backgroundColor: winnerColor }}>
                         <h1 className="text-5xl font-black text-white text-center uppercase mb-4">
                             🏆 {winnerText} 🏆
                         </h1>
-                        <div className="flex justify-center gap-8 text-white">
-                            <div className="text-center">
-                                <div className="text-6xl font-black">{gameResults.scores.red}</div>
-                                <div className="text-xl font-bold">Team RED</div>
-                            </div>
-                            <div className="text-6xl font-black self-center">-</div>
-                            <div className="text-center">
-                                <div className="text-6xl font-black">{gameResults.scores.blue}</div>
-                                <div className="text-xl font-bold">Team BLUE</div>
-                            </div>
+                        <div className="flex justify-center gap-8 text-white flex-wrap">
+                            {gameResults.teams.map((team, idx) => (
+                                <React.Fragment key={team.id}>
+                                    <div className="text-center">
+                                        <div className="text-6xl font-black">{team.score}</div>
+                                        <div className="text-xl font-bold">{team.name}</div>
+                                    </div>
+                                    {idx < gameResults.teams.length - 1 && (
+                                        <div className="text-6xl font-black self-center">-</div>
+                                    )}
+                                </React.Fragment>
+                            ))}
                         </div>
                     </div>
 
                     {/* Team Lists */}
                     <div className="grid md:grid-cols-2 gap-6">
-                        {/* Red Team */}
-                        <div className="bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-700 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] p-6">
-                            <h2 className="text-2xl font-black text-red-500 mb-4 flex items-center gap-2">
-                                <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-                                Team RED
-                            </h2>
-                            <div className="space-y-2">
-                                {gameResults.teams.red.map((player, idx) => (
-                                    <div key={player.id} className="flex justify-between items-center p-3 bg-red-50 border-2 border-red-200 rounded-lg">
-                                        <span className="font-bold">#{idx + 1} {player.nickname}</span>
-                                        <span className="text-sm bg-red-500 text-white px-3 py-1 rounded-full font-bold">
-                                            {player.responsesCount} responses
-                                        </span>
-                                    </div>
-                                ))}
+                        {gameResults.teams.map(team => (
+                            <div key={team.id} className="bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-700 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] p-6">
+                                <h2 className="text-2xl font-black mb-4 flex items-center gap-2" style={{ color: team.color }}>
+                                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: team.color }}></div>
+                                    {team.name}
+                                </h2>
+                                <div className="space-y-2">
+                                    {team.players.map((player, idx) => (
+                                        <div key={player.id} className="flex justify-between items-center p-3 rounded-lg border-2" style={{ borderColor: `${team.color}40`, backgroundColor: `${team.color}10` }}>
+                                            <span className="font-bold">#{idx + 1} {player.nickname}</span>
+                                            <span className="text-sm text-white px-3 py-1 rounded-full font-bold" style={{ backgroundColor: team.color }}>
+                                                {player.responsesCount} responses
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-
-                        {/* Blue Team */}
-                        <div className="bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-700 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] p-6">
-                            <h2 className="text-2xl font-black text-blue-500 mb-4 flex items-center gap-2">
-                                <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-                                Team BLUE
-                            </h2>
-                            <div className="space-y-2">
-                                {gameResults.teams.blue.map((player, idx) => (
-                                    <div key={player.id} className="flex justify-between items-center p-3 bg-blue-50 border-2 border-blue-200 rounded-lg">
-                                        <span className="font-bold">#{idx + 1} {player.nickname}</span>
-                                        <span className="text-sm bg-blue-500 text-white px-3 py-1 rounded-full font-bold">
-                                            {player.responsesCount} responses
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        ))}
                     </div>
 
                     {/* Game Info */}
@@ -590,32 +530,29 @@ const GameLobbyPage = () => {
                             All Participants
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {[...gameResults.teams.red, ...gameResults.teams.blue]
+                            {gameResults.teams.flatMap(t => t.players.map(p => ({ ...p, team: t })))
                                 .sort((a, b) => b.responsesCount - a.responsesCount)
-                                .map((player, idx) => {
-                                    const isRed = gameResults.teams.red.some(p => p.id === player.id);
-                                    return (
-                                        <div
-                                            key={player.id}
-                                            className={`p-3 rounded-lg border-2 ${isRed
-                                                ? 'bg-red-50 border-red-300'
-                                                : 'bg-blue-50 border-blue-300'
-                                                }`}
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-black text-gray-500">#{idx + 1}</span>
-                                                    <span className="font-bold text-gray-900">{player.nickname}</span>
-                                                </div>
-                                                <div className={`w-3 h-3 rounded-full ${isRed ? 'bg-red-500' : 'bg-blue-500'
-                                                    }`} />
+                                .map((player, idx) => (
+                                    <div
+                                        key={player.id}
+                                        className="p-3 rounded-lg border-2"
+                                        style={{
+                                            borderColor: `${player.team.color}40`,
+                                            backgroundColor: `${player.team.color}10`
+                                        }}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-black text-gray-500">#{idx + 1}</span>
+                                                <span className="font-bold text-gray-900 dark:text-gray-100">{player.nickname}</span>
                                             </div>
-                                            <div className="mt-2 text-sm text-gray-700 font-medium">
-                                                {player.responsesCount} responses
-                                            </div>
+                                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: player.team.color }} />
                                         </div>
-                                    );
-                                })}
+                                        <div className="mt-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
+                                            {player.responsesCount} responses
+                                        </div>
+                                    </div>
+                                ))}
                         </div>
                     </div>
 
@@ -623,9 +560,9 @@ const GameLobbyPage = () => {
                     <div className="mt-8 text-center">
                         <button
                             onClick={() => {
-                                sessionStorage.removeItem('currentPlayerId');
-                                sessionStorage.removeItem('currentNickname');
-                                sessionStorage.removeItem('currentTeam');
+                                localStorage.removeItem('currentPlayerId');
+                                localStorage.removeItem('currentNickname');
+                                // Team is now derived
                                 router.push('/play');
                             }}
                             className="px-8 py-4 bg-green-500 text-white font-black text-xl rounded-lg border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[3px] hover:translate-y-[3px] transition-all duration-200 flex items-center gap-3 mx-auto"
@@ -639,53 +576,12 @@ const GameLobbyPage = () => {
         );
     }
 
-    // TEAM SELECTION STATE
-    if (!team) {
-        return (
-            <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4">
-                <div className="bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-700 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] p-8 max-w-md w-full">
-                    <h1 className="text-3xl font-black text-center mb-8 text-black dark:text-white uppercase">
-                        Choose Your Team
-                    </h1>
-
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                        <button
-                            onClick={() => handleSelectTeam('RED')}
-                            disabled={joiningTeam}
-                            className="p-6 rounded-lg border-4 border-gray-200 hover:border-red-600 hover:bg-red-50 transition-all duration-200 flex flex-col items-center gap-3 group"
-                        >
-                            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center font-black text-2xl text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors">
-                                A
-                            </div>
-                            <span className="font-bold text-red-600">RED TEAM</span>
-                        </button>
-
-                        <button
-                            onClick={() => handleSelectTeam('BLUE')}
-                            disabled={joiningTeam}
-                            className="p-6 rounded-lg border-4 border-gray-200 hover:border-blue-600 hover:bg-blue-50 transition-all duration-200 flex flex-col items-center gap-3 group"
-                        >
-                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center font-black text-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                B
-                            </div>
-                            <span className="font-bold text-blue-600">BLUE TEAM</span>
-                        </button>
-                    </div>
-
-                    {joiningTeam && (
-                        <div className="text-center">
-                            <Loader2 className="animate-spin inline-block mr-2" />
-                            <span className="font-bold text-gray-500 dark:text-gray-400">Joining team...</span>
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
-    }
+    // Show lobby for all players in WAITING status (whether assigned to team or not)
+    // This allows unassigned players to see who else has joined while waiting for team assignment
 
     // WAITING STATE
     if (gameState.status === 'WAITING') {
-        const teammates = gameState.players?.filter(p => p.team === team) || [];
+        const teammates = team ? (gameState.players?.filter(p => p.teamId === team.id) || []) : [];
 
         return (
             <PageTransition>
@@ -694,7 +590,8 @@ const GameLobbyPage = () => {
                     nickname={nickname}
                     team={team}
                     teammates={teammates}
-                    onChangeTeam={() => setTeam(null)}
+                    allPlayers={gameState.players || []}
+                    teams={gameState.teams || []}
                     onLeaveGame={() => setShowLeaveModal(true)}
                 />
                 {/* Leave Game Modal */}
@@ -711,15 +608,6 @@ const GameLobbyPage = () => {
     if (gameState.status === 'IN_PROGRESS' && gameState.cards && gameState.cards.length > 0) {
         const currentCard = gameState.cards[gameState.currentCardIndex % gameState.cards.length];
 
-        // Calculate Team Scores
-        const redScore = gameState.players
-            ?.filter(p => p.team === 'RED')
-            .reduce((acc, p) => acc + p.score, 0) || 0;
-
-        const blueScore = gameState.players
-            ?.filter(p => p.team === 'BLUE')
-            .reduce((acc, p) => acc + p.score, 0) || 0;
-
         return (
             <div className="min-h-screen bg-gray-900 p-4 flex flex-col items-center justify-center relative overflow-hidden">
                 {/* Background Effects */}
@@ -727,31 +615,30 @@ const GameLobbyPage = () => {
 
                 <div className="w-full max-w-4xl relative z-10">
                     {/* Game Header with Scores */}
-                    <div className="flex items-center justify-between mb-8">
-                        {/* Red Team Score */}
-                        <div className="flex flex-col items-center">
-                            <div className="bg-red-500 text-white font-black text-2xl px-6 py-2 rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] border-2 border-red-400">
-                                ${redScore}
+                    <div className="flex items-center justify-center gap-4 mb-8 flex-wrap">
+                        {gameState.teams?.map(t => (
+                            <div key={t.id} className="flex flex-col items-center">
+                                <div className="text-white font-black text-2xl px-6 py-2 rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] border-2" style={{ backgroundColor: t.color, borderColor: t.color }}>
+                                    ${t.budget}
+                                </div>
+                                <span className="font-bold text-xs mt-1 tracking-widest uppercase" style={{ color: t.color }}>{t.name}</span>
                             </div>
-                            <span className="text-red-400 font-bold text-xs mt-1 tracking-widest uppercase">Red Team</span>
-                        </div>
+                        ))}
 
-                        {/* Timer & Round Info */}
-                        <div className="flex flex-col items-center gap-2">
+                        {/* Timer */}
+                        <div className="flex flex-col items-center gap-2 mx-4">
                             <div className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 transition-all duration-300 ${timeLeft <= 10 ? 'bg-red-600 border-red-400 animate-pulse' : 'bg-gray-800 border-gray-600'}`}>
                                 <Clock size={20} className={timeLeft <= 10 ? 'text-white' : 'text-gray-400'} />
                                 <span className="font-mono font-black text-xl text-white">{formatTime(timeLeft)}</span>
                             </div>
-                            <span className="text-gray-500 font-bold text-xs tracking-widest uppercase">Round {gameState.currentCardIndex + 1}</span>
                         </div>
 
-                        {/* Blue Team Score */}
-                        <div className="flex flex-col items-center">
-                            <div className="bg-blue-500 text-white font-black text-2xl px-6 py-2 rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] border-2 border-blue-400">
-                                ${blueScore}
-                            </div>
-                            <span className="text-blue-400 font-bold text-xs mt-1 tracking-widest uppercase">Blue Team</span>
-                        </div>
+                        {/* Round Progress Indicator */}
+                        <RoundIndicator
+                            currentRound={Math.floor(gameState.currentCardIndex / 3) + 1}
+                            currentCardIndex={gameState.currentCardIndex}
+                            cardsPerRound={3}
+                        />
                     </div>
 
                     {/* Leader Indicator */}
@@ -788,7 +675,7 @@ const GameLobbyPage = () => {
                                 // Submit logic duplicated here or extracted
                                 const submitResponse = async (responseId: number) => {
                                     try {
-                                        const playerId = sessionStorage.getItem('currentPlayerId');
+                                        const playerId = localStorage.getItem('currentPlayerId');
                                         if (!playerId) return;
 
                                         await fetch(`/api/game/${gameCode}/submit`, {
@@ -862,8 +749,12 @@ const GameLobbyPage = () => {
                     <ResultsModal
                         isOpen={showResultsModal}
                         onClose={() => setShowResultsModal(false)}
-                        redScoreChange={redScoreChange}
-                        blueScoreChange={blueScoreChange}
+                        teamScoreChanges={gameState?.teams?.map(t => ({
+                            teamId: t.id,
+                            teamName: t.name,
+                            teamColor: t.color,
+                            scoreChange: teamScoreChanges[t.id] || 0
+                        })) || []}
                         selectedResponse={selectedResponseText}
                         autoCloseDelay={4000}
                     />
@@ -875,9 +766,15 @@ const GameLobbyPage = () => {
     return (
         <PageTransition>
             <ConfettiEffect trigger={gameState.status === 'COMPLETED' && gameResults !== null} variant="win" />
-            {gameResults && (
+            {gameResults && gameResults.winnerTeamId && (
                 <CelebrationBanner
-                    message={gameResults.winner === 'TIE' ? "IT'S A TIE!" : `${gameResults.winner} TEAM WINS!`}
+                    message={`${gameResults.teams.find(t => t.id === gameResults.winnerTeamId)?.name || 'Winning Team'} WINS!`}
+                    show={true}
+                />
+            )}
+            {gameResults && !gameResults.winnerTeamId && (
+                <CelebrationBanner
+                    message="IT'S A TIE!"
                     show={true}
                 />
             )}

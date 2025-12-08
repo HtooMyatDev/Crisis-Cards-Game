@@ -1,15 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from '@/lib/prisma'; // Import the singleton Prisma client
+import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from "@/app/actions/auth";
+import { Prisma } from "@prisma/client";
 
+/**
+ * POST /api/admin/categories
+ * Creates a new crisis category
+ *
+ * @requires Authentication - Admin only
+ * @body {string} name - Category name
+ * @body {string} description - Category description
+ * @body {string} colorPresetId - ID of color preset (optional)
+ * @body {string} status - 'Active' or 'Inactive'
+ *
+ * @returns {201} Created category
+ * @returns {400} Validation error
+ * @returns {401} Unauthorized
+ * @returns {409} Conflict (duplicate name)
+ * @returns {500} Server error
+ */
 export async function POST(request: NextRequest) {
     try {
+        // Authentication check
+        const user = await getCurrentUser();
+        if (!user || user.role !== 'ADMIN') {
+            return NextResponse.json(
+                { error: 'Unauthorized. Admin access required.' },
+                { status: 401 }
+            );
+        }
 
-        // 1. Parse the request body to get the category data.
         const body = await request.json();
-
         const { name, description, colorPresetId, status } = body;
 
-        // 2. Validate the incoming data.
+        // Validate required fields
         if (!name) {
             return NextResponse.json(
                 { error: 'Category name is required' },
@@ -38,19 +62,14 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Map frontend status to database enum
-        const dbStatus = status === 'Active' ? 'ACTIVE' : 'INACTIVE';
-
-        const createdBy = 2; // Example user ID
-
-        // 3. Create the category
+        // Create the category
         const newCategory = await prisma.category.create({
             data: {
                 name: name.trim(),
                 description: description?.trim() || null,
-                colorPresetId: colorPresetId || null,
-                createdBy,
-                status: 'ACTIVE'
+                ...((colorPresetId && colorPresetId !== '0') ? { colorPreset: { connect: { id: parseInt(colorPresetId) } } } : {}),
+                creator: { connect: { id: user.id } },
+                status: status === 'Active' ? 'ACTIVE' : 'INACTIVE'
             },
             include: {
                 colorPreset: {
@@ -84,95 +103,110 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // 4. Return success response
         return NextResponse.json({
             success: true,
             id: newCategory.id,
             category: newCategory
         }, { status: 201 });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error creating category:', error);
 
-        if (error.code === 'P2002' && error.meta?.target.includes('name')) {
-            return NextResponse.json(
-                { error: 'A category with this name already exists.' },
-                { status: 409 }
-            );
+        if (error && typeof error === 'object' && 'code' in error) {
+            const prismaError = error as { code: string; meta?: { target?: string[] } };
+            if (prismaError.code === 'P2002' && prismaError.meta?.target?.includes('name')) {
+                return NextResponse.json(
+                    { error: 'A category with this name already exists.' },
+                    { status: 409 }
+                );
+            }
         }
 
         return NextResponse.json(
-            { error: error.message || 'Internal server error' },
+            { error: 'Failed to create category' },
             { status: 500 }
         );
     }
 }
 
+/**
+ * GET /api/admin/categories
+ * Retrieves categories with filtering and pagination
+ *
+ * @requires Authentication - User must be logged in
+ * @query {boolean} archived - Include archived categories
+ * @query {boolean} active - Filter by active status
+ * @query {boolean} presets - Include color presets
+ * @query {number} limit - Items per page
+ * @query {number} offset - Skip items
+ *
+ * @returns {200} List of categories
+ * @returns {401} Unauthorized
+ * @returns {500} Server error
+ */
 export async function GET(request: NextRequest) {
     try {
+        // Authentication check
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json(
+                { error: 'Unauthorized. Please log in.' },
+                { status: 401 }
+            );
+        }
+
         const { searchParams } = new URL(request.url);
         const includeArchived = searchParams.get('archived') === 'true';
         const activeOnly = searchParams.get('active') === 'true';
-        const withPresets = searchParams.get('presets') !== 'false'; // Default to true
+        const withPresets = searchParams.get('presets') !== 'false';
         const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined;
         const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : undefined;
 
-        const categories = await prisma.category.findMany({
-            where: {
-                ...(includeArchived ? {} : { isArchived: { not: true } }),
-                ...(activeOnly && { status: 'ACTIVE' })
-            },
-            include: {
-                ...(withPresets && {
-                    colorPreset: {
+        const whereClause: Prisma.CategoryWhereInput = {
+            ...(includeArchived ? {} : { isArchived: { not: true } }),
+            ...(activeOnly && { status: 'ACTIVE' })
+        };
+
+        const [categories, totalCount] = await Promise.all([
+            prisma.category.findMany({
+                where: whereClause,
+                include: {
+                    ...(withPresets && {
+                        colorPreset: {
+                            select: {
+                                id: true,
+                                name: true,
+                                backgroundColor: true,
+                                textColor: true,
+                                textBoxColor: true
+                            }
+                        }
+                    }),
+                    creator: {
                         select: {
                             id: true,
                             name: true,
-                            backgroundColor: true,
-                            textColor: true,
-                            textBoxColor: true
+                            email: true
                         }
-                    }
-                }),
-                creator: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true
-                    }
-                },
-                _count: {
-                    select: {
-                        cards: true
-                    }
-                },
-                ...(searchParams.get('includeCards') === 'true' && {
-                    cards: {
-                        where: {
-                            isArchived: false
-                        },
+                    },
+                    _count: {
                         select: {
-                            id: true,
-                            title: true
+                            cards: true
                         }
-                    }
-                })
-            },
-            orderBy: [
-                { createdAt: 'desc' }
-            ],
-            ...(limit && { take: limit }),
-            ...(offset && { skip: offset })
-        });
-
-        // Get total count for pagination if needed
-        const totalCount = (limit || offset) ? await prisma.category.count({
-            where: {
-                ...(includeArchived ? {} : { isArchived: { not: true } }),
-                ...(activeOnly && { status: 'ACTIVE' })
-            }
-        }) : categories.length;
+                    },
+                    ...(searchParams.get('includeCards') === 'true' && {
+                        cards: {
+                            where: { isArchived: false },
+                            select: { id: true, title: true }
+                        }
+                    })
+                },
+                orderBy: [{ createdAt: 'desc' }],
+                ...(limit && { take: limit }),
+                ...(offset && { skip: offset })
+            }),
+            prisma.category.count({ where: whereClause })
+        ]);
 
         return NextResponse.json({
             success: true,
@@ -181,8 +215,8 @@ export async function GET(request: NextRequest) {
             ...(limit && { limit }),
             ...(offset && { offset })
         });
-    }
-    catch (error) {
+
+    } catch (error) {
         console.error('Error fetching categories:', error);
         return NextResponse.json(
             { error: 'Failed to fetch categories' },
@@ -191,8 +225,33 @@ export async function GET(request: NextRequest) {
     }
 }
 
+/**
+ * PUT /api/admin/categories
+ * Updates an existing category
+ *
+ * @requires Authentication - Admin only
+ * @body {number} id - Category ID
+ * @body {string} name - New name
+ * @body {string} description - New description
+ * @body {string} status - New status
+ *
+ * @returns {200} Updated category
+ * @returns {400} Validation error
+ * @returns {401} Unauthorized
+ * @returns {404} Category not found
+ * @returns {500} Server error
+ */
 export async function PUT(request: NextRequest) {
     try {
+        // Authentication check
+        const user = await getCurrentUser();
+        if (!user || user.role !== 'ADMIN') {
+            return NextResponse.json(
+                { error: 'Unauthorized. Admin access required.' },
+                { status: 401 }
+            );
+        }
+
         const body = await request.json();
         const { id, name, description, colorPresetId, status, isArchived } = body;
 
@@ -236,12 +295,16 @@ export async function PUT(request: NextRequest) {
             }
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const updates: any = {};
+        // Prepare updates
+        const updates: Prisma.CategoryUpdateInput = {};
         if (name !== undefined) updates.name = name.trim();
         if (description !== undefined) updates.description = description?.trim() || null;
         if (colorPresetId !== undefined) {
-            updates.colorPresetId = (colorPresetId && colorPresetId !== '0') ? parseInt(colorPresetId) : null;
+            if (colorPresetId && colorPresetId !== '0') {
+                updates.colorPreset = { connect: { id: parseInt(colorPresetId) } };
+            } else {
+                updates.colorPreset = { disconnect: true };
+            }
         }
         if (status !== undefined) updates.status = status;
         if (isArchived !== undefined) updates.isArchived = isArchived;
@@ -250,26 +313,12 @@ export async function PUT(request: NextRequest) {
             where: { id: parseInt(id) },
             data: updates,
             include: {
-                colorPreset: {
-                    select: {
-                        id: true,
-                        name: true,
-                        backgroundColor: true,
-                        textColor: true,
-                        textBoxColor: true
-                    }
-                },
+                colorPreset: true,
                 creator: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true
-                    }
+                    select: { id: true, name: true, email: true }
                 },
                 _count: {
-                    select: {
-                        cards: true
-                    }
+                    select: { cards: true }
                 }
             }
         });
@@ -279,15 +328,17 @@ export async function PUT(request: NextRequest) {
             category: updatedCategory
         });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error updating category:', error);
 
-        if (error.code === 'P2002' && error.meta?.target.includes('name')) {
-            return NextResponse.json(
-                { error: 'A category with this name already exists.' },
-                { status: 409 }
-            );
+        if (error && typeof error === 'object' && 'code' in error) {
+            const prismaError = error as { code: string; meta?: { target?: string[] } };
+            if (prismaError.code === 'P2002' && prismaError.meta?.target?.includes('name')) {
+                return NextResponse.json(
+                    { error: 'A category with this name already exists.' },
+                    { status: 409 }
+                );
+            }
         }
 
         return NextResponse.json(
@@ -297,8 +348,31 @@ export async function PUT(request: NextRequest) {
     }
 }
 
+/**
+ * DELETE /api/admin/categories
+ * Deletes a category
+ *
+ * @requires Authentication - Admin only
+ * @query {number} id - Category ID
+ * @query {boolean} force - Force delete even if it has cards
+ *
+ * @returns {200} Success message
+ * @returns {401} Unauthorized
+ * @returns {404} Category not found
+ * @returns {409} Conflict (has cards)
+ * @returns {500} Server error
+ */
 export async function DELETE(request: NextRequest) {
     try {
+        // Authentication check
+        const user = await getCurrentUser();
+        if (!user || user.role !== 'ADMIN') {
+            return NextResponse.json(
+                { error: 'Unauthorized. Admin access required.' },
+                { status: 401 }
+            );
+        }
+
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
         const forceDelete = searchParams.get('force') === 'true';
@@ -310,14 +384,14 @@ export async function DELETE(request: NextRequest) {
             );
         }
 
+        const categoryId = parseInt(id);
+
         // Check if category exists and get card count
         const existingCategory = await prisma.category.findUnique({
-            where: { id: parseInt(id) },
+            where: { id: categoryId },
             include: {
                 _count: {
-                    select: {
-                        cards: true
-                    }
+                    select: { cards: true }
                 }
             }
         });
@@ -329,7 +403,7 @@ export async function DELETE(request: NextRequest) {
             );
         }
 
-        // If category has cards and force delete is not enabled, prevent deletion
+        // Prevent deletion if it has cards, unless forced
         if (existingCategory._count.cards > 0 && !forceDelete) {
             return NextResponse.json(
                 {
@@ -340,15 +414,17 @@ export async function DELETE(request: NextRequest) {
             );
         }
 
-        // If force delete, delete all cards in this category
-        if (existingCategory._count.cards > 0 && forceDelete) {
-            await prisma.card.deleteMany({
-                where: { categoryId: parseInt(id) }
-            });
-        }
+        // Use transaction for deletion
+        await prisma.$transaction(async (tx) => {
+            if (existingCategory._count.cards > 0 && forceDelete) {
+                await tx.card.deleteMany({
+                    where: { categoryId }
+                });
+            }
 
-        await prisma.category.delete({
-            where: { id: parseInt(id) }
+            await tx.category.delete({
+                where: { id: categoryId }
+            });
         });
 
         return NextResponse.json({

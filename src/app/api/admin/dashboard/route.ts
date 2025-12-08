@@ -142,23 +142,38 @@ export async function GET() {
     const recentCards = await prisma.card.findMany({
       orderBy: { createdAt: 'desc' },
       take: 5,
-      select: { id: true, title: true, createdAt: true },
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+        creator: {
+          select: { name: true }
+        }
+      },
     });
     const recentGames = await prisma.gameSession.findMany({
       orderBy: { createdAt: 'desc' },
       take: 5,
-      select: { id: true, name: true, gameCode: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        gameCode: true,
+        createdAt: true,
+        host: {
+          select: { name: true }
+        }
+      },
     });
 
     const recentActivity: Array<{ type: string; action: string; user: string; time: Date }> = [];
     recentPlayers.forEach(p => {
-      recentActivity.push({ type: 'player', action: 'Joined', user: p.nickname, time: p.joinedAt });
+      recentActivity.push({ type: 'player', action: `Player joined: ${p.nickname}`, user: 'System', time: p.joinedAt });
     });
     recentCards.forEach(c => {
-      recentActivity.push({ type: 'card', action: 'Created', user: 'System', time: c.createdAt });
+      recentActivity.push({ type: 'card', action: `Created card: ${c.title}`, user: c.creator?.name || 'Unknown', time: c.createdAt });
     });
     recentGames.forEach(g => {
-      recentActivity.push({ type: 'game', action: 'Started', user: 'System', time: g.createdAt });
+      recentActivity.push({ type: 'game', action: `Started game: ${g.name}`, user: g.host?.name || 'Unknown', time: g.createdAt });
     });
     // Sort by time descending and limit to 5
     recentActivity.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());

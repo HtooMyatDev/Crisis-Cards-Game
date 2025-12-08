@@ -19,13 +19,112 @@ import {
     Copy,
     Check,
     Download,
-    X
+    X,
+    Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import QRCode from 'qrcode';
 import toast, { Toaster } from 'react-hot-toast';
+import {
+    DndContext,
+    DragEndEvent,
+    DragOverlay,
+    DragStartEvent,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
 
 import { GameSession } from '@/types/game';
+
+// Draggable Player Component
+interface DraggablePlayerProps {
+    player: { id: number; nickname: string };
+    teamColor?: string;
+}
+
+const DraggablePlayer: React.FC<DraggablePlayerProps> = ({ player, teamColor }) => {
+    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+        id: player.id,
+    });
+
+    const style = transform ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    } : undefined;
+
+    return (
+        <motion.div
+            ref={setNodeRef}
+            style={style}
+            {...listeners}
+            {...attributes}
+            animate={{
+                opacity: isDragging ? 0.5 : 1,
+                scale: isDragging ? 1.05 : 1
+            }}
+            transition={{ duration: 0.2 }}
+            className="bg-white dark:bg-gray-800 p-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing"
+        >
+            <div className="flex items-center gap-2">
+                <div
+                    className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold border-2"
+                    style={{
+                        backgroundColor: teamColor ? `${teamColor}20` : '#f3f4f6',
+                        borderColor: teamColor || '#d1d5db',
+                        color: teamColor || '#6b7280'
+                    }}
+                >
+                    {player.nickname.substring(0, 2).toUpperCase()}
+                </div>
+                <span className="font-bold text-black dark:text-white">{player.nickname}</span>
+            </div>
+        </motion.div>
+    );
+};
+
+// Droppable Area Component
+interface DroppableAreaProps {
+    id: string;
+    title: string;
+    color: string;
+    children: React.ReactNode;
+}
+
+const DroppableArea: React.FC<DroppableAreaProps> = ({ id, title, color, children }) => {
+    const { setNodeRef, isOver } = useDroppable({
+        id,
+    });
+
+    return (
+        <motion.div
+            ref={setNodeRef}
+            animate={{
+                scale: isOver ? 1.02 : 1,
+                borderColor: isOver ? color : undefined
+            }}
+            transition={{ duration: 0.2 }}
+            className={`bg-gray-50 dark:bg-gray-700/30 rounded-xl p-4 border-2 transition-all min-h-[300px] ${isOver ? 'bg-blue-50 dark:bg-blue-900/20 shadow-lg' : 'border-gray-200 dark:border-gray-600'
+                }`}
+        >
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-gray-200 dark:border-gray-600">
+                <motion.div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: color }}
+                    animate={{ scale: isOver ? 1.3 : 1 }}
+                    transition={{ duration: 0.2 }}
+                />
+                <h3 className="font-bold text-lg uppercase" style={{ color }}>
+                    {title}
+                </h3>
+            </div>
+            <div className="space-y-2">
+                {children}
+            </div>
+        </motion.div>
+    );
+};
 
 // Simple hash function for comparing objects
 const hashObject = (obj: unknown): string => {
@@ -39,11 +138,12 @@ const GameDetailsPage = () => {
 
     const [game, setGame] = useState<GameSession | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [error, setError] = useState<string | null>('');
 
     // Store the hash of the last fetched data to prevent unnecessary updates
     const lastDataHashRef = useRef<string>('');
 
+    // Fetch game details
     const fetchGameDetails = useCallback(async () => {
         try {
             const response = await fetch(`/api/admin/games/${gameId}`);
@@ -54,44 +154,30 @@ const GameDetailsPage = () => {
 
             const data = await response.json();
 
-            // Create a hash of the relevant data to detect changes
-            const newDataHash = hashObject({
-                status: data.game.status,
-                currentCardIndex: data.game.currentCardIndex,
-                players: data.game.players?.map((p: { id: number; nickname: string; score: number; isConnected: boolean }) => ({
-                    id: p.id,
-                    nickname: p.nickname,
-                    score: p.score,
-                    isConnected: p.isConnected
-                }))
-            });
+            // Always update to ensure teams appear immediately
+            setGame(data.game);
+            setError('');
+            setLoading(false);
 
-            // Only update if data has actually changed
-            if (lastDataHashRef.current !== newDataHash) {
-                lastDataHashRef.current = newDataHash;
-                setGame(data.game);
-                setError('');
-                setLoading(false);
-            }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
-            console.error('Error:', error);
-            setError(error.message);
+            console.error('Failed to fetch game details:', error);
+            setError(error.message || 'Failed to load game details');
             setLoading(false);
         }
-    }, [gameId]); // Removed 'game' from dependencies to prevent re-creation
+    }, [gameId]);
 
+    // Initial fetch and polling setup
     useEffect(() => {
-        setLoading(true); // Show loading only on initial mount
+        setLoading(true);
         fetchGameDetails();
 
-        // Set up polling for real-time updates (every 2 seconds)
-        const pollInterval = setInterval(() => {
+        // Poll every 2 seconds for updates
+        const interval = setInterval(() => {
             fetchGameDetails();
         }, 2000);
 
-        // Cleanup interval on unmount
-        return () => clearInterval(pollInterval);
+        return () => clearInterval(interval);
     }, [fetchGameDetails]);
 
     const formatDuration = (start: string | number | Date, end: string | number | Date) => {
@@ -112,6 +198,22 @@ const GameDetailsPage = () => {
     const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
     const [showQRModal, setShowQRModal] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [activePlayerId, setActivePlayerId] = useState<number | null>(null);
+    const [isAssigning, setIsAssigning] = useState(false);
+    const [showAddTeamModal, setShowAddTeamModal] = useState(false);
+    const [newTeamName, setNewTeamName] = useState('');
+    const [newTeamColor, setNewTeamColor] = useState('#3B82F6');
+    const [showDeleteTeamModal, setShowDeleteTeamModal] = useState(false);
+    const [teamToDelete, setTeamToDelete] = useState<{ id: string, name: string } | null>(null);
+
+    // Drag and drop sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        })
+    );
 
     // Sort players based on shuffled IDs
     const getSortedPlayers = () => {
@@ -218,6 +320,185 @@ const GameDetailsPage = () => {
 
     const sortedPlayers = getSortedPlayers();
 
+    // Handle drag start
+    const handleDragStart = (event: DragStartEvent) => {
+        setActivePlayerId(event.active.id as number);
+    };
+
+    // Handle drag end
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+        setActivePlayerId(null);
+
+        if (!over) return;
+
+        const playerId = active.id as number;
+        const teamId = over.id as string;
+
+        // If dropped on the same team or unassigned area, do nothing
+        const player = game?.players?.find(p => p.id === playerId);
+        if (player?.teamId === teamId) return;
+
+        // Optimistic update
+        setGame(prevGame => {
+            if (!prevGame) return null;
+            const updatedPlayers = prevGame.players?.map(p =>
+                p.id === playerId ? { ...p, teamId: teamId === 'unassigned' ? null : teamId } : p
+            );
+            return { ...prevGame, players: updatedPlayers };
+        });
+
+        // Assign player to team
+        await handleAssignPlayer(playerId, teamId === 'unassigned' ? null : teamId);
+    };
+
+    // Assign a single player to a team
+    const handleAssignPlayer = async (playerId: number, teamId: string | null) => {
+        try {
+            setIsAssigning(true);
+            const res = await fetch(`/api/admin/games/${gameId}/players`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    assignments: [{ playerId, teamId }]
+                })
+            });
+
+            if (!res.ok) throw new Error('Failed to assign player');
+
+            toast.success('Player assigned!');
+            fetchGameDetails(); // Refresh data to ensure consistency
+        } catch (err) {
+            console.error('Error assigning player:', err);
+            toast.error('Failed to assign player');
+            fetchGameDetails(); // Revert optimistic update on error
+        } finally {
+            setIsAssigning(false);
+        }
+    };
+
+    // Random team assignment
+    const handleRandomAssignment = async () => {
+        if (!confirm('Randomly assign all unassigned players to teams?')) return;
+
+        try {
+            setIsAssigning(true);
+            const res = await fetch(`/api/admin/games/${gameId}/assign-teams`, {
+                method: 'POST'
+            });
+
+            if (!res.ok) throw new Error('Failed to assign teams');
+
+            toast.success('Teams assigned randomly!');
+            fetchGameDetails();
+        } catch (err) {
+            console.error('Error assigning teams:', err);
+            toast.error('Failed to assign teams');
+        } finally {
+            setIsAssigning(false);
+        }
+    };
+
+    // Start the game
+    const handleStartGame = async () => {
+        const unassignedCount = game?.players?.filter(p => !p.teamId).length || 0;
+        if (unassignedCount > 0) {
+            toast.error(`Cannot start: ${unassignedCount} player(s) not assigned to teams`);
+            return;
+        }
+
+        if (!confirm('Start the game? Players will begin receiving cards.')) return;
+
+        try {
+            const res = await fetch(`/api/game/${game?.gameCode}/start`, {
+                method: 'POST'
+            });
+
+            if (!res.ok) throw new Error('Failed to start game');
+
+            toast.success('Game started!');
+            fetchGameDetails();
+        } catch (err) {
+            console.error('Error starting game:', err);
+            toast.error('Failed to start game');
+        }
+    };
+
+    // Add a new team
+    const handleAddTeam = async () => {
+        if (!newTeamName.trim()) {
+            toast.error('Team name is required');
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/admin/games/${gameId}/teams`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: newTeamName,
+                    color: newTeamColor
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || 'Failed to create team');
+            }
+
+            toast.success(`Team "${newTeamName}" created!`);
+            setShowAddTeamModal(false);
+            setNewTeamName('');
+            setNewTeamColor('#3B82F6');
+
+            // Immediate refresh without hard reload
+            await fetchGameDetails();
+        } catch (err: any) {
+            console.error('Error creating team:', err);
+            toast.error(err.message || 'Failed to create team');
+        }
+    };
+
+    // Show delete confirmation modal
+    const handleDeleteTeamClick = (teamId: string, teamName: string) => {
+        console.log('Delete team clicked:', teamId, teamName);
+        setTeamToDelete({ id: teamId, name: teamName });
+        setShowDeleteTeamModal(true);
+    };
+
+    // Actually delete the team
+    const confirmDeleteTeam = async () => {
+        if (!teamToDelete) return;
+
+        try {
+            console.log('Sending delete request for team:', teamToDelete.id);
+            const res = await fetch(`/api/admin/games/${gameId}/teams?teamId=${teamToDelete.id}`, {
+                method: 'DELETE'
+            });
+
+            console.log('Delete response status:', res.status);
+
+            if (!res.ok) {
+                const data = await res.json();
+                console.error('Delete failed:', data);
+                throw new Error(data.error || 'Failed to delete team');
+            }
+
+            const data = await res.json();
+            console.log('Delete successful:', data);
+            toast.success(`Team "${teamToDelete.name}" deleted!`);
+            setShowDeleteTeamModal(false);
+            setTeamToDelete(null);
+            await fetchGameDetails();
+        } catch (err: any) {
+            console.error('Error deleting team:', err);
+            toast.error(err.message || 'Failed to delete team');
+            setShowDeleteTeamModal(false);
+            setTeamToDelete(null);
+        }
+    };
+
     if (loading) {
         return (
             <div className="p-6 flex items-center justify-center h-screen">
@@ -279,6 +560,36 @@ const GameDetailsPage = () => {
                     </div>
                 </div>
 
+                {/* Delete Team Confirmation Modal */}
+                {showDeleteTeamModal && teamToDelete && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6 border-2 border-black dark:border-gray-700">
+                            <h3 className="text-xl font-bold text-black dark:text-white mb-4">Delete Team?</h3>
+                            <p className="text-gray-700 dark:text-gray-300 mb-6">
+                                Are you sure you want to delete team <strong>&quot;{teamToDelete.name}&quot;</strong>?
+                                This can only be done if no players are assigned.
+                            </p>
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    onClick={() => {
+                                        setShowDeleteTeamModal(false);
+                                        setTeamToDelete(null);
+                                    }}
+                                    className="px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDeleteTeam}
+                                    className="px-4 py-2 text-sm font-bold text-white bg-red-600 rounded hover:bg-red-700 transition-colors"
+                                >
+                                    Delete Team
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Action Buttons */}
                 <div className="flex items-center gap-2">
                     <button
@@ -333,6 +644,103 @@ const GameDetailsPage = () => {
                     },
                 }}
             />
+
+            {/* Team Assignment Section - Only show when WAITING */}
+            {game.status === 'WAITING' && game.players && game.players.length > 0 && (
+                <DndContext
+                    sensors={sensors}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                >
+                    <div className="bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 className="text-2xl font-black text-black dark:text-white mb-2 flex items-center gap-2">
+                                    <Users size={28} className="text-blue-600" />
+                                    Team Assignment
+                                </h2>
+                                <p className="text-gray-600 dark:text-gray-400">Drag players to teams or use random assignment</p>
+                            </div>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowAddTeamModal(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg border-2 border-blue-600 shadow-[2px_2px_0px_0px_rgba(37,99,235,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                                >
+                                    <Users size={18} />
+                                    Add Team
+                                </button>
+                                <button
+                                    onClick={handleRandomAssignment}
+                                    disabled={isAssigning || !game.players?.some(p => !p.teamId)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-lg border-2 border-purple-600 disabled:border-gray-400 shadow-[2px_2px_0px_0px_rgba(147,51,234,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                                >
+                                    <Sparkles size={18} />
+                                    Random Assignment
+                                </button>
+                                <button
+                                    onClick={handleStartGame}
+                                    disabled={game.players?.some(p => !p.teamId)}
+                                    className="flex items-center gap-2 px-6 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-lg border-2 border-green-600 disabled:border-gray-400 shadow-[2px_2px_0px_0px_rgba(34,197,94,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                                >
+                                    <Play size={18} />
+                                    Start Game
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Unassigned Players */}
+                            <DroppableArea id="unassigned" title="Unassigned Players" color="#f59e0b">
+                                <AnimatePresence>
+                                    {game.players?.filter(p => !p.teamId).map(player => (
+                                        <DraggablePlayer key={player.id} player={player} />
+                                    ))}
+                                </AnimatePresence>
+                                {game.players?.filter(p => !p.teamId).length === 0 && (
+                                    <div className="text-center py-8 text-gray-400 italic text-sm">
+                                        All players assigned!
+                                    </div>
+                                )}
+                            </DroppableArea>
+
+                            {/* Team Columns */}
+                            {game.teams?.map(team => (
+                                <div key={team.id} className="space-y-2">
+                                    <DroppableArea id={team.id} title={team.name} color={team.color}>
+                                        <AnimatePresence>
+                                            {game.players?.filter(p => p.teamId === team.id).map(player => (
+                                                <DraggablePlayer key={player.id} player={player} teamColor={team.color} />
+                                            ))}
+                                        </AnimatePresence>
+                                        {game.players?.filter(p => p.teamId === team.id).length === 0 && (
+                                            <div className="text-center py-8 text-gray-400 italic text-sm">
+                                                No players yet
+                                            </div>
+                                        )}
+                                    </DroppableArea>
+                                    {/* Delete Team Button - Outside DroppableArea */}
+                                    <button
+                                        onClick={() => handleDeleteTeamClick(team.id, team.name)}
+                                        className="w-full py-2 text-xs font-bold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 border-2 border-red-300 dark:border-red-700 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                    >
+                                        Delete Team
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <DragOverlay>
+                        {activePlayerId ? (
+                            <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border-2 border-blue-500 shadow-lg opacity-90">
+                                <div className="font-bold text-black dark:text-white">
+                                    {game.players?.find(p => p.id === activePlayerId)?.nickname}
+                                </div>
+                            </div>
+                        ) : null}
+                    </DragOverlay>
+                </DndContext>
+            )}
 
             {/* Main Content Grid - 3 Columns with better spacing */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -595,6 +1003,79 @@ const GameDetailsPage = () => {
                                     className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold rounded-lg border-2 border-gray-300 dark:border-gray-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
                                 >
                                     Close
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+
+            {/* Add Team Modal */}
+            {showAddTeamModal && (
+                <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => setShowAddTeamModal(false)}>
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.9, opacity: 0 }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-700 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] p-6 max-w-md w-full"
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-black text-black dark:text-white flex items-center gap-2">
+                                <Users size={24} className="text-blue-600 dark:text-blue-400" />
+                                Add New Team
+                            </h3>
+                            <button
+                                onClick={() => setShowAddTeamModal(false)}
+                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                            >
+                                <X size={20} className="text-gray-600 dark:text-gray-400" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                    Team Name
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newTeamName}
+                                    onChange={(e) => setNewTeamName(e.target.value)}
+                                    placeholder="e.g., Team Alpha"
+                                    className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-black dark:text-white focus:border-blue-500 focus:outline-none"
+                                    autoFocus
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                    Team Color
+                                </label>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="color"
+                                        value={newTeamColor}
+                                        onChange={(e) => setNewTeamColor(e.target.value)}
+                                        className="h-10 w-20 rounded border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
+                                    />
+                                    <span className="text-sm font-mono text-gray-600 dark:text-gray-400">{newTeamColor}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2 pt-4">
+                                <button
+                                    onClick={handleAddTeam}
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg border-2 border-blue-600 shadow-[2px_2px_0px_0px_rgba(37,99,235,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                                >
+                                    <Users size={18} />
+                                    Create Team
+                                </button>
+                                <button
+                                    onClick={() => setShowAddTeamModal(false)}
+                                    className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold rounded-lg border-2 border-gray-300 dark:border-gray-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                                >
+                                    Cancel
                                 </button>
                             </div>
                         </div>

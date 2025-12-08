@@ -179,6 +179,12 @@ const CreateGameSession = () => {
             newErrors.gameCode = 'Please generate a game code or enter one manually';
         }
 
+
+
+        if (formData.categoryIds.length > 0 && availableCards.length === 0) {
+            newErrors.categoryIds = 'Selected categories do not contain any cards. Please select different categories.';
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -364,6 +370,8 @@ const CreateGameSession = () => {
                                         Select the gameplay style for this session
                                     </p>
                                 </div>
+
+
                             </div>
                         </div>
 
@@ -654,7 +662,8 @@ const CreateGameSession = () => {
                                     <ul className="space-y-1 list-disc list-inside">
                                         <li>Your game session will be created with status WAITING</li>
                                         <li>Share the game code with players so they can join</li>
-                                        <li>Once players join you can start the game</li>
+                                        <li>You can assign players to teams from the view game option</li>
+                                        <li>Once teams are assigned you can start the game</li>
                                         <li>Cards from the selected category will be used during gameplay</li>
                                     </ul>
                                 </div>

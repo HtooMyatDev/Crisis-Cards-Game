@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
-import { Gamepad2, User, Loader2, BookOpen } from 'lucide-react';
+import { Gamepad2, User, BookOpen } from 'lucide-react';
 import PageTransition from '@/components/ui/PageTransition';
 import { GameInstructions } from '@/components/game/GameInstructions';
+
+interface Team {
+    id: string;
+    name: string;
+    color: string;
+}
 
 interface Player {
     id: number;
     nickname: string;
-    team?: string;
+    teamId?: string | null;
     score: number;
     isLeader: boolean;
 }
@@ -14,9 +20,10 @@ interface Player {
 interface LobbyViewProps {
     gameCode: string;
     nickname: string;
-    team: 'RED' | 'BLUE' | null;
+    team: Team | null;
     teammates: Player[];
-    onChangeTeam: () => void;
+    allPlayers?: Player[];
+    teams?: Team[];
     onLeaveGame: () => void;
 }
 
@@ -25,7 +32,8 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
     nickname,
     team,
     teammates,
-    onChangeTeam,
+    allPlayers = [],
+    teams = [],
     onLeaveGame
 }) => {
     const [showInstructions, setShowInstructions] = useState(false);
@@ -56,39 +64,121 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
 
                         {/* Player Info */}
                         <div className="bg-gray-50 dark:bg-gray-700 border-4 border-black dark:border-gray-600 rounded-xl p-6 mb-6 relative overflow-hidden">
-                            <div className={`absolute top-0 left-0 w-full h-2 ${team === 'RED' ? 'bg-red-500' : 'bg-blue-500'}`}></div>
+                            <div className="absolute top-0 left-0 w-full h-2" style={{ backgroundColor: team?.color || 'gray' }}></div>
                             <div className="flex items-center gap-4">
-                                <div className={`w-12 h-12 border-2 border-black dark:border-gray-600 rounded-lg flex items-center justify-center ${team === 'RED' ? 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400' : 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'}`}>
+                                <div
+                                    className="w-12 h-12 border-2 border-black dark:border-gray-600 rounded-lg flex items-center justify-center"
+                                    style={{
+                                        backgroundColor: team ? `${team.color}20` : undefined,
+                                        color: team?.color
+                                    }}
+                                >
                                     <User size={24} />
                                 </div>
                                 <div>
                                     <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Playing as</p>
                                     <p className="text-xl font-black text-black dark:text-white">{nickname}</p>
                                     <div className="flex items-center gap-2">
-                                        <p className={`text-sm font-bold ${team === 'RED' ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
-                                            {team} TEAM
-                                        </p>
-                                        <button
-                                            onClick={onChangeTeam}
-                                            className="text-xs text-gray-400 dark:text-gray-500 underline hover:text-gray-600 dark:hover:text-gray-300"
+                                        <p
+                                            className="text-sm font-bold"
+                                            style={{ color: team?.color }}
                                         >
-                                            (Change)
-                                        </button>
+                                            {team ? team.name : 'No Team Assigned'}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Teammates List */}
-                        {teammates.length > 0 && (
+                        {teammates.length > 0 && team && (
                             <div className="mb-6">
                                 <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Your Teammates ({teammates.length})</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {teammates.map((p, idx) => (
-                                        <span key={idx} className={`px-3 py-1 rounded-full text-xs font-bold border-2 border-black dark:border-gray-600 ${team === 'RED' ? 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300' : 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300'}`}>
+                                        <span
+                                            key={idx}
+                                            className="px-3 py-1 rounded-full text-xs font-bold border-2 border-black dark:border-gray-600"
+                                            style={{
+                                                backgroundColor: `${team.color}20`,
+                                                color: team.color
+                                            }}
+                                        >
                                             {p.nickname} {p.nickname === nickname && '(You)'}
                                         </span>
                                     ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* All Players List */}
+                        {allPlayers.length > 0 && (
+                            <div className="mb-6">
+                                <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase mb-3 flex items-center gap-2">
+                                    <User size={14} />
+                                    All Players ({allPlayers.length})
+                                </h3>
+                                <div className="space-y-3">
+                                    {teams.map(t => {
+                                        const teamPlayers = allPlayers.filter(p => p.teamId === t.id);
+                                        if (teamPlayers.length === 0) return null;
+
+                                        return (
+                                            <div key={t.id} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 border-2 border-gray-200 dark:border-gray-600">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <div
+                                                        className="w-3 h-3 rounded-full"
+                                                        style={{ backgroundColor: t.color }}
+                                                    />
+                                                    <span className="text-xs font-bold uppercase" style={{ color: t.color }}>
+                                                        {t.name} ({teamPlayers.length})
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {teamPlayers.map((p) => (
+                                                        <span
+                                                            key={p.id}
+                                                            className="px-2 py-1 rounded text-xs font-medium border"
+                                                            style={{
+                                                                backgroundColor: `${t.color}15`,
+                                                                borderColor: `${t.color}40`,
+                                                                color: t.color
+                                                            }}
+                                                        >
+                                                            {p.nickname}{p.nickname === nickname && ' (You)'}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+
+                                    {/* Unassigned Players */}
+                                    {(() => {
+                                        const unassignedPlayers = allPlayers.filter(p => !p.teamId);
+                                        if (unassignedPlayers.length === 0) return null;
+
+                                        return (
+                                            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 border-2 border-yellow-200 dark:border-yellow-700/50">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <div className="w-3 h-3 rounded-full bg-yellow-400 animate-pulse" />
+                                                    <span className="text-xs font-bold uppercase text-yellow-700 dark:text-yellow-400">
+                                                        Waiting for Team Assignment ({unassignedPlayers.length})
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {unassignedPlayers.map((p) => (
+                                                        <span
+                                                            key={p.id}
+                                                            className="px-2 py-1 rounded text-xs font-medium bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 shadow-sm"
+                                                        >
+                                                            {p.nickname}{p.nickname === nickname && ' (You)'}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         )}

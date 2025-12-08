@@ -3,11 +3,17 @@ import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus, X } from 'lucide-react';
 
+interface TeamScoreChange {
+    teamId: string;
+    teamName: string;
+    teamColor: string;
+    scoreChange: number;
+}
+
 interface ResultsModalProps {
     isOpen: boolean;
     onClose: () => void;
-    redScoreChange: number;
-    blueScoreChange: number;
+    teamScoreChanges: TeamScoreChange[];
     selectedResponse?: string;
     autoCloseDelay?: number; // in milliseconds
 }
@@ -15,8 +21,7 @@ interface ResultsModalProps {
 export const ResultsModal: React.FC<ResultsModalProps> = ({
     isOpen,
     onClose,
-    redScoreChange,
-    blueScoreChange,
+    teamScoreChanges,
     selectedResponse,
     autoCloseDelay = 4000
 }) => {
@@ -42,7 +47,10 @@ export const ResultsModal: React.FC<ResultsModalProps> = ({
         return 'text-gray-500';
     };
 
-    const getScoreBgColor = (change: number) => {
+    const getScoreBgColor = (change: number, teamColor: string) => {
+        // We can use the team color for the border/bg tint
+        // But for score changes, green/red is usually better to indicate positive/negative
+        // Let's mix them or just use the standard green/red for the card background
         if (change > 0) return 'bg-green-50 border-green-500';
         if (change < 0) return 'bg-red-50 border-red-500';
         return 'bg-gray-50 border-gray-500';
@@ -91,48 +99,31 @@ export const ResultsModal: React.FC<ResultsModalProps> = ({
                         )}
 
                         {/* Score Changes */}
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                            {/* Red Team */}
-                            <motion.div
-                                initial={{ x: -20, opacity: 0 }}
-                                animate={{ x: 0, opacity: 1 }}
-                                transition={{ delay: 0.2 }}
-                                className={`p-6 rounded-xl border-4 ${getScoreBgColor(redScoreChange)}`}
-                            >
-                                <div className="text-center">
-                                    <p className="text-sm font-bold text-gray-600 mb-2">RED TEAM</p>
-                                    <div className="flex items-center justify-center gap-2 mb-2">
-                                        {getScoreIcon(redScoreChange)}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                            {teamScoreChanges.map((team, index) => (
+                                <motion.div
+                                    key={team.teamId}
+                                    initial={{ x: index % 2 === 0 ? -20 : 20, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    transition={{ delay: 0.2 + (index * 0.1) }}
+                                    className={`p-6 rounded-xl border-4 ${getScoreBgColor(team.scoreChange, team.teamColor)}`}
+                                >
+                                    <div className="text-center">
+                                        <p className="text-sm font-bold mb-2 uppercase" style={{ color: team.teamColor }}>
+                                            {team.teamName}
+                                        </p>
+                                        <div className="flex items-center justify-center gap-2 mb-2">
+                                            {getScoreIcon(team.scoreChange)}
+                                        </div>
+                                        <p className={`text-4xl font-black ${getScoreColor(team.scoreChange)}`}>
+                                            {team.scoreChange > 0 ? '+' : ''}{team.scoreChange}
+                                        </p>
+                                        <p className="text-xs font-semibold text-gray-500 mt-1">
+                                            {team.scoreChange > 0 ? 'Score Increased!' : team.scoreChange < 0 ? 'Score Decreased' : 'No Change'}
+                                        </p>
                                     </div>
-                                    <p className={`text-4xl font-black ${getScoreColor(redScoreChange)}`}>
-                                        {redScoreChange > 0 ? '+' : ''}{redScoreChange}
-                                    </p>
-                                    <p className="text-xs font-semibold text-gray-500 mt-1">
-                                        {redScoreChange > 0 ? 'Score Increased!' : redScoreChange < 0 ? 'Score Decreased' : 'No Change'}
-                                    </p>
-                                </div>
-                            </motion.div>
-
-                            {/* Blue Team */}
-                            <motion.div
-                                initial={{ x: 20, opacity: 0 }}
-                                animate={{ x: 0, opacity: 1 }}
-                                transition={{ delay: 0.2 }}
-                                className={`p-6 rounded-xl border-4 ${getScoreBgColor(blueScoreChange)}`}
-                            >
-                                <div className="text-center">
-                                    <p className="text-sm font-bold text-gray-600 mb-2">BLUE TEAM</p>
-                                    <div className="flex items-center justify-center gap-2 mb-2">
-                                        {getScoreIcon(blueScoreChange)}
-                                    </div>
-                                    <p className={`text-4xl font-black ${getScoreColor(blueScoreChange)}`}>
-                                        {blueScoreChange > 0 ? '+' : ''}{blueScoreChange}
-                                    </p>
-                                    <p className="text-xs font-semibold text-gray-500 mt-1">
-                                        {blueScoreChange > 0 ? 'Score Increased!' : blueScoreChange < 0 ? 'Score Decreased' : 'No Change'}
-                                    </p>
-                                </div>
-                            </motion.div>
+                                </motion.div>
+                            ))}
                         </div>
 
                         {/* Auto-advance indicator */}

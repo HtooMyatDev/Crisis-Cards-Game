@@ -3,6 +3,7 @@
 import React, { useEffect, useState, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Users, Clock, AlertTriangle, CheckCircle, XCircle, Play, Pause, RotateCcw, Save, LogOut, Loader2 } from 'lucide-react';
+import { useGamePolling } from '@/hooks/useGamePolling';
 
 interface PlayerData {
     id: number;
@@ -91,11 +92,15 @@ export default function HostControlPage({ params }: { params: Promise<{ gameCode
         }
     }, [gameCode, router]);
 
-    useEffect(() => {
-        fetchHostData();
-        const interval = setInterval(fetchHostData, 3000); // Poll every 3 seconds
-        return () => clearInterval(interval);
-    }, [gameCode, fetchHostData]);
+    // Use the custom polling hook
+    // Poll faster (1s) when game is in progress to see responses live
+    const pollInterval = hostData?.game.status === 'IN_PROGRESS' ? 1000 : 3000;
+
+    useGamePolling({
+        interval: pollInterval,
+        enabled: true,
+        onPoll: fetchHostData
+    });
 
     // Calculate time left
     useEffect(() => {

@@ -38,7 +38,7 @@ export async function GET(
                             include: {
                                 cards: {
                                     where: {
-                                        status: 'OPEN',
+                                        status: 'Active',
                                         isArchived: false
                                     },
                                     include: {

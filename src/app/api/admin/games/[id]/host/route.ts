@@ -1,5 +1,36 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { GameSession, GameSessionCategory, Category, Card, CardResponse, Player, PlayerResponse } from "@prisma/client";
+
+// Manual Team definition since Prisma Client is not exporting it
+interface Team {
+    id: string;
+    gameSessionId: string;
+    name: string;
+    budget: number;
+    baseValue: number;
+    color: string;
+    order: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+// Define manual type to bypass Prisma inference issues
+interface GameSessionHostData extends GameSession {
+    categories: (GameSessionCategory & {
+        category: Category & {
+            cards: (Card & {
+                cardResponses: CardResponse[]
+            })[]
+        }
+    })[];
+    players: (Player & {
+        teamId: string | null;
+        responses: PlayerResponse[];
+        team: Team | null;
+    })[];
+    teams: Team[];
+}
 
 export async function GET(
     request: NextRequest,
@@ -15,7 +46,7 @@ export async function GET(
             );
         }
 
-        // Find the game session
+        // Find the game session with type casting to bypass inference issues
         const gameSession = await prisma.gameSession.findUnique({
             where: {
                 id
@@ -27,7 +58,7 @@ export async function GET(
                             include: {
                                 cards: {
                                     where: {
-                                        status: 'OPEN',
+                                        status: 'Active',
                                         isArchived: false
                                     },
                                     include: {
@@ -49,11 +80,17 @@ export async function GET(
                                 respondedAt: 'desc'
                             },
                             take: 1
-                        }
+                        },
+                        team: true
+                    }
+                },
+                teams: {
+                    orderBy: {
+                        order: 'asc'
                     }
                 }
-            }
-        });
+            } as any // Cast the entire include object to any
+        }) as unknown as GameSessionHostData | null;
 
         if (!gameSession) {
             return NextResponse.json(
@@ -83,7 +120,8 @@ export async function GET(
             return {
                 id: player.id,
                 nickname: player.nickname,
-                team: player.team,
+                team: player.team?.name || null,
+                teamId: player.teamId,
                 score: player.score,
                 isConnected: player.isConnected,
                 hasResponded,
@@ -91,30 +129,23 @@ export async function GET(
             };
         });
 
-        // Calculate team statistics
-        const redTeam = playersWithResponses.filter(p => p.team === 'RED');
-        const blueTeam = playersWithResponses.filter(p => p.team === 'BLUE');
+        // Calculate dynamic team statistics
+        const teamStats: Record<string, { playerCount: number; avgScore: number; responseRate: number }> = {};
 
-        const teamStats = {
-            RED: {
-                playerCount: redTeam.length,
-                avgScore: redTeam.length > 0
-                    ? Math.round(redTeam.reduce((sum, p) => sum + p.score, 0) / redTeam.length)
+        // Initialize stats for all teams in the session
+        gameSession.teams.forEach(team => {
+            const teamPlayers = playersWithResponses.filter(p => p.teamId === team.id);
+
+            teamStats[team.name] = {
+                playerCount: teamPlayers.length,
+                avgScore: teamPlayers.length > 0
+                    ? Math.round(teamPlayers.reduce((sum, p) => sum + p.score, 0) / teamPlayers.length)
                     : 0,
-                responseRate: redTeam.length > 0
-                    ? Math.round((redTeam.filter(p => p.hasResponded).length / redTeam.length) * 100)
+                responseRate: teamPlayers.length > 0
+                    ? Math.round((teamPlayers.filter(p => p.hasResponded).length / teamPlayers.length) * 100)
                     : 0
-            },
-            BLUE: {
-                playerCount: blueTeam.length,
-                avgScore: blueTeam.length > 0
-                    ? Math.round(blueTeam.reduce((sum, p) => sum + p.score, 0) / blueTeam.length)
-                    : 0,
-                responseRate: blueTeam.length > 0
-                    ? Math.round((blueTeam.filter(p => p.hasResponded).length / blueTeam.length) * 100)
-                    : 0
-            }
-        };
+            };
+        });
 
         // Prepare response data
         const responseData = {
@@ -124,7 +155,8 @@ export async function GET(
                 status: gameSession.status,
                 currentCardIndex: gameSession.currentCardIndex,
                 lastCardStartedAt: gameSession.lastCardStartedAt,
-                totalCards: allCards.length
+                totalCards: allCards.length,
+                teams: gameSession.teams
             },
             currentCard: {
                 id: currentCard.id,

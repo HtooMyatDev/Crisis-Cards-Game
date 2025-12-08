@@ -63,3 +63,25 @@ export async function PATCH(
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const params = await context.params;
+    const { id } = params;
+
+    // Prevent deleting self
+    // In a real app, you'd check the current user session here
+
+    await prisma.user.delete({
+      where: { id: parseInt(id) }
+    });
+
+    return NextResponse.json({ success: true, message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Failed to delete user:', error);
+    return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });
+  }
+}

@@ -5,6 +5,17 @@ export interface Player {
     score: number;
     joinedAt: Date | string;
     isConnected: boolean;
+    team?: string | null; // Legacy field - deprecated
+    teamId?: string | null; // New dynamic team reference
+}
+
+export interface Team {
+    id: string;
+    name: string;
+    color: string;
+    budget: number;
+    baseValue: number;
+    order: number;
 }
 
 export interface Category {
@@ -44,6 +55,7 @@ export interface GameSession {
     host?: User;
     categories?: GameSessionCategory[];
     players?: Player[];
+    teams?: Team[]; // New dynamic teams
 }
 
 // Game creation types

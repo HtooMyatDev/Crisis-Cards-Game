@@ -1,38 +1,94 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/app/actions/auth";
 
+/**
+ * GET /api/admin/games/[id]
+ * Retrieves a specific game session by ID
+ *
+ * @requires Authentication - User must be logged in
+ * @param {string} id - Game session ID
+ * @returns {200} Game session details
+ * @returns {401} Unauthorized
+ * @returns {404} Game not found
+ * @returns {500} Server error
+ */
 export async function GET(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        // Authentication check
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json(
+                { error: 'Unauthorized. Please log in.' },
+                { status: 401 }
+            );
+        }
+
         const { id } = await params;
+
         const game = await prisma.gameSession.findUnique({
-            where: {
-                id
-            },
+            where: { id },
             include: {
-                host: true,
-                categories: {
-                    include: {
-                        category: true
+                host: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true
                     }
                 },
-                players: true
+                categories: {
+                    include: {
+                        category: {
+                            select: {
+                                id: true,
+                                name: true,
+                                color: true
+                            }
+                        }
+                    }
+                },
+                players: {
+                    select: {
+                        id: true,
+                        nickname: true,
+                        teamId: true,
+                        score: true,
+                        isConnected: true,
+                        joinedAt: true,
+                        isLeader: true
+                    },
+                    orderBy: {
+                        joinedAt: 'asc'
+                    }
+                },
+                teams: {
+                    include: {
+                        players: {
+                            select: {
+                                id: true,
+                                nickname: true
+                            }
+                        }
+                    },
+                    orderBy: {
+                        order: 'asc'
+                    }
+                }
             }
         });
 
         if (!game) {
             return NextResponse.json(
-                { error: 'Game not found' },
+                { error: 'Game session not found' },
                 { status: 404 }
             );
         }
 
         return NextResponse.json({ success: true, game });
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    catch (error: any) {
+    } catch (error) {
         console.error('Error fetching game:', error);
         return NextResponse.json(
             { error: 'Failed to fetch game details' },
@@ -41,30 +97,56 @@ export async function GET(
     }
 }
 
+/**
+ * PATCH /api/admin/games/[id]
+ * Updates a game session status
+ *
+ * @requires Authentication - Admin only
+ * @param {string} id - Game session ID
+ * @body {string} status - New status (WAITING, IN_PROGRESS, PAUSED, COMPLETED)
+ * @returns {200} Updated game session
+ * @returns {400} Invalid status
+ * @returns {401} Unauthorized
+ * @returns {500} Server error
+ */
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        // Authentication check
+        const user = await getCurrentUser();
+        if (!user || user.role !== 'ADMIN') {
+            return NextResponse.json(
+                { error: 'Unauthorized. Admin access required.' },
+                { status: 401 }
+            );
+        }
+
         const body = await request.json();
         const { status } = body;
         const { id } = await params;
 
-        if (!status) {
+        // Validate status
+        const validStatuses = ['WAITING', 'IN_PROGRESS', 'PAUSED', 'COMPLETED'];
+        if (!status || !validStatuses.includes(status)) {
             return NextResponse.json(
-                { error: 'Status is required' },
+                { error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` },
                 { status: 400 }
             );
         }
 
         // Prepare update data
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const updateData: any = { status };
+        const updateData: {
+            status: 'WAITING' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED';
+            startedAt?: Date;
+            endedAt?: Date;
+        } = { status };
 
-        // Set timestamps based on status
+        // Set timestamps based on status transition
         if (status === 'IN_PROGRESS') {
-            // Only set startedAt if it's not already set (optional, depends on business logic)
-            // For now, we'll update it to track the latest start
+            // We update startedAt every time it goes to in_progress to track latest session start
+            // Alternatively, check if it's null to only set on first start
             updateData.startedAt = new Date();
         } else if (status === 'COMPLETED') {
             updateData.endedAt = new Date();
@@ -90,29 +172,50 @@ export async function PATCH(
     }
 }
 
+/**
+ * DELETE /api/admin/games/[id]
+ * Deletes a game session and all related data
+ *
+ * @requires Authentication - Admin only
+ * @param {string} id - Game session ID
+ * @returns {200} Success message
+ * @returns {401} Unauthorized
+ * @returns {500} Server error
+ */
 export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        // Authentication check
+        const user = await getCurrentUser();
+        if (!user || user.role !== 'ADMIN') {
+            return NextResponse.json(
+                { error: 'Unauthorized. Admin access required.' },
+                { status: 401 }
+            );
+        }
+
         const { id } = await params;
 
-        // First, delete all players associated with this game session
-        await prisma.player.deleteMany({
-            where: {
-                gameSessionId: id
-            }
-        });
+        // Use transaction to ensure clean deletion
+        await prisma.$transaction(async (tx) => {
+            // 1. Delete all players associated with this game session
+            await tx.player.deleteMany({
+                where: { gameSessionId: id }
+            });
 
-        // Then delete the game session (cascade will handle related records)
-        const deletedGame = await prisma.gameSession.delete({
-            where: { id }
+            // 2. Delete the game session
+            // Cascade delete in schema should handle related records like GameSessionCategory,
+            // Teams, LeaderVotes, etc. but explicit player deletion is safer if no cascade
+            await tx.gameSession.delete({
+                where: { id }
+            });
         });
 
         return NextResponse.json({
             success: true,
-            message: 'Game session deleted successfully',
-            game: deletedGame
+            message: 'Game session deleted successfully'
         });
 
     } catch (error) {

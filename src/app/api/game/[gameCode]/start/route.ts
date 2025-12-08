@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { GameStatus } from "@prisma/client";
 
 export async function POST(
     request: NextRequest,
@@ -16,7 +15,6 @@ export async function POST(
             );
         }
 
-        // Verify game session
         const gameSession = await prisma.gameSession.findUnique({
             where: { gameCode: gameCode.toUpperCase() }
         });
@@ -28,19 +26,20 @@ export async function POST(
             );
         }
 
-        // Update status to IN_PROGRESS
-        // Start the game
+        // Start the game by setting the timestamp for the first card
         const updatedGame = await prisma.gameSession.update({
             where: { id: gameSession.id },
             data: {
-                status: 'IN_PROGRESS',
-                startedAt: new Date(),
-                lastCardStartedAt: new Date(), // Set timer start for first card
-                currentCardIndex: 0 // Reset to first card
+                lastCardStartedAt: new Date(),
+                status: 'IN_PROGRESS' // Ensure status is correct
             }
         });
 
-        return NextResponse.json({ success: true, game: updatedGame });
+        return NextResponse.json({
+            success: true,
+            message: 'Game started successfully',
+            game: updatedGame
+        });
 
     } catch (error) {
         console.error('Error starting game:', error);

@@ -17,9 +17,12 @@ export async function POST(
             );
         }
 
-        // Verify game session
+        // Verify game session with team data
         const gameSession = await prisma.gameSession.findUnique({
-            where: { gameCode: gameCode.toUpperCase() }
+            where: { gameCode: gameCode.toUpperCase() },
+            include: {
+                teams: true
+            }
         });
 
         if (!gameSession) {
@@ -32,19 +35,10 @@ export async function POST(
         // Verify player belongs to this game
         const player = await prisma.player.findUnique({
             where: { id: parseInt(playerId) },
-            include: { gameSession: true }
-        });
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const isLeader = (player as any)?.isLeader;
-
-        console.log('Submit validation:', {
-            playerId,
-            playerFound: !!player,
-            playerGameSessionId: player?.gameSessionId,
-            gameSessionId: gameSession.id,
-            match: player?.gameSessionId === gameSession.id,
-            isLeader: isLeader
+            include: {
+                gameSession: true,
+                team: true
+            }
         });
 
         if (!player || player.gameSession.gameCode !== gameCode) {
@@ -54,13 +48,27 @@ export async function POST(
             );
         }
 
-        // ALLOW ALL PLAYERS TO SUBMIT (Votes vs Final Decision)
-        // We no longer block non-leaders. Their submission counts as a vote.
-        // The frontend will distinguish the UX.
+        if (!player.team) {
+            return NextResponse.json(
+                { error: 'Player not assigned to a team' },
+                { status: 400 }
+            );
+        }
+
+        // Get response option with cost
+        const responseOption = await prisma.cardResponse.findUnique({
+            where: { id: parseInt(responseId) }
+        });
+
+        if (!responseOption) {
+            return NextResponse.json(
+                { error: 'Response option not found' },
+                { status: 404 }
+            );
+        }
 
         // Check if already responded
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const existingResponse = await (prisma as any).playerResponse.findUnique({
+        const existingResponse = await prisma.playerResponse.findUnique({
             where: {
                 playerId_cardId: {
                     playerId: parseInt(playerId),
@@ -76,9 +84,38 @@ export async function POST(
             );
         }
 
+        // Calculate new budget (cost is negative, so we add it)
+        const newBudget = player.team.budget + responseOption.cost;
+        const isDebt = newBudget < 0;
+
+        // Update team budget
+        await prisma.team.update({
+            where: { id: player.teamId! },
+            data: { budget: newBudget }
+        });
+
+        // Calculate score with team base value
+        const baseValue = player.team.baseValue;
+        const effectValues = {
+            political: responseOption.politicalEffect,
+            economic: responseOption.economicEffect,
+            infrastructure: responseOption.infrastructureEffect,
+            society: responseOption.societyEffect,
+            environment: responseOption.environmentEffect
+        };
+
+        // Total effect is sum of all effects plus base value
+        const totalEffect = Object.values(effectValues).reduce((sum, val) => sum + val, 0);
+        const scoreChange = baseValue + totalEffect;
+
+        // Update player score
+        await prisma.player.update({
+            where: { id: parseInt(playerId) },
+            data: { score: player.score + scoreChange }
+        });
+
         // Record response
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const response = await (prisma as any).playerResponse.create({
+        const response = await prisma.playerResponse.create({
             data: {
                 playerId: parseInt(playerId),
                 cardId: parseInt(cardId),
@@ -86,7 +123,18 @@ export async function POST(
             }
         });
 
-        return NextResponse.json({ success: true, responseId: response.id });
+        return NextResponse.json({
+            success: true,
+            responseId: response.id,
+            consequence: {
+                cost: responseOption.cost,
+                effects: effectValues,
+                baseValue,
+                scoreChange,
+                newBudget,
+                isDebt
+            }
+        });
 
     } catch (error) {
         console.error('Error submitting response:', error);

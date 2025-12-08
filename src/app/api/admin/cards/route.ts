@@ -1,16 +1,39 @@
-
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma'; // Adjust the import path as needed
+import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/app/actions/auth';
 import { Prisma } from '@prisma/client';
 
+/**
+ * POST /api/admin/cards
+ * Creates a new crisis card with response options
+ *
+ * @requires Authentication - Admin only
+ * @body {string} title - Card title
+ * @body {string} description - Card description
+ * @body {number} timeLimit - Time limit in seconds
+ * @body {string} status - Card status (DRAFT, PUBLISHED, ARCHIVED)
+ * @body {number} categoryId - Associated category ID
+ * @body {Object[]} responseOptions - Array of response options
+ * @body {number} political - Base political impact
+ * @body {number} economic - Base economic impact
+ * @body {number} infrastructure - Base infrastructure impact
+ * @body {number} society - Base society impact
+ * @body {number} environment - Base environment impact
+ *
+ * @returns {200} Created card
+ * @returns {400} Validation error
+ * @returns {401} Unauthorized
+ * @returns {409} Conflict (duplicate title)
+ * @returns {500} Server error
+ */
 export async function POST(request: NextRequest) {
     try {
+        // Authentication check
         const user = await getCurrentUser();
 
-        if (!user) {
+        if (!user || user.role !== 'ADMIN') {
             return NextResponse.json(
-                { error: 'Unauthorized' },
+                { error: 'Unauthorized. Admin access required.' },
                 { status: 401 }
             );
         }
@@ -21,9 +44,8 @@ export async function POST(request: NextRequest) {
             description,
             timeLimit,
             status,
-            responseOptions, // This now contains objects with text and effects
+            responseOptions,
             categoryId,
-            // New card base values
             political,
             economic,
             infrastructure,
@@ -75,14 +97,6 @@ export async function POST(request: NextRequest) {
                     );
                 }
             }
-
-            // Validate score field
-            if (option.score !== undefined && typeof option.score !== 'number') {
-                return NextResponse.json(
-                    { error: `Response option ${i + 1} must have valid score value (number)` },
-                    { status: 400 }
-                );
-            }
         }
 
         // Use Prisma transaction to ensure data consistency
@@ -96,19 +110,17 @@ export async function POST(request: NextRequest) {
                     status,
                     categoryId,
                     createdBy: user.id,
-                    // Add the new card base values
                     political,
                     economic,
                     infrastructure,
                     society,
                     environment,
-                    // Remove responseOptions from here since we're handling them separately
                 },
             });
 
             // Create the response options separately
             const cardResponses = await Promise.all(
-                responseOptions.map((option, index) =>
+                responseOptions.map((option: any, index: number) =>
                     tx.cardResponse.create({
                         data: {
                             cardId: newCard.id,
@@ -119,7 +131,8 @@ export async function POST(request: NextRequest) {
                             infrastructureEffect: option.infrastructureEffect,
                             societyEffect: option.societyEffect,
                             environmentEffect: option.environmentEffect,
-                            score: option.score ?? 0, // Default to 0 if not provided
+                            score: option.score ?? 0,
+                            cost: option.cost ?? 0, // Include cost field
                         }
                     })
                 )
@@ -128,7 +141,6 @@ export async function POST(request: NextRequest) {
             return { card: newCard, responses: cardResponses };
         });
 
-        // Return the created card with its responses
         return NextResponse.json({
             success: true,
             id: result.card.id,
@@ -142,14 +154,15 @@ export async function POST(request: NextRequest) {
 
         // Handle specific Prisma errors
         if (error && typeof error === 'object' && 'code' in error) {
-            if (error.code === 'P2002') {
+            const prismaError = error as { code: string };
+            if (prismaError.code === 'P2002') {
                 return NextResponse.json(
                     { error: 'A card with this title already exists' },
                     { status: 409 }
                 );
             }
 
-            if (error.code === 'P2003') {
+            if (prismaError.code === 'P2003') {
                 return NextResponse.json(
                     { error: 'Invalid category ID or creator ID' },
                     { status: 400 }
@@ -158,17 +171,40 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json(
-            {
-                error: 'Failed to create card',
-                details: process.env.NODE_ENV === 'development' && error && typeof error === 'object' && 'message' in error ? String(error.message) : undefined
-            },
+            { error: 'Failed to create card' },
             { status: 500 }
         );
     }
 }
+
+/**
+ * GET /api/admin/cards
+ * Retrieves a list of cards with pagination and filtering
+ *
+ * @requires Authentication - User must be logged in
+ * @query {number} page - Page number (default: 1)
+ * @query {number} limit - Items per page (default: 10)
+ * @query {string} search - Search term for title/description
+ * @query {string} status - Filter by status
+ * @query {string} category - Filter by category name
+ * @query {boolean} isArchived - Filter archived status
+ *
+ * @returns {200} List of cards with pagination metadata
+ * @returns {401} Unauthorized
+ * @returns {500} Server error
+ */
 export async function GET(request: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url)
+        // Authentication check
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json(
+                { error: 'Unauthorized. Please log in.' },
+                { status: 401 }
+            );
+        }
+
+        const { searchParams } = new URL(request.url);
         const isArchivedParam = searchParams.get('isArchived');
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '10');
@@ -199,12 +235,15 @@ export async function GET(request: NextRequest) {
             };
         }
 
+        // Execute query and count in parallel
         const [cards, total] = await Promise.all([
             prisma.card.findMany({
                 where: whereClause,
                 include: {
                     category: true,
-                    cardResponses: true
+                    cardResponses: {
+                        orderBy: { order: 'asc' }
+                    }
                 },
                 skip,
                 take: limit,
@@ -222,14 +261,12 @@ export async function GET(request: NextRequest) {
                 limit,
                 totalPages: Math.ceil(total / limit)
             }
-        })
-    }
-    catch (error: unknown) {
+        });
+    } catch (error: unknown) {
         console.error('Error fetching cards:', error);
         return NextResponse.json(
             { error: 'Failed to fetch cards' },
             { status: 500 }
-        )
+        );
     }
-
 }

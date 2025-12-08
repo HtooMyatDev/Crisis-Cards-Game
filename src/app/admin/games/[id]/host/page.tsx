@@ -45,6 +45,11 @@ interface HostData {
         responses: CardResponse[];
     };
     players: PlayerData[];
+    teams: {
+        id: string;
+        name: string;
+        color: string;
+    }[];
     teamStats: {
         RED: { playerCount: number; avgScore: number; responseRate: number };
         BLUE: { playerCount: number; avgScore: number; responseRate: number };
@@ -192,6 +197,146 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
     }
 
     if (!hostData) return null;
+
+    const handleAssignPlayer = async (playerId: number, teamId: string) => {
+        try {
+            const res = await fetch(`/api/admin/games/${hostData?.game.id}/players`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    assignments: [{ playerId, teamId }]
+                })
+            });
+
+            if (!res.ok) throw new Error('Failed to assign player');
+            fetchHostData();
+        } catch (err) {
+            console.error('Error assigning player:', err);
+            alert('Failed to assign player');
+        }
+    };
+
+    const handleStartGame = async () => {
+        if (!confirm('Are you sure you want to start the game? Ensure teams are balanced.')) return;
+
+        try {
+            const res = await fetch(`/api/game/${hostData?.game.gameCode}/start`, {
+                method: 'POST'
+            });
+
+            if (!res.ok) throw new Error('Failed to start game');
+            fetchHostData();
+        } catch (err) {
+            console.error('Error starting game:', err);
+            alert('Failed to start game');
+        }
+    };
+
+    // Team Assignment View - Show when game is WAITING or IN_PROGRESS without cards started
+    if ((hostData.game.status === 'WAITING' || (hostData.game.status === 'IN_PROGRESS' && !hostData.game.lastCardStartedAt))) {
+        const unassignedPlayers = hostData.players.filter(p => !p.team);
+        const assignedPlayers = hostData.players.filter(p => p.team);
+
+        return (
+            <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
+                <div className="max-w-6xl mx-auto">
+                    <div className="bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-700 rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] p-6 mb-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h1 className="text-3xl font-black text-black dark:text-white mb-2">TEAM ASSIGNMENT</h1>
+                                <p className="text-gray-600 dark:text-gray-400">Assign players to teams before starting the game.</p>
+                            </div>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => router.push('/admin/games/manage')}
+                                    className="px-4 py-2 bg-gray-200 text-gray-800 font-bold rounded-lg border-2 border-gray-300"
+                                >
+                                    Back
+                                </button>
+                                <button
+                                    onClick={handleStartGame}
+                                    disabled={hostData.teams.some(t =>
+                                        !hostData.players.some(p => p.team === t.name || p.team === t.id) // Check if team has players (using name or id as team ref might vary)
+                                    )}
+                                    className="px-6 py-2 bg-green-500 text-white font-bold rounded-lg border-2 border-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                >
+                                    <Play size={20} /> START GAME
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Unassigned Players */}
+                            <div className="lg:col-span-1 bg-gray-50 dark:bg-gray-700/30 rounded-xl p-4 border-2 border-gray-200 dark:border-gray-600">
+                                <h2 className="font-bold text-lg mb-4 flex items-center justify-between text-black dark:text-white">
+                                    <span>Unassigned ({unassignedPlayers.length})</span>
+                                    <Users size={20} className="text-gray-400" />
+                                </h2>
+                                <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                                    {unassignedPlayers.map(player => (
+                                        <div key={player.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
+                                            <div className="font-bold mb-2 text-black dark:text-white">{player.nickname}</div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {hostData.teams.map(team => (
+                                                    <button
+                                                        key={team.id}
+                                                        onClick={() => handleAssignPlayer(player.id, team.id)}
+                                                        className="px-2 py-1 text-xs font-bold rounded border transition-colors"
+                                                        style={{
+                                                            backgroundColor: `${team.color}20`,
+                                                            color: team.color,
+                                                            borderColor: team.color
+                                                        }}
+                                                    >
+                                                        {team.name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {unassignedPlayers.length === 0 && (
+                                        <div className="text-center py-8 text-gray-500 dark:text-gray-400 italic">
+                                            All players assigned!
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Teams */}
+                            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {hostData.teams.map(team => {
+                                    const teamPlayers = hostData.players.filter(p => p.team === team.name || p.team === team.id); // Handle legacy/new team ref
+                                    return (
+                                        <div key={team.id} className="bg-white dark:bg-gray-800 rounded-xl border-2 p-4" style={{ borderColor: team.color }}>
+                                            <h3 className="font-black text-lg mb-3 flex items-center justify-between" style={{ color: team.color }}>
+                                                {team.name.toUpperCase()}
+                                                <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-black dark:text-white">
+                                                    {teamPlayers.length}
+                                                </span>
+                                            </h3>
+                                            <div className="space-y-2">
+                                                {teamPlayers.map(player => (
+                                                    <div key={player.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-100 dark:border-gray-600">
+                                                        <span className="font-medium text-black dark:text-white">{player.nickname}</span>
+                                                        {/* Optional: Add remove/move button here */}
+                                                    </div>
+                                                ))}
+                                                {teamPlayers.length === 0 && (
+                                                    <div className="text-center py-4 text-gray-400 text-sm italic">
+                                                        No players yet
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const progressPercent = hostData.totalPlayers > 0
         ? (hostData.respondedCount / hostData.totalPlayers) * 100

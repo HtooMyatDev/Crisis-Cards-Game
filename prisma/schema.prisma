@@ -5,146 +5,157 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-provider = "postgresql"
-url = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // User management
 model User {
-id Int @id @default(autoincrement())
-email String @unique
-name String?
-username String? // Display username
-bio String? // User biography
-location String? // User location
-password String
-role UserRole @default(USER)
-isActive Boolean @default(true)
-createdAt DateTime @default(now())
-updatedAt DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  username  String? // Display username
+  bio       String? // User biography
+  location  String? // User location
+  password  String
+  role      UserRole @default(USER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-// Relations
-createdCards Card[] @relation("CardCreator")
-assignedCards Card[] @relation("CardAssignee")
-archivedCards Card[] @relation("CardArchivedBy")
-cardComments Comment[]
-cardActivities Activity[]
-createdCategories Category[] @relation("CategoryCreator")
-createdTemplates Template[] @relation("TemplateCreator")
-ColorPreset ColorPreset[]
-hostedGames GameSession[]
-    playedGames Player[]
-    achievements UserAchievement[]
-    notifications Notification[]
-    settings UserSettings?
+  // Relations
+  createdCards      Card[]            @relation("CardCreator")
+  assignedCards     Card[]            @relation("CardAssignee")
+  archivedCards     Card[]            @relation("CardArchivedBy")
+  cardComments      Comment[]
+  cardActivities    Activity[]
+  createdCategories Category[]        @relation("CategoryCreator")
+  createdTemplates  Template[]        @relation("TemplateCreator")
+  ColorPreset       ColorPreset[]
+  hostedGames       GameSession[]
+  playedGames       Player[]
+  achievements      UserAchievement[]
+  notifications     Notification[]
+  settings          UserSettings?
 
-@@map("users")
+  @@map("users")
 }
 
 model Achievement {
-    id          Int      @id @default(autoincrement())
-    name        String   @unique
-    description String
-    icon        String   @default("Trophy") // Lucide icon name
-    condition   String   // JSON string or code describing unlock condition
-    points      Int      @default(10)
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String
+  icon        String   @default("Trophy") // Lucide icon name
+  condition   String // JSON string or code describing unlock condition
+  points      Int      @default(10)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-    // Relations
-    users UserAchievement[]
+  // Relations
+  users UserAchievement[]
 
-    @@map("achievements")
+  @@map("achievements")
 }
 
 model UserAchievement {
-    id            Int      @id @default(autoincrement())
-    userId        Int
-    achievementId Int
-    unlockedAt    DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  achievementId Int
+  unlockedAt    DateTime @default(now())
 
-    // Relations
-    user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-    achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  // Relations
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
 
-    @@unique([userId, achievementId])
-    @@map("user_achievements")
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
 }
 
 model ColorPreset {
-id Int @id @default(autoincrement())
-name String @db.VarChar(50)
-description String? @db.Text
-backgroundColor String @db.VarChar(7) // Background color for cards/sections
-textColor String @db.VarChar(7) // Text color for readability
-textBoxColor String @db.VarChar(7) // Color for text boxes/input fields
-isActive Boolean @default(true)
-isDefault Boolean @default(false) // Mark system defaults
-usageCount Int @default(0) // Track popularity
-createdAt DateTime @default(now())
-updatedAt DateTime @updatedAt
-createdById Int? // Optional: link to admin user who created it
+  id              Int      @id @default(autoincrement())
+  name            String   @db.VarChar(50)
+  description     String?  @db.Text
+  backgroundColor String   @db.VarChar(7) // Background color for cards/sections
+  textColor       String   @db.VarChar(7) // Text color for readability
+  textBoxColor    String   @db.VarChar(7) // Color for text boxes/input fields
+  isActive        Boolean  @default(true)
+  isDefault       Boolean  @default(false) // Mark system defaults
+  usageCount      Int      @default(0) // Track popularity
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdById     Int? // Optional: link to admin user who created it
 
-// Relations
-createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
-categories Category[] // Categories using this preset
+  // Relations
+  createdBy  User?      @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  categories Category[] // Categories using this preset
 
-@@map("color_presets")
+  @@map("color_presets")
 }
-model GameSession {
-  id               String   @id @default(cuid())
-  name             String
-  gameCode         String   @unique
-  gameMode         String   @default("Standard")
-  hostId           Int
-  status           GameStatus @default(WAITING)
-  currentCardIndex Int      @default(0)
-  lastCardStartedAt DateTime?
-  startedAt        DateTime?
-  endedAt          DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  shuffledCardIds  Int[]    @default([]) // Store shuffled card IDs for deterministic order
 
-  @@index([hostId])
+model GameSession {
+  id                String     @id @default(cuid())
+  name              String
+  gameCode          String     @unique
+  gameMode          String     @default("Standard")
+  hostId            Int
+  status            GameStatus @default(WAITING)
+  currentCardIndex  Int        @default(0)
+  lastCardStartedAt DateTime?
+  startedAt         DateTime?
+  endedAt           DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  shuffledCardIds   Int[]      @default([]) // Store shuffled card IDs for deterministic order
+
+  // Round system
+  currentRound  Int  @default(1)
+  cardsPerRound Int  @default(3)
+  totalRounds   Int? // Optional limit
+
+  // Multi-team configuration
+  numberOfTeams Int @default(2)
+  initialBudget Int @default(5000)
 
   // Relations
   host        User                  @relation(fields: [hostId], references: [id])
   categories  GameSessionCategory[] // Changed from 'category' to 'categories'
   players     Player[]
+  teams       Team[]
+  leaderVotes LeaderVote[]
 
+  @@index([hostId])
   @@map("game_sessions")
 }
 
 model GameSessionCategory {
-id String @id @default(cuid())
-gameSessionId String
-categoryId Int
-gameSession GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
-category Category @relation(fields: [categoryId], references: [id])
-createdAt DateTime @default(now())
+  id            String      @id @default(cuid())
+  gameSessionId String
+  categoryId    Int
+  gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+  category      Category    @relation(fields: [categoryId], references: [id])
+  createdAt     DateTime    @default(now())
 
-@@unique([gameSessionId, categoryId])
-@@index([gameSessionId])
-@@index([categoryId])
+  @@unique([gameSessionId, categoryId])
+  @@index([gameSessionId])
+  @@index([categoryId])
 }
 
 // Categories for organizing cards
 model Category {
-  id             Int          @id @default(autoincrement())
-  name           String       @unique
-  description    String?
-  color          String       @default("#6b7280") // ADD THIS LINE
-  colorPresetId  Int?         // Reference to ColorPreset
-  status         Status       @default(ACTIVE)
-  isArchived     Boolean      @default(false)
-  createdBy      Int
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  description   String?
+  color         String   @default("#6b7280") // ADD THIS LINE
+  colorPresetId Int? // Reference to ColorPreset
+  status        Status   @default(ACTIVE)
+  isArchived    Boolean  @default(false)
+  createdBy     Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relations
   creator      User                  @relation("CategoryCreator", fields: [createdBy], references: [id])
@@ -164,15 +175,22 @@ model Player {
   score         Int      @default(0)
   joinedAt      DateTime @default(now())
   isConnected   Boolean  @default(true)
-  team          String? // "RED" or "BLUE"
+  teamId        String? // Reference to Team instead of hardcoded string
   isLeader      Boolean  @default(false) // Team leader flag
   lastSeen      DateTime @default(now()) // Track last activity for heartbeat
   userId        Int? // Optional link to registered user
 
+  // Voting tracking
+  votedForId    Int? // Who this player voted for
+  votesReceived Int  @default(0)
+
   // Relations
   gameSession GameSession      @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
   user        User?            @relation(fields: [userId], references: [id])
+  team        Team?            @relation(fields: [teamId], references: [id], onDelete: SetNull)
   responses   PlayerResponse[]
+  votesGiven  LeaderVote[]     @relation("VoterVotes")
+  votesRcvd   LeaderVote[]     @relation("CandidateVotes")
 
   @@unique([gameSessionId, nickname]) // Unique nickname per game
   @@map("players")
@@ -180,239 +198,240 @@ model Player {
 
 // Main crisis cards
 model Card {
-id Int @id @default(autoincrement())
-title String
-description String?
-timeLimit Int?
-status String @default("OPEN")
-categoryId Int
-createdBy Int
-assignedTo Int?
-archivedById Int?
-isArchived Boolean @default(false)
-archivedAt DateTime?
-createdAt DateTime @default(now())
-updatedAt DateTime @updatedAt
+  id           Int       @id @default(autoincrement())
+  title        String
+  description  String?
+  timeLimit    Int?
+  status       String    @default("OPEN")
+  categoryId   Int
+  createdBy    Int
+  assignedTo   Int?
+  archivedById Int?
+  isArchived   Boolean   @default(false)
+  archivedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-// New card base values
-  political Int @default(0)
-  economic Int @default(0)
-  infrastructure Int @default(0)
-  society Int @default(0)
-  environment Int @default(0)
+  // Card base values - DEPRECATED: Now on Team model
+  // political Int @default(0)
+  // economic Int @default(0)
+  // infrastructure Int @default(0)
+  // society Int @default(0)
+  // environment Int @default(0)
 
-// Relations
-category Category @relation(fields: [categoryId], references: [id])
-creator User @relation("CardCreator", fields: [createdBy], references: [id])
-assignee User? @relation("CardAssignee", fields: [assignedTo], references: [id])
-archivedBy User? @relation("CardArchivedBy", fields: [archivedById], references: [id])
-comments Comment[]
-activities Activity[]
-attachments Attachment[]
-cardResponses CardResponse[] // New relation for response options
+  // Relations
+  category        Category         @relation(fields: [categoryId], references: [id])
+  creator         User             @relation("CardCreator", fields: [createdBy], references: [id])
+  assignee        User?            @relation("CardAssignee", fields: [assignedTo], references: [id])
+  archivedBy      User?            @relation("CardArchivedBy", fields: [archivedById], references: [id])
+  comments        Comment[]
+  activities      Activity[]
+  attachments     Attachment[]
+  cardResponses   CardResponse[] // New relation for response options
   playerResponses PlayerResponse[]
 
   @@index([status])
   @@index([categoryId])
   @@index([isArchived])
   @@index([title])
-@@map("cards")
+  @@map("cards")
 }
 
 // New model for response options with their own values
 model CardResponse {
-id Int @id @default(autoincrement())
-cardId Int
-text String
-order Int @default(0) // To maintain order of responses
+  id     Int    @id @default(autoincrement())
+  cardId Int
+  text   String
+  order  Int    @default(0) // To maintain order of responses
 
-// Response option effects on card values
-  politicalEffect Int @default(0)
-  economicEffect Int @default(0)
+  // Cost system (negative values = cost)
+  cost Int @default(0)
+
+  // Response option effects on card values (limited to -5 to +5)
+  politicalEffect      Int @default(0)
+  economicEffect       Int @default(0)
   infrastructureEffect Int @default(0)
-  societyEffect Int @default(0)
-  environmentEffect Int @default(0)
+  societyEffect        Int @default(0)
+  environmentEffect    Int @default(0)
 
-// Score field for tracking points
+  // Score field for tracking points
   score Int @default(0)
 
-createdAt DateTime @default(now())
-updatedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 
-// Relations
-card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  // Relations
+  card            Card             @relation(fields: [cardId], references: [id], onDelete: Cascade)
   playerResponses PlayerResponse[]
 
-@@map("card_responses")
+  @@map("card_responses")
 }
 
 // Comments on cards
 model Comment {
-id Int @id @default(autoincrement())
-content String
-cardId Int
-userId Int
-isInternal Boolean @default(false) // Internal comments vs public updates
-createdAt DateTime @default(now())
-updatedAt DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  content    String
+  cardId     Int
+  userId     Int
+  isInternal Boolean  @default(false) // Internal comments vs public updates
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
 
-// Relations
-card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
-user User @relation(fields: [userId], references: [id])
+  // Relations
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
 
-@@map("comments")
+  @@map("comments")
 }
 
 // Activity log for tracking changes
 model Activity {
-id Int @id @default(autoincrement())
-cardId Int
-userId Int
-action ActivityType
-description String // Human readable description
-oldValue String? // Previous value (JSON string)
-newValue String? // New value (JSON string)
-metadata Json? // Additional context
-createdAt DateTime @default(now())
+  id          Int          @id @default(autoincrement())
+  cardId      Int
+  userId      Int
+  action      ActivityType
+  description String // Human readable description
+  oldValue    String? // Previous value (JSON string)
+  newValue    String? // New value (JSON string)
+  metadata    Json? // Additional context
+  createdAt   DateTime     @default(now())
 
-// Relations
-card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
-user User @relation(fields: [userId], references: [id])
+  // Relations
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
 
-@@map("activities")
+  @@map("activities")
 }
 
 // File attachments for cards
 model Attachment {
-id Int @id @default(autoincrement())
-cardId Int
-fileName String
-originalName String
-filePath String
-fileSize Int // Size in bytes
-mimeType String
-uploadedBy Int
-createdAt DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  cardId       Int
+  fileName     String
+  originalName String
+  filePath     String
+  fileSize     Int // Size in bytes
+  mimeType     String
+  uploadedBy   Int
+  createdAt    DateTime @default(now())
 
-// Relations
-card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  // Relations
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
 
-@@map("attachments")
+  @@map("attachments")
 }
 
 // Templates for common crisis types
 model Template {
-id Int @id @default(autoincrement())
-name String @unique
-description String?
-title String // Default title for cards created from this template
-content String // Default description/content
-severity Severity @default(MEDIUM)
-priority Priority @default(MEDIUM)
-categoryId Int
-createdBy Int
-tags String[] // Default tags
-isActive Boolean @default(true)
-createdAt DateTime @default(now())
-updatedAt DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  title       String // Default title for cards created from this template
+  content     String // Default description/content
+  severity    Severity @default(MEDIUM)
+  priority    Priority @default(MEDIUM)
+  categoryId  Int
+  createdBy   Int
+  tags        String[] // Default tags
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
 
-// Relations
-category Category @relation(fields: [categoryId], references: [id])
-creator User @relation("TemplateCreator", fields: [createdBy], references: [id])
+  // Relations
+  category Category @relation(fields: [categoryId], references: [id])
+  creator  User     @relation("TemplateCreator", fields: [createdBy], references: [id])
 
-@@map("templates")
+  @@map("templates")
 }
 
 // Notifications for users
 model Notification {
-    id        Int              @id @default(autoincrement())
-    userId    Int
-    title     String
-    message   String
-    type      NotificationType @default(INFO)
-    isRead    Boolean          @default(false)
-    cardId    Int? // Optional link to related card
-    createdAt DateTime         @default(now())
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  isRead    Boolean          @default(false)
+  cardId    Int? // Optional link to related card
+  createdAt DateTime         @default(now())
 
-    // Relations
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@map("notifications")
+  @@map("notifications")
 }
 
 model UserSettings {
-    id                   Int     @id @default(autoincrement())
-    userId               Int     @unique
-    emailNotifications   Boolean @default(true)
-    pushNotifications    Boolean @default(false)
-    soundEffects         Boolean @default(true)
-    autoSave             Boolean @default(true)
-    difficulty           String  @default("medium") // easy, medium, hard
-    createdAt            DateTime @default(now())
-    updatedAt            DateTime @updatedAt
+  id                 Int      @id @default(autoincrement())
+  userId             Int      @unique
+  emailNotifications Boolean  @default(true)
+  pushNotifications  Boolean  @default(false)
+  soundEffects       Boolean  @default(true)
+  autoSave           Boolean  @default(true)
+  difficulty         String   @default("medium") // easy, medium, hard
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-    // Relations
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@map("user_settings")
+  @@map("user_settings")
 }
 
 // Enums
 enum UserRole {
-ADMIN
-MANAGER
-USER
-VIEWER
+  ADMIN
+  MANAGER
+  USER
+  VIEWER
 }
 
-
-
 enum Severity {
-LOW
-MEDIUM
-HIGH
-CRITICAL
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }
 
 enum Status {
-ACTIVE
-INACTIVE
+  ACTIVE
+  INACTIVE
 }
 
 enum Priority {
-LOW
-MEDIUM
-HIGH
-URGENT
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }
 
 enum ActivityType {
-CREATED
-UPDATED
-ASSIGNED
-UNASSIGNED
-STATUS_CHANGED
-PRIORITY_CHANGED
-SEVERITY_CHANGED
-COMMENTED
-ARCHIVED
-RESTORED
-DELETED
+  CREATED
+  UPDATED
+  ASSIGNED
+  UNASSIGNED
+  STATUS_CHANGED
+  PRIORITY_CHANGED
+  SEVERITY_CHANGED
+  COMMENTED
+  ARCHIVED
+  RESTORED
+  DELETED
 }
 
 enum NotificationType {
-INFO
-WARNING
-ERROR
-SUCCESS
+  INFO
+  WARNING
+  ERROR
+  SUCCESS
 }
 
 // Game Status enum
 enum GameStatus {
-WAITING // Waiting for players to join
-IN_PROGRESS // Game is active
-PAUSED // Game is paused
-COMPLETED // Game completed
+  WAITING // Waiting for players to join
+  IN_PROGRESS // Game is active
+  PAUSED // Game is paused
+  COMPLETED // Game completed
 }
 
 model PlayerResponse {
@@ -428,4 +447,46 @@ model PlayerResponse {
 
   @@unique([playerId, cardId]) // One response per card per player
   @@map("player_responses")
+}
+
+// Team model for flexible multi-team support
+model Team {
+  id            String   @id @default(cuid())
+  gameSessionId String
+  name          String // Admin-defined name
+  budget        Int      @default(5000)
+  baseValue     Int      @default(5) // 5-10 range
+  color         String   @default("#3B82F6") // For UI
+  order         Int      @default(0) // Display order
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  gameSession GameSession  @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+  players     Player[]
+  leaderVotes LeaderVote[]
+
+  @@index([gameSessionId])
+  @@map("teams")
+}
+
+// Leader voting model
+model LeaderVote {
+  id            String   @id @default(cuid())
+  gameSessionId String
+  teamId        String // Which team this vote is for
+  round         Int // Which round
+  voterId       Int // Player who voted
+  candidateId   Int // Player being voted for
+  createdAt     DateTime @default(now())
+
+  gameSession GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  voter       Player      @relation("VoterVotes", fields: [voterId], references: [id], onDelete: Cascade)
+  candidate   Player      @relation("CandidateVotes", fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@unique([gameSessionId, voterId, round])
+  @@index([gameSessionId, round])
+  @@index([teamId, round])
+  @@map("leader_votes")
 }

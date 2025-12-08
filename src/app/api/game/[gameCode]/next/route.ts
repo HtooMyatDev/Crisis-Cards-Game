@@ -29,7 +29,7 @@ export async function POST(
                             include: {
                                 cards: {
                                     where: {
-                                        status: 'OPEN',
+                                        status: 'Active',
                                         isArchived: false
                                     }
                                 }

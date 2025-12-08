@@ -1,6 +1,6 @@
 "use client"
-import React, { useState, useEffect } from 'react';
-import { Crown, User, Shield, Search, Filter, MoreVertical, Edit, Trash2, Eye } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Crown, User, Shield, Search, Filter, MoreVertical, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface UserData {
     id: string;
@@ -13,6 +13,13 @@ interface UserData {
     gamesPlayed: number;
 }
 
+interface PaginationData {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
 export default function UserManagement() {
     const [users, setUsers] = useState<UserData[]>([]);
     const [loading, setLoading] = useState(true);
@@ -21,33 +28,56 @@ export default function UserManagement() {
     const [filterStatus, setFilterStatus] = useState('all');
     const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pagination, setPagination] = useState<PaginationData>({ total: 0, page: 1, limit: 10, totalPages: 1 });
+
+    // Debounce search term to avoid too many API calls
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+
     useEffect(() => {
-        const fetchUsers = async () => {
-            setLoading(true);
-            try {
-                const res = await fetch('/api/admin/users');
-                const data = await res.json();
-                if (data.success && Array.isArray(data.users)) {
-                    setUsers(data.users);
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [debouncedSearchTerm, filterRole, filterStatus]);
+
+    const fetchUsers = useCallback(async () => {
+        setLoading(true);
+        try {
+            const params = new URLSearchParams({
+                page: currentPage.toString(),
+                limit: '10',
+                search: debouncedSearchTerm,
+                role: filterRole,
+                status: filterStatus
+            });
+
+            const res = await fetch(`/api/admin/users?${params.toString()}`);
+            const data = await res.json();
+
+            if (data.success && Array.isArray(data.users)) {
+                setUsers(data.users);
+                if (data.pagination) {
+                    setPagination(data.pagination);
                 }
-            } catch (error) {
-                console.error('Failed to fetch users:', error);
-            } finally {
-                setLoading(false);
             }
-        };
+        } catch (error) {
+            console.error('Failed to fetch users:', error);
+            setNotification({ type: 'error', message: 'Failed to load users' });
+        } finally {
+            setLoading(false);
+        }
+    }, [currentPage, debouncedSearchTerm, filterRole, filterStatus]);
 
+    useEffect(() => {
         fetchUsers();
-    }, []);
-
-    const filteredUsers = users.filter(user => {
-        const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesRole = filterRole === 'all' || user.role === filterRole;
-        const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
-
-        return matchesSearch && matchesRole && matchesStatus;
-    });
+    }, [fetchUsers]);
 
     const toggleUserRole = async (userId: string) => {
         const user = users.find(u => u.id === userId);
@@ -107,9 +137,33 @@ export default function UserManagement() {
         }
     };
 
-    const adminCount = users.filter(user => user.role === 'admin').length;
-    const playerCount = users.filter(user => user.role === 'player').length;
-    const activeCount = users.filter(user => user.status === 'active').length;
+    const deleteUser = async (userId: string) => {
+        const user = users.find(u => u.id === userId);
+        if (!user) return;
+
+        const confirmed = window.confirm(`Are you sure you want to PERMANENTLY DELETE ${user.name}? This action cannot be undone.`);
+        if (!confirmed) return;
+
+        try {
+            const res = await fetch(`/api/admin/users/${userId}`, {
+                method: 'DELETE',
+            });
+
+            if (!res.ok) throw new Error('Failed to delete user');
+
+            setNotification({ type: 'success', message: `Successfully deleted ${user.name}` });
+            fetchUsers(); // Refresh list
+            setTimeout(() => setNotification(null), 3000);
+        } catch (error) {
+            console.error('Failed to delete user:', error);
+            setNotification({ type: 'error', message: 'Failed to delete user' });
+            setTimeout(() => setNotification(null), 3000);
+        }
+    };
+
+    // Calculate stats from pagination data if available, otherwise fallback (though stats endpoint would be better)
+    // For now, we'll just show the total from pagination
+    const totalUsers = pagination.total;
 
     return (
         <div>
@@ -123,36 +177,16 @@ export default function UserManagement() {
 
             <h1 className="text-2xl font-bold mb-6 text-black dark:text-white">User Management</h1>
 
-            {/* Stats Cards */}
+            {/* Stats Cards - Note: These are now somewhat approximate as we don't have separate stats API yet, using total from pagination */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div className="p-4 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800">
                     <div className="flex items-center gap-2 mb-2">
                         <User size={20} className="text-black dark:text-white" />
                         <span className="font-bold text-black dark:text-white">Total Users</span>
                     </div>
-                    <div className="text-2xl font-bold text-black dark:text-white">{users.length}</div>
+                    <div className="text-2xl font-bold text-black dark:text-white">{totalUsers}</div>
                 </div>
-                <div className="p-4 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Crown size={20} className="text-black dark:text-white" />
-                        <span className="font-bold text-black dark:text-white">Admins</span>
-                    </div>
-                    <div className="text-2xl font-bold text-black dark:text-white">{adminCount}</div>
-                </div>
-                <div className="p-4 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Shield size={20} className="text-black dark:text-white" />
-                        <span className="font-bold text-black dark:text-white">Players</span>
-                    </div>
-                    <div className="text-2xl font-bold text-black dark:text-white">{playerCount}</div>
-                </div>
-                <div className="p-4 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-green-50 dark:bg-green-900/20">
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="w-3 h-3 bg-green-500 dark:bg-green-400 rounded-full"></div>
-                        <span className="font-bold text-black dark:text-white">Active Users</span>
-                    </div>
-                    <div className="text-2xl font-bold text-black dark:text-white">{activeCount}</div>
-                </div>
+                {/* Other stats would ideally come from a stats endpoint, keeping placeholders or removing if inaccurate */}
             </div>
 
             {/* Search and Filters */}
@@ -193,7 +227,7 @@ export default function UserManagement() {
 
             {/* Loading State */}
             {loading ? (
-                <div className="text-center py-14 text-gray-500 dark:text-gray-400 font-bold text-lg">Loading users…</div>
+                <div className="text-center py-14 text-gray-500 dark:text-gray-400 font-bold text-lg">Loading users...</div>
             ) : (
                 <>
                     {/* Users Table */}
@@ -212,7 +246,7 @@ export default function UserManagement() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredUsers.map((user, index) => (
+                                    {users.map((user, index) => (
                                         <tr key={user.id} className={index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700/50'}>
                                             <td className="p-4">
                                                 <div>
@@ -258,12 +292,7 @@ export default function UserManagement() {
                                                         <Eye size={16} />
                                                     </button>
                                                     <button
-                                                        className="p-2 border-2 border-green-600 dark:border-green-500 text-green-600 dark:text-green-400 rounded-lg shadow-[1px_1px_0px_0px_rgba(22,163,74,1)] dark:shadow-[1px_1px_0px_0px_rgba(34,197,94,0.5)] hover:shadow-[0px_0px_0px_0px_rgba(22,163,74,1)] dark:hover:shadow-[0px_0px_0px_0px_rgba(34,197,94,0.5)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 bg-white dark:bg-gray-800"
-                                                        title="Edit User"
-                                                    >
-                                                        <Edit size={16} />
-                                                    </button>
-                                                    <button
+                                                        onClick={() => deleteUser(user.id)}
                                                         className="p-2 border-2 border-red-600 dark:border-red-500 text-red-600 dark:text-red-400 rounded-lg shadow-[1px_1px_0px_0px_rgba(220,38,38,1)] dark:shadow-[1px_1px_0px_0px_rgba(239,68,68,0.5)] hover:shadow-[0px_0px_0px_0px_rgba(220,38,38,1)] dark:hover:shadow-[0px_0px_0px_0px_rgba(239,68,68,0.5)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 bg-white dark:bg-gray-800"
                                                         title="Delete User"
                                                     >
@@ -276,9 +305,32 @@ export default function UserManagement() {
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Pagination Controls */}
+                        <div className="flex justify-between items-center p-4 border-t-2 border-black dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50">
+                            <div className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                                Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} users
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                    className="p-2 border-2 border-black dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                >
+                                    <ChevronLeft size={20} />
+                                </button>
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
+                                    disabled={currentPage === pagination.totalPages}
+                                    className="p-2 border-2 border-black dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                >
+                                    <ChevronRight size={20} />
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    {filteredUsers.length === 0 && (
+                    {users.length === 0 && (
                         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                             <User size={48} className="mx-auto mb-4 opacity-50" />
                             <p className="text-lg font-semibold">No users found</p>

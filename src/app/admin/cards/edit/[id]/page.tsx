@@ -264,22 +264,44 @@ export default function EditCrisisCardDesign() {
                                 <h2 className="text-lg font-bold text-black dark:text-white">
                                     Response Options <span className="text-red-500">*</span>
                                 </h2>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Available actions for crisis response (1-3 options)</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Available actions for crisis response (2-4 options)</p>
                             </div>
                             <div className="p-6">
                                 <div className="space-y-4">
                                     {formData.responseOptions.map((option, index) => (
-                                        <ResponseOptionEditor
-                                            key={index}
-                                            option={option}
-                                            index={index}
-                                            errors={formErrors.responseOptions?.[index]}
-                                            onTextChange={handleResponseOptionText}
-                                            onEffectChange={handleResponseOptionEffect}
-                                        />
+                                        <div key={index} className="relative group">
+                                            <div className="absolute right-2 top-2 z-10">
+                                                {formData.responseOptions.length > 2 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => updateResponseOptions(options => options.filter((_, i) => i !== index))}
+                                                        className="p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                                                        title="Remove option"
+                                                    >
+                                                        <AlertCircle size={18} className="rotate-45" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <ResponseOptionEditor
+                                                option={option}
+                                                index={index}
+                                                errors={formErrors.responseOptions?.[index]}
+                                                onTextChange={handleResponseOptionText}
+                                                onEffectChange={handleResponseOptionEffect}
+                                            />
+                                        </div>
                                     ))}
 
-
+                                    {formData.responseOptions.length < 4 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => updateResponseOptions(options => [...options, { text: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0 }])}
+                                            className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-gray-500 dark:text-gray-400 hover:border-gray-400 dark:hover:border-gray-600 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center justify-center gap-2 font-medium"
+                                        >
+                                            <Plus size={20} />
+                                            Add Response Option
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>

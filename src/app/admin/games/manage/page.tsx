@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { GameSession } from '@/types/game';
+import { useGamePolling } from '@/hooks/useGamePolling';
 
 const GameSessionsManagement = () => {
     const router = useRouter();
@@ -35,6 +36,12 @@ const GameSessionsManagement = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [deleteConfirmation, setDeleteConfirmation] = useState<{ show: boolean; sessionId: string; sessionName: string } | null>(null);
 
+    // Real-time updates
+    const [autoRefresh, setAutoRefresh] = useState(true);
+    const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+    const [nextRefresh, setNextRefresh] = useState(3);
+    const REFRESH_INTERVAL = 3000; // 3 seconds
+
     // Advanced filters
     const [showFilters, setShowFilters] = useState(false);
     const [dateFrom, setDateFrom] = useState('');
@@ -43,57 +50,113 @@ const GameSessionsManagement = () => {
     const [categoryFilter, setCategoryFilter] = useState('All');
     const [playerCountFilter, setPlayerCountFilter] = useState('All');
 
-    const fetchGameSessions = async () => {
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalGames, setTotalGames] = useState(0);
+    const ITEMS_PER_PAGE = 10;
+
+    /**
+     * Fetches game sessions from the API with pagination and filtering
+     * @param silent - If true, suppresses loading state (for polling)
+     * @param page - Page number to fetch (defaults to currentPage)
+     */
+    const fetchGameSessions = async (silent = false, page = currentPage) => {
         try {
-            setLoading(true);
+            if (!silent) {
+                setLoading(true);
+            }
             setError('');
 
-            console.log('Fetching from: /api/admin/games');
+            // Build query string
+            const params = new URLSearchParams({
+                page: page.toString(),
+                limit: ITEMS_PER_PAGE.toString()
+            });
 
-            const response = await fetch('/api/admin/games', {
+            if (searchTerm) params.append('search', searchTerm);
+            if (statusFilter !== 'All') params.append('status', statusFilter);
+
+            const response = await fetch(`/api/admin/games?${params.toString()}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
                 },
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response ok:', response.ok);
-
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Error response:', errorText);
-
                 let errorData;
                 try {
                     errorData = JSON.parse(errorText);
                 } catch {
                     errorData = { error: errorText };
                 }
-
                 throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
-            console.log('Received data:', data);
 
+            // Handle both old (array) and new (paginated) response structures
             const gamesArray = Array.isArray(data) ? data : data.games || data.data || [];
-            console.log('Games array:', gamesArray);
 
             setSessions(gamesArray);
+
+            // Update pagination state if available
+            if (data.pagination) {
+                setTotalPages(data.pagination.totalPages);
+                setTotalGames(data.pagination.total);
+                setCurrentPage(data.pagination.page);
+            }
+
+            setLastUpdate(new Date());
         }
         catch (error: unknown) {
             console.error('Error fetching game sessions:', error);
-            setError(error instanceof Error ? error.message : 'Failed to fetch game sessions');
+            if (!silent) {
+                setError(error instanceof Error ? error.message : 'Failed to fetch game sessions');
+            }
         }
         finally {
-            setLoading(false);
+            if (!silent) {
+                setLoading(false);
+            }
         }
     };
 
+    // Initial fetch
     useEffect(() => {
-        fetchGameSessions();
+        fetchGameSessions(false, 1);
     }, []);
+
+    // Re-fetch when filters change
+    useEffect(() => {
+        // Debounce search
+        const timeoutId = setTimeout(() => {
+            fetchGameSessions(false, 1);
+        }, 500);
+        return () => clearTimeout(timeoutId);
+    }, [searchTerm, statusFilter]);
+
+    // Auto-refresh polling
+    useGamePolling({
+        interval: REFRESH_INTERVAL,
+        enabled: autoRefresh,
+        onPoll: () => fetchGameSessions(true)
+    });
+
+    // Countdown timer for next refresh
+    useEffect(() => {
+        if (!autoRefresh) return;
+
+        const timer = setInterval(() => {
+            const timeSinceUpdate = Math.floor((new Date().getTime() - lastUpdate.getTime()) / 1000);
+            const timeUntilRefresh = Math.max(0, 3 - timeSinceUpdate);
+            setNextRefresh(timeUntilRefresh);
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [autoRefresh, lastUpdate]);
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -347,7 +410,7 @@ const GameSessionsManagement = () => {
                         <h3 className="font-bold text-red-800 dark:text-red-300">Error Loading Sessions</h3>
                         <p className="text-red-700 dark:text-red-400 text-sm mt-1">{error}</p>
                         <button
-                            onClick={fetchGameSessions}
+                            onClick={() => fetchGameSessions()}
                             className="mt-3 px-4 py-2 bg-red-500 text-white font-bold border-2 border-red-600 rounded-lg shadow-[2px_2px_0px_0px_rgba(220,38,38,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
                         >
                             Retry
@@ -374,6 +437,43 @@ const GameSessionsManagement = () => {
                     <span className="hidden sm:inline">Create New Session</span>
                     <span className="sm:hidden">Create</span>
                 </button>
+            </div>
+
+            {/* Auto-Refresh Status Bar */}
+            <div className="mb-4 bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
+                    <div className="text-sm">
+                        <span className="font-bold text-black dark:text-white">
+                            {autoRefresh ? 'Live Updates' : 'Auto-refresh paused'}
+                        </span>
+                        <span className="text-gray-600 dark:text-gray-400 ml-2">
+                            {autoRefresh
+                                ? `Next refresh in ${nextRefresh}s`
+                                : `Last updated ${lastUpdate.toLocaleTimeString()}`
+                            }
+                        </span>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => fetchGameSessions(false)}
+                        className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-black dark:text-white font-bold rounded-lg border-2 border-gray-300 dark:border-gray-600 transition-all text-xs flex items-center gap-1.5"
+                        title="Refresh now"
+                    >
+                        <Timer size={14} />
+                        Refresh
+                    </button>
+                    <button
+                        onClick={() => setAutoRefresh(!autoRefresh)}
+                        className={`px-3 py-1.5 font-bold rounded-lg border-2 transition-all text-xs ${autoRefresh
+                            ? 'bg-green-500 text-white border-green-600 hover:bg-green-600'
+                            : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 border-gray-400 dark:border-gray-500 hover:bg-gray-400 dark:hover:bg-gray-500'
+                            }`}
+                    >
+                        {autoRefresh ? 'Pause' : 'Resume'}
+                    </button>
+                </div>
             </div>
 
             {/* Stats Overview */}
@@ -698,17 +798,91 @@ const GameSessionsManagement = () => {
                                 </div>
                             </div>
 
+
                             {/* Actions */}
                             <div className="flex gap-2 lg:flex-col lg:gap-2">
-                                {session.status === 'WAITING' && (
-                                    <button
-                                        onClick={() => handleSessionAction(session.id, 'start')}
-                                        className="flex-1 lg:flex-none px-4 py-2 bg-green-500 text-white font-bold rounded-lg border-2 border-green-600 shadow-[2px_2px_0px_0px_rgba(34,197,94,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 text-sm flex items-center justify-center gap-2"
-                                    >
-                                        <Play size={14} />
-                                        Start
-                                    </button>
-                                )}
+                                {session.status === 'WAITING' && (() => {
+                                    // Check if all teams have at least one player
+                                    const players = session.players || [];
+                                    const teams = session.teams || [];
+
+                                    // Count players per team
+                                    const teamPlayerCounts = teams.map(team => ({
+                                        teamId: team.id,
+                                        teamName: team.name,
+                                        playerCount: players.filter(p => p.teamId === team.id).length
+                                    }));
+
+                                    // Check if all teams have at least one player
+                                    const allTeamsHavePlayers = teamPlayerCounts.every(t => t.playerCount > 0);
+                                    const hasPlayers = players.length > 0;
+                                    const hasTeams = teams.length > 0;
+
+                                    let disabledReason = '';
+                                    if (!hasPlayers) {
+                                        disabledReason = 'Need at least one player to start';
+                                    } else if (!hasTeams) {
+                                        disabledReason = 'No teams configured for this game';
+                                    } else if (!allTeamsHavePlayers) {
+                                        const emptyTeams = teamPlayerCounts.filter(t => t.playerCount === 0);
+                                        disabledReason = `These teams need players: ${emptyTeams.map(t => t.teamName).join(', ')}`;
+                                    }
+
+                                    const canStart = hasPlayers && hasTeams && allTeamsHavePlayers;
+
+                                    return (
+                                        <div className="flex flex-col gap-2">
+                                            {/* Assign Teams Button - Only show if there are players but teams are empty */}
+                                            {hasPlayers && !allTeamsHavePlayers && (
+                                                <button
+                                                    onClick={async () => {
+                                                        if (confirm('Randomly assign all connected players to teams?')) {
+                                                            try {
+                                                                const res = await fetch(`/api/admin/games/${session.id}/assign-teams`, {
+                                                                    method: 'POST'
+                                                                });
+                                                                const data = await res.json();
+                                                                if (data.success) {
+                                                                    alert(data.message);
+                                                                    fetchGameSessions(); // Refresh
+                                                                } else {
+                                                                    alert(data.error);
+                                                                }
+                                                            } catch (err) {
+                                                                alert('Failed to assign teams');
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="px-4 py-2 bg-purple-500 text-white font-bold rounded-lg border-2 border-purple-600 shadow-[2px_2px_0px_0px_rgba(147,51,234,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-sm flex items-center justify-center gap-2"
+                                                >
+                                                    <Users size={14} />
+                                                    Assign Teams
+                                                </button>
+                                            )}
+
+                                            <div className="relative group">
+                                                <button
+                                                    onClick={() => handleSessionAction(session.id, 'start')}
+                                                    disabled={!canStart}
+                                                    className={`w-full px-4 py-2 font-bold rounded-lg border-2 transition-all duration-200 text-sm flex items-center justify-center gap-2 ${canStart
+                                                        ? 'bg-green-500 text-white border-green-600 shadow-[2px_2px_0px_0px_rgba(34,197,94,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] cursor-pointer'
+                                                        : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 border-gray-400 dark:border-gray-500 cursor-not-allowed opacity-60'
+                                                        }`}
+                                                    title={disabledReason}
+                                                >
+                                                    <Play size={14} />
+                                                    Start Game
+                                                </button>
+                                                {!canStart && (
+                                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-10 pointer-events-none">
+                                                        {disabledReason}
+                                                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                                 {session.status === 'IN_PROGRESS' && (
                                     <button
                                         onClick={() => handleSessionAction(session.id, 'pause')}
@@ -736,20 +910,24 @@ const GameSessionsManagement = () => {
                                         End
                                     </button>
                                 )}
-                                <button
-                                    onClick={() => router.push(`/admin/games/${session.id}`)}
-                                    className="flex-1 lg:flex-none px-4 py-2 bg-blue-500 text-white font-bold rounded-lg border-2 border-blue-600 shadow-[2px_2px_0px_0px_rgba(59,130,246,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 text-sm flex items-center justify-center gap-2"
-                                >
-                                    <Eye size={14} />
-                                    View
-                                </button>
-                                {(session.status === 'IN_PROGRESS' || session.status === 'PAUSED') && (
+                                {/* Smart View Button - Routes to appropriate view based on game status */}
+                                {(session.status === 'IN_PROGRESS' || session.status === 'PAUSED') ? (
                                     <button
                                         onClick={() => router.push(`/admin/games/${session.id}/host`)}
                                         className="flex-1 lg:flex-none px-4 py-2 bg-purple-500 text-white font-bold rounded-lg border-2 border-purple-600 shadow-[2px_2px_0px_0px_rgba(147,51,234,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 text-sm flex items-center justify-center gap-2"
+                                        title="Open host control panel to manage the active game"
                                     >
                                         <Trophy size={14} />
-                                        Host View
+                                        Host Control
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => router.push(`/admin/games/${session.id}`)}
+                                        className="flex-1 lg:flex-none px-4 py-2 bg-blue-500 text-white font-bold rounded-lg border-2 border-blue-600 shadow-[2px_2px_0px_0px_rgba(59,130,246,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 text-sm flex items-center justify-center gap-2"
+                                        title="View game details and player information"
+                                    >
+                                        <Eye size={14} />
+                                        View Game
                                     </button>
                                 )}
                                 <button
@@ -764,6 +942,71 @@ const GameSessionsManagement = () => {
                     </div>
                 ))}
             </div>
+
+            {/* Pagination Controls */}
+            {filteredSessions.length > 0 && (
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 mb-8">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                        Showing <span className="font-bold text-black dark:text-white">{filteredSessions.length}</span> of <span className="font-bold text-black dark:text-white">{totalGames}</span> games
+                        {totalPages > 1 && <span className="ml-1">(Page {currentPage} of {totalPages})</span>}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => fetchGameSessions(false, Math.max(1, currentPage - 1))}
+                            disabled={currentPage === 1 || loading}
+                            className={`px-4 py-2 font-bold rounded-lg border-2 transition-all text-sm flex items-center gap-2 ${currentPage === 1 || loading
+                                ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 cursor-not-allowed'
+                                : 'bg-white dark:bg-gray-800 text-black dark:text-white border-black dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]'
+                                }`}
+                        >
+                            <ChevronDown className="rotate-90" size={16} />
+                            Previous
+                        </button>
+
+                        <div className="flex items-center gap-1">
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                // Logic to show window of pages around current
+                                let pageNum = i + 1;
+                                if (totalPages > 5) {
+                                    if (currentPage > 3) {
+                                        pageNum = currentPage - 2 + i;
+                                    }
+                                    if (pageNum > totalPages) {
+                                        pageNum = totalPages - 4 + i;
+                                    }
+                                }
+
+                                return (
+                                    <button
+                                        key={pageNum}
+                                        onClick={() => fetchGameSessions(false, pageNum)}
+                                        disabled={loading}
+                                        className={`w-10 h-10 font-bold rounded-lg border-2 transition-all text-sm flex items-center justify-center ${currentPage === pageNum
+                                            ? 'bg-blue-500 text-white border-blue-600 shadow-[2px_2px_0px_0px_rgba(37,99,235,1)]'
+                                            : 'bg-white dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                            }`}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <button
+                            onClick={() => fetchGameSessions(false, Math.min(totalPages, currentPage + 1))}
+                            disabled={currentPage === totalPages || loading}
+                            className={`px-4 py-2 font-bold rounded-lg border-2 transition-all text-sm flex items-center gap-2 ${currentPage === totalPages || loading
+                                ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 cursor-not-allowed'
+                                : 'bg-white dark:bg-gray-800 text-black dark:text-white border-black dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]'
+                                }`}
+                        >
+                            Next
+                            <ChevronDown className="-rotate-90" size={16} />
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* No Results */}
             {
