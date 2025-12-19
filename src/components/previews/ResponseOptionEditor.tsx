@@ -6,7 +6,7 @@ interface ResponseOptionEditorProps {
     option: ResponseOption;
     index: number;
     errors?: ResponseOptionErrors;
-    onTextChange: (index: number, value: string) => void;
+    onTextChange: (index: number, value: string, field?: 'text' | 'impactDescription') => void;
     onEffectChange: (index: number, field: keyof Pick<ResponseOption, 'politicalEffect' | 'economicEffect' | 'infrastructureEffect' | 'societyEffect' | 'environmentEffect' | 'score'>, value: string) => void;
 
 }
@@ -33,7 +33,7 @@ export const ResponseOptionEditor: React.FC<ResponseOptionEditorProps> = ({
                 <input
                     type="text"
                     value={option.text}
-                    onChange={(e) => onTextChange(index, e.target.value)}
+                    onChange={(e) => onTextChange(index, e.target.value, 'text')}
                     className="flex-1 px-4 py-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] focus:translate-x-[1px] focus:translate-y-[1px] transition-all duration-200 outline-none bg-white dark:bg-gray-800 text-black dark:text-white"
                     placeholder={`Response option ${index + 1}`}
                 />
@@ -42,6 +42,23 @@ export const ResponseOptionEditor: React.FC<ResponseOptionEditorProps> = ({
                 )}
 
             </div>
+
+            {/* Impact Description */}
+            <div className="mb-3">
+                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                    Impact Description (Consequence)
+                </label>
+                <textarea
+                    value={option.impactDescription || ''}
+                    onChange={(e) => onTextChange(index, e.target.value, 'impactDescription')}
+                    className="w-full px-3 py-2 text-sm border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:outline-none bg-white dark:bg-gray-800 text-black dark:text-white resize-y min-h-[60px]"
+                    placeholder="Describe the narrative consequence..."
+                />
+                {errors?.impactDescription && (
+                    <p className="text-red-600 text-xs mt-1">{errors.impactDescription}</p>
+                )}
+            </div>
+
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
                 {effectFields.map(({ key, label, icon: Icon, color }) => (
                     <div key={key}>

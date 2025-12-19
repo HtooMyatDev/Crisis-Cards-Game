@@ -50,10 +50,11 @@ interface HostData {
         name: string;
         color: string;
     }[];
-    teamStats: {
-        RED: { playerCount: number; avgScore: number; responseRate: number };
-        BLUE: { playerCount: number; avgScore: number; responseRate: number };
-    };
+    teamStats: Record<string, {
+        playerCount: number;
+        avgScore: number;
+        responseRate: number;
+    }>;
     totalPlayers: number;
     respondedCount: number;
 }
@@ -97,7 +98,7 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
 
     useEffect(() => {
         fetchHostData();
-        const interval = setInterval(fetchHostData, 3000); // Poll every 3 seconds
+        const interval = setInterval(fetchHostData, 1000); // Poll every 1 second
         return () => clearInterval(interval);
     }, [fetchHostData]);
 
@@ -484,36 +485,43 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
                                     ? hostData.currentCard.responses.findIndex(r => r.id === player.responseId)
                                     : -1;
 
+                                const team = hostData.teams.find(t => t.name === player.team || t.id === player.team);
+                                const teamColor = team?.color || '#9ca3af';
+
                                 return (
                                     <div
                                         key={player.id}
-                                        className={`p-3 rounded-lg border-2 transition-all ${player.team === 'RED'
-                                            ? 'bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-600'
-                                            : player.team === 'BLUE'
-                                                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-600'
-                                                : 'bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600'
-                                            }`}
+                                        className="p-3 rounded-lg border-2 transition-all"
+                                        style={{
+                                            backgroundColor: team ? `${teamColor}10` : undefined,
+                                            borderColor: team ? teamColor : '#d1d5db'
+                                        }}
                                     >
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm border-2 ${player.team === 'RED'
-                                                    ? 'bg-red-100 dark:bg-red-900/40 border-red-500 dark:border-red-600 text-red-700 dark:text-red-300'
-                                                    : player.team === 'BLUE'
-                                                        ? 'bg-blue-100 dark:bg-blue-900/40 border-blue-500 dark:border-blue-600 text-blue-700 dark:text-blue-300'
-                                                        : 'bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-300'
-                                                    }`}>
+                                                <div
+                                                    className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm border-2"
+                                                    style={{
+                                                        backgroundColor: team ? `${teamColor}20` : '#f3f4f6',
+                                                        borderColor: teamColor,
+                                                        color: teamColor
+                                                    }}
+                                                >
                                                     {player.nickname.substring(0, 2).toUpperCase()}
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-black dark:text-white">{player.nickname}</p>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         {player.team && (
-                                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold border-2 ${player.team === 'RED'
-                                                                ? 'bg-red-500 dark:bg-red-600 border-red-600 dark:border-red-700 text-white'
-                                                                : 'bg-blue-500 dark:bg-blue-600 border-blue-600 dark:border-blue-700 text-white'
-                                                                }`}>
-                                                                <div className={`w-1.5 h-1.5 rounded-full ${player.team === 'RED' ? 'bg-red-200' : 'bg-blue-200'}`}></div>
-                                                                {player.team} TEAM
+                                                            <span
+                                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold border-2 text-white"
+                                                                style={{
+                                                                    backgroundColor: teamColor,
+                                                                    borderColor: teamColor
+                                                                }}
+                                                            >
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+                                                                {player.team.toUpperCase()}
                                                             </span>
                                                         )}
                                                         <span className="text-sm text-gray-600 dark:text-gray-400">{player.score} pts</span>
@@ -544,49 +552,31 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
                     <div className="bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-700 rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] p-6">
                         <h2 className="text-xl font-black mb-4 text-black dark:text-white">TEAM STATS</h2>
 
-                        {/* RED Team */}
-                        <div className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg">
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-black text-red-600">RED TEAM</h3>
-                                <Users size={20} className="text-red-600" />
-                            </div>
-                            <div className="space-y-1 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Players:</span>
-                                    <span className="font-bold text-black dark:text-white">{hostData.teamStats.RED.playerCount}</span>
+                        {hostData.teams.map(team => {
+                            const stats = hostData.teamStats[team.name] || { playerCount: 0, avgScore: 0, responseRate: 0 };
+                            return (
+                                <div key={team.id} className="mb-4 last:mb-0 p-4 rounded-lg border-2" style={{ backgroundColor: `${team.color}10`, borderColor: team.color }}>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h3 className="font-black" style={{ color: team.color }}>{team.name.toUpperCase()}</h3>
+                                        <Users size={20} style={{ color: team.color }} />
+                                    </div>
+                                    <div className="space-y-1 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">Players:</span>
+                                            <span className="font-bold text-black dark:text-white">{stats.playerCount}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">Avg Score:</span>
+                                            <span className="font-bold text-black dark:text-white">{stats.avgScore}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">Response Rate:</span>
+                                            <span className="font-bold text-black dark:text-white">{stats.responseRate}%</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Avg Score:</span>
-                                    <span className="font-bold text-black dark:text-white">{hostData.teamStats.RED.avgScore}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Response Rate:</span>
-                                    <span className="font-bold text-black dark:text-white">{hostData.teamStats.RED.responseRate}%</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* BLUE Team */}
-                        <div className="p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-black text-blue-600">BLUE TEAM</h3>
-                                <Users size={20} className="text-blue-600" />
-                            </div>
-                            <div className="space-y-1 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Players:</span>
-                                    <span className="font-bold text-black dark:text-white">{hostData.teamStats.BLUE.playerCount}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Avg Score:</span>
-                                    <span className="font-bold text-black dark:text-white">{hostData.teamStats.BLUE.avgScore}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Response Rate:</span>
-                                    <span className="font-bold text-black dark:text-white">{hostData.teamStats.BLUE.responseRate}%</span>
-                                </div>
-                            </div>
-                        </div>
+                            );
+                        })}
                     </div>
 
                     {/* Quick Stats */}

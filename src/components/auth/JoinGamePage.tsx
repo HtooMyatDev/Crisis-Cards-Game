@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Loader2, Users, Gamepad2, ArrowRight } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { NicknameTakenModal } from '@/components/game/NicknameTakenModal'
 
 interface GameData {
@@ -378,7 +379,25 @@ const JoinGamePage: React.FC = () => {
                         </div>
                     </div>
                 )}
+                <div className="flex items-center justify-center gap-6 mt-8">
+                    <Link
+                        href="/auth/login"
+                        className="text-gray-600 dark:text-gray-400 font-bold hover:text-blue-500 dark:hover:text-blue-400 transition-colors flex items-center gap-1 group"
+                    >
+                        <span>Already have an account?</span>
+                        <span className="text-black dark:text-white border-b-2 border-black dark:border-white group-hover:text-blue-500 group-hover:border-blue-500">Login</span>
+                    </Link>
+                    <div className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+                    <Link
+                        href="/auth/register"
+                        className="text-gray-600 dark:text-gray-400 font-bold hover:text-green-500 dark:hover:text-green-400 transition-colors flex items-center gap-1 group"
+                    >
+                        <span>Need an account?</span>
+                        <span className="text-black dark:text-white border-b-2 border-black dark:border-white group-hover:text-green-500 group-hover:border-green-500">Sign Up</span>
+                    </Link>
+                </div>
             </div>
+
         </div>
     )
 }

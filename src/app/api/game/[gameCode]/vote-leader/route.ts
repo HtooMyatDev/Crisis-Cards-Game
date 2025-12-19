@@ -7,9 +7,10 @@ import { NextResponse, NextRequest } from "next/server";
  */
 export async function POST(
     request: NextRequest,
-    { params }: { params: { gameCode: string } }
+    { params }: { params: Promise<{ gameCode: string }> }
 ) {
     try {
+        const { gameCode } = await params;
         const { playerId, candidateId } = await request.json();
 
         if (!playerId || !candidateId) {
@@ -21,7 +22,7 @@ export async function POST(
 
         // Get game session
         const gameSession = await prisma.gameSession.findUnique({
-            where: { gameCode: params.gameCode },
+            where: { gameCode: gameCode },
             include: {
                 players: {
                     include: {
@@ -130,7 +131,37 @@ export async function POST(
                 data: { isLeader: true }
             });
 
+            // Record the round when this leader was elected (for term limits)
+            // Record the round when this leader was elected (for term limits)
+            await prisma.team.update({
+                where: { id: voter.teamId },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                data: { lastLeaderElectionRound: gameSession.currentRound } as any
+            });
+
             leaderElected = true;
+
+            // Check if ALL teams in this session now have a leader
+            const allTeams = await prisma.team.findMany({
+                where: { gameSessionId: gameSession.id },
+                include: { players: true }
+            });
+
+            const allTeamsHaveLeaders = allTeams.every(t =>
+                t.players.some(p => p.isLeader)
+            );
+
+            if (allTeamsHaveLeaders) {
+                await prisma.gameSession.update({
+                    where: { id: gameSession.id },
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    data: {
+                        roundStatus: 'DECISION_PHASE',
+                        lastCardStartedAt: new Date() // Start timer now
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    } as any
+                });
+            }
         }
 
         return NextResponse.json({

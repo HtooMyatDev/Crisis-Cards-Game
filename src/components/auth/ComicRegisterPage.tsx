@@ -319,13 +319,13 @@ const ComicRegisterPage: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="text-center mt-8">
+                {/* <div className="text-center mt-8">
                     <div className="inline-block bg-white dark:bg-gray-800 px-6 py-2 border-4 border-black dark:border-gray-700 transform -skew-x-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)]">
                         <p className="text-black dark:text-white font-bold transform skew-x-12">
                             Ready to make an impact? 🌍
                         </p>
                     </div>
-                </div>
+                </div> */}
             </div>
         </div>
     )

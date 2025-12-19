@@ -40,7 +40,7 @@ const GameSessionsManagement = () => {
     const [autoRefresh, setAutoRefresh] = useState(true);
     const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
     const [nextRefresh, setNextRefresh] = useState(3);
-    const REFRESH_INTERVAL = 3000; // 3 seconds
+    const REFRESH_INTERVAL = 1000; // 1 second
 
     // Advanced filters
     const [showFilters, setShowFilters] = useState(false);
@@ -151,9 +151,9 @@ const GameSessionsManagement = () => {
 
         const timer = setInterval(() => {
             const timeSinceUpdate = Math.floor((new Date().getTime() - lastUpdate.getTime()) / 1000);
-            const timeUntilRefresh = Math.max(0, 3 - timeSinceUpdate);
+            const timeUntilRefresh = Math.max(0, 1 - timeSinceUpdate);
             setNextRefresh(timeUntilRefresh);
-        }, 1000);
+        }, 500); // Check more frequently for smooth countdown
 
         return () => clearInterval(timer);
     }, [autoRefresh, lastUpdate]);

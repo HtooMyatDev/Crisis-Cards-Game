@@ -11,8 +11,10 @@ export async function GET(
         const gameSession = await prisma.gameSession.findUnique({
             where: { gameCode: gameCode.toUpperCase() },
             include: {
+                teams: true,
                 players: {
                     include: {
+                        team: true,
                         responses: {
                             include: {
                                 response: true
@@ -30,46 +32,42 @@ export async function GET(
             );
         }
 
-        // Calculate team scores
-        const redPlayers = gameSession.players.filter(p => p.team === 'RED');
-        const bluePlayers = gameSession.players.filter(p => p.team === 'BLUE');
+        // Calculate team results
+        const teamResults = gameSession.teams.map(team => {
+            const teamPlayers = gameSession.players.filter(p => p.teamId === team.id);
+            const score = teamPlayers.reduce((sum, p) => sum + (p.score || 0), 0);
 
-        const redScore = redPlayers.reduce((sum, p) => sum + p.responses.length, 0);
-        const blueScore = bluePlayers.reduce((sum, p) => sum + p.responses.length, 0);
+            return {
+                id: team.id,
+                name: team.name,
+                color: team.color,
+                score,
+                budget: team.budget,
+                players: teamPlayers.map(p => ({
+                    id: p.id,
+                    nickname: p.nickname,
+                    score: p.score,
+                    isLeader: p.isLeader,
+                    responsesCount: p.responses.length
+                }))
+            };
+        });
 
-        // Determine winner
-        let winner: 'RED' | 'BLUE' | 'TIE';
-        if (redScore > blueScore) {
-            winner = 'RED';
-        } else if (blueScore > redScore) {
-            winner = 'BLUE';
-        } else {
-            winner = 'TIE';
-        }
+        // Determine winner(s)
+        // Determine winner(s)
+        const sortedTeams = [...teamResults].sort((a, b) => b.score - a.score);
+        const winningScore = sortedTeams.length > 0 ? sortedTeams[0].score : 0;
+        // Winner is highest score (even if 0 or negative), tie if multiple teams share top score
+        const winners = teamResults.filter(t => t.score === winningScore);
 
         return NextResponse.json({
             gameName: gameSession.name,
             gameCode: gameSession.gameCode,
             status: gameSession.status,
-            winner,
-            scores: {
-                red: redScore,
-                blue: blueScore
-            },
-            teams: {
-                red: redPlayers.map(p => ({
-                    id: p.id,
-                    nickname: p.nickname,
-                    responsesCount: p.responses.length
-                })),
-                blue: bluePlayers.map(p => ({
-                    id: p.id,
-                    nickname: p.nickname,
-                    responsesCount: p.responses.length
-                }))
-            },
+            teams: teamResults,
+            winners: winners.map(w => ({ id: w.id, name: w.name })),
             totalPlayers: gameSession.players.length,
-            totalResponses: redScore + blueScore
+            totalTeams: gameSession.teams.length
         });
 
     } catch (error) {

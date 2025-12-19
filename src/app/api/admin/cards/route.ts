@@ -46,11 +46,7 @@ export async function POST(request: NextRequest) {
             status,
             responseOptions,
             categoryId,
-            political,
-            economic,
-            infrastructure,
-            society,
-            environment
+
         } = body;
 
         // Validate required fields
@@ -61,13 +57,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Validate card base values
-        if (political === undefined || economic === undefined || infrastructure === undefined || society === undefined || environment === undefined) {
-            return NextResponse.json(
-                { error: 'Missing required card base values: political, economic, infrastructure, society, environment' },
-                { status: 400 }
-            );
-        }
+
 
         // Validate response options
         if (!responseOptions || !Array.isArray(responseOptions) || responseOptions.length === 0) {
@@ -87,12 +77,20 @@ export async function POST(request: NextRequest) {
                 );
             }
 
-            // Check if effect values exist and are numbers
             const effects = ['politicalEffect', 'economicEffect', 'infrastructureEffect', 'societyEffect', 'environmentEffect'];
             for (const effect of effects) {
+                // Check if effect values exist and are numbers
                 if (option[effect] === undefined || typeof option[effect] !== 'number') {
                     return NextResponse.json(
                         { error: `Response option ${i + 1} must have valid ${effect} value` },
+                        { status: 400 }
+                    );
+                }
+
+                // Enforce -5 to +5 range for effect values
+                if (option[effect] < -5 || option[effect] > 5) {
+                    return NextResponse.json(
+                        { error: `Response option ${i + 1}: ${effect} must be between -5 and +5 (got ${option[effect]})` },
                         { status: 400 }
                     );
                 }
@@ -110,17 +108,22 @@ export async function POST(request: NextRequest) {
                     status,
                     categoryId,
                     createdBy: user.id,
-                    political,
-                    economic,
-                    infrastructure,
-                    society,
-                    environment,
                 },
             });
 
             // Create the response options separately
             const cardResponses = await Promise.all(
-                responseOptions.map((option: any, index: number) =>
+                responseOptions.map((option: {
+                    text: string;
+                    politicalEffect: number;
+                    economicEffect: number;
+                    infrastructureEffect: number;
+                    societyEffect: number;
+                    environmentEffect: number;
+                    score?: number;
+                    cost?: number;
+                    impactDescription?: string;
+                }, index: number) =>
                     tx.cardResponse.create({
                         data: {
                             cardId: newCard.id,
@@ -133,6 +136,7 @@ export async function POST(request: NextRequest) {
                             environmentEffect: option.environmentEffect,
                             score: option.score ?? 0,
                             cost: option.cost ?? 0, // Include cost field
+                            impactDescription: option.impactDescription || null,
                         }
                     })
                 )

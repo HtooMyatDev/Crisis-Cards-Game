@@ -16,6 +16,7 @@ export interface Team {
     budget: number;
     baseValue: number;
     order: number;
+    lastLeaderElectionRound: number;
 }
 
 export interface Category {
@@ -56,6 +57,9 @@ export interface GameSession {
     categories?: GameSessionCategory[];
     players?: Player[];
     teams?: Team[]; // New dynamic teams
+    initialBudget: number;
+    leaderTermLength: number;
+    gameDurationMinutes: number;
 }
 
 // Game creation types

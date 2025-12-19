@@ -33,12 +33,7 @@ export async function GET(
         // Get the leaders (should be 2, one for each team)
         const leaders = gameSession.players;
 
-        if (leaders.length < 2) {
-            // Not enough leaders yet
-            return NextResponse.json({ bothLeadersResponded: false });
-        }
-
-        // Check if both leaders have responded to this card
+        // Check if all leaders have responded to this card
         const responses = await prisma.playerResponse.findMany({
             where: {
                 cardId: parseInt(cardId),
@@ -48,9 +43,22 @@ export async function GET(
             }
         });
 
-        const bothLeadersResponded = responses.length === 2;
+        const allLeadersResponded = responses.length === leaders.length && leaders.length > 0;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const currentRoundStatus = (gameSession as any).roundStatus;
 
-        return NextResponse.json({ bothLeadersResponded });
+        if (allLeadersResponded && currentRoundStatus !== 'RESULTS_PHASE') {
+            await prisma.gameSession.update({
+                where: { id: gameSession.id },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                data: { roundStatus: 'RESULTS_PHASE' } as any
+            });
+        }
+
+        return NextResponse.json({
+            bothLeadersResponded: allLeadersResponded,
+            roundStatus: allLeadersResponded ? 'RESULTS_PHASE' : currentRoundStatus
+        });
     } catch (error) {
         console.error('Error checking leaders response:', error);
         return NextResponse.json(

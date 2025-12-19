@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { GameStatus } from "@prisma/client";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ gameCode: string }> }
@@ -17,8 +19,7 @@ export async function GET(
         }
 
         // Fetch game session with basic info and card IDs to determine current card
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const gameSession = await (prisma as any).gameSession.findUnique({
+        const gameSession = await prisma.gameSession.findUnique({
             where: {
                 gameCode: gameCode.toUpperCase()
             },
@@ -30,6 +31,8 @@ export async function GET(
                 currentCardIndex: true,
                 lastCardStartedAt: true,
                 shuffledCardIds: true,
+                roundStatus: true,
+                lastTurnResult: true, // Check here for lastTurnResult
                 players: {
                     select: {
                         id: true,
@@ -40,7 +43,8 @@ export async function GET(
                             select: {
                                 id: true,
                                 name: true,
-                                color: true
+                                color: true,
+                                budget: true
                             }
                         },
                         isLeader: true,
@@ -60,9 +64,9 @@ export async function GET(
                     }
                 },
                 categories: {
-                    include: {
+                    select: {
                         category: {
-                            include: {
+                            select: {
                                 cards: {
                                     where: {
                                         status: 'Active',
@@ -98,6 +102,8 @@ export async function GET(
             lastCardStartedAt: gameSession.lastCardStartedAt,
             players: gameSession.players,
             teams: gameSession.teams,
+            roundStatus: gameSession.roundStatus,
+            lastTurnResult: gameSession.lastTurnResult,
         };
 
         // If game is in progress, fetch ONLY the current card
@@ -105,31 +111,21 @@ export async function GET(
             let currentCardId: number | null = null;
 
             // Use shuffledCardIds to determine current card
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const session = gameSession as any;
-            if (session.shuffledCardIds && session.shuffledCardIds.length > 0) {
-                currentCardId = session.shuffledCardIds[gameSession.currentCardIndex % session.shuffledCardIds.length];
+            if (gameSession.shuffledCardIds && gameSession.shuffledCardIds.length > 0) {
+                currentCardId = gameSession.shuffledCardIds[gameSession.currentCardIndex % gameSession.shuffledCardIds.length];
             } else {
                 console.warn(`Game ${gameCode}: shuffledCardIds is empty, cannot determine current card`);
             }
 
             if (currentCardId) {
                 // Fetch full details for the current card
-
-                // Fetch full details for the current card
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const currentCard = await (prisma as any).card.findUnique({
+                const currentCard = await prisma.card.findUnique({
                     where: { id: currentCardId },
                     select: {
                         id: true,
                         title: true,
                         description: true,
                         timeLimit: true,
-                        political: true,
-                        economic: true,
-                        infrastructure: true,
-                        society: true,
-                        environment: true,
                         category: {
                             select: {
                                 name: true,
@@ -169,11 +165,12 @@ export async function GET(
                         title: currentCard.title,
                         description: currentCard.description,
                         timeLimit: currentCard.timeLimit,
-                        political: currentCard.political,
-                        economic: currentCard.economic,
-                        infrastructure: currentCard.infrastructure,
-                        society: currentCard.society,
-                        environment: currentCard.environment,
+                        // Defaults for legacy frontend support if needed, or remove if frontend is updated
+                        political: 0,
+                        economic: 0,
+                        infrastructure: 0,
+                        society: 0,
+                        environment: 0,
                         category: {
                             name: currentCard.category.name,
                             color: currentCard.category.color,
@@ -183,8 +180,7 @@ export async function GET(
                                 textBoxColor: currentCard.category.colorPreset.textBoxColor
                             } : undefined
                         },
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        responses: currentCard.cardResponses.map((r: any) => ({
+                        responses: currentCard.cardResponses.map((r) => ({
                             id: r.id,
                             text: r.text,
                             score: r.score,
@@ -208,7 +204,10 @@ export async function GET(
     } catch (error) {
         console.error('Error fetching game status:', error);
         return NextResponse.json(
-            { error: 'Failed to fetch game status' },
+            {
+                error: 'Failed to fetch game status',
+                details: error instanceof Error ? error.message : String(error)
+            },
             { status: 500 }
         );
     }

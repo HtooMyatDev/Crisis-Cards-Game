@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { gameSessionSchema } from "@/lib/rules";
 import { NextResponse, NextRequest } from "next/server";
 import { getCurrentUser } from "@/app/actions/auth";
@@ -193,7 +194,7 @@ export async function GET(request: NextRequest) {
         const skip = (page - 1) * limit;
 
         // Build where clause
-        const whereClause: any = {};
+        const whereClause: Prisma.GameSessionWhereInput = {};
 
         if (search) {
             whereClause.OR = [
@@ -204,6 +205,7 @@ export async function GET(request: NextRequest) {
         }
 
         if (status && status !== 'All') {
+            // @ts-expect-error - Prisma enum filter type mismatch
             whereClause.status = status;
         }
 

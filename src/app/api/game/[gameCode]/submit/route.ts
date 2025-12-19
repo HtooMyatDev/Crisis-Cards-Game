@@ -10,6 +10,8 @@ export async function POST(
         const body = await request.json();
         const { playerId, cardId, responseId } = body;
 
+        console.log(`[SubmitAPI] Received submission for game: ${gameCode}, player: ${playerId}, card: ${cardId}`);
+
         if (!gameCode || !playerId || !cardId || !responseId) {
             return NextResponse.json(
                 { error: 'Missing required fields' },
@@ -84,56 +86,113 @@ export async function POST(
             );
         }
 
-        // Calculate new budget (cost is negative, so we add it)
-        const newBudget = player.team.budget + responseOption.cost;
-        const isDebt = newBudget < 0;
+        // Calculate impacts
+        const cost = responseOption.cost || 0;
+        const economicEffect = responseOption.economicEffect || 0;
+        const baseValue = player.team.baseValue || 5;
 
-        // Update team budget
-        await prisma.team.update({
-            where: { id: player.teamId! },
-            data: { budget: newBudget }
-        });
+        // Sum of all effect values associated with the response
+        const effectsSum = (responseOption.politicalEffect || 0) +
+                         (responseOption.economicEffect || 0) +
+                         (responseOption.infrastructureEffect || 0) +
+                         (responseOption.societyEffect || 0) +
+                         (responseOption.environmentEffect || 0);
 
-        // Calculate score with team base value
-        const baseValue = player.team.baseValue;
-        const effectValues = {
-            political: responseOption.politicalEffect,
-            economic: responseOption.economicEffect,
-            infrastructure: responseOption.infrastructureEffect,
-            society: responseOption.societyEffect,
-            environment: responseOption.environmentEffect
-        };
+        const scoreChange = baseValue + effectsSum;
+        const budgetChange = economicEffect - cost;
 
-        // Total effect is sum of all effects plus base value
-        const totalEffect = Object.values(effectValues).reduce((sum, val) => sum + val, 0);
-        const scoreChange = baseValue + totalEffect;
+        await prisma.$transaction(async (tx) => {
+            // 1. Record the response
+            await tx.playerResponse.create({
+                data: {
+                    playerId: parseInt(playerId),
+                    cardId: parseInt(cardId),
+                    responseId: parseInt(responseId)
+                }
+            });
 
-        // Update player score
-        await prisma.player.update({
-            where: { id: parseInt(playerId) },
-            data: { score: player.score + scoreChange }
-        });
+            // 2. If Leader, apply effects and check for phase transition
+            if (player.isLeader) {
+                // Update scores for all team members
+                await tx.player.updateMany({
+                    where: { teamId: player.teamId },
+                    data: { score: { increment: scoreChange } }
+                });
 
-        // Record response
-        const response = await prisma.playerResponse.create({
-            data: {
-                playerId: parseInt(playerId),
-                cardId: parseInt(cardId),
-                responseId: parseInt(responseId)
+                // Update team budget
+                await tx.team.update({
+                    where: { id: player.teamId! },
+                    data: { budget: { increment: budgetChange } }
+                });
+
+                // Fetch latest game session for consistent lastTurnResult update
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const currentSession = await tx.gameSession.findUnique({
+                    where: { id: gameSession.id },
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    select: { lastTurnResult: true, id: true } as any
+                });
+
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const currentResults = (currentSession?.lastTurnResult as any) || { teamScoreChanges: [] };
+
+                // Append this team's result
+                const newTeamResult = {
+                    teamId: player.teamId,
+                    teamName: player.team!.name,
+                    teamColor: player.team!.color,
+                    scoreChange: scoreChange,
+                    budgetChange: budgetChange,
+                    selectedResponse: responseOption.text,
+                    impactDescription: responseOption.impactDescription,
+                    selectedResponseEffects: {
+                        political: responseOption.politicalEffect,
+                        economic: responseOption.economicEffect,
+                        infrastructure: responseOption.infrastructureEffect,
+                        society: responseOption.societyEffect,
+                        environment: responseOption.environmentEffect
+                    }
+                };
+
+                const updatedResults = {
+                    ...currentResults,
+                    teamScoreChanges: [...(currentResults.teamScoreChanges || []), newTeamResult]
+                };
+
+                // Check if all leaders have responded
+                const totalTeams = await tx.team.count({
+                    where: { gameSessionId: gameSession.id }
+                });
+
+                const leaderResponses = await tx.playerResponse.count({
+                    where: {
+                        cardId: parseInt(cardId),
+                        player: {
+                            isLeader: true,
+                            gameSessionId: gameSession.id
+                        }
+                    }
+                });
+
+                // Only transition if ALL teams have responded
+                const allTeamsResponded = leaderResponses >= totalTeams;
+
+                await tx.gameSession.update({
+                    where: { id: gameSession.id },
+                    data: {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        lastTurnResult: updatedResults as any,
+                        roundStatus: allTeamsResponded ? 'RESULTS_PHASE' : undefined
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    } as any
+                });
             }
         });
 
         return NextResponse.json({
             success: true,
-            responseId: response.id,
-            consequence: {
-                cost: responseOption.cost,
-                effects: effectValues,
-                baseValue,
-                scoreChange,
-                newBudget,
-                isDebt
-            }
+            message: player.isLeader ? 'Leader decision recorded & round complete' : 'Vote recorded',
+            isLeader: player.isLeader
         });
 
     } catch (error) {

@@ -1,22 +1,23 @@
 import React from 'react';
-import AdminSidebar from '@/components/admin/Sidebar/Sidebar';
+import AdminLayoutShell from '@/components/admin/AdminLayoutShell';
+import { getCurrentUser } from '@/app/actions/auth';
+import { redirect } from 'next/navigation';
 
-export default function AdminLayout({
+export default async function AdminLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    return (
-        <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900">
-            {/* Fixed Sidebar */}
-            <div className="fixed inset-y-0 left-0 z-50 w-64 h-full">
-                <AdminSidebar />
-            </div>
+    const user = await getCurrentUser();
 
-            {/* Main Content Area with fixed margin */}
-            <div className="flex-1 ml-64 transition-all duration-300 ease-in-out p-8">
-                {children}
-            </div>
-        </div>
+    // Optional: Redirect if not logged in (though middleware usually handles this)
+    if (!user) {
+        redirect('/auth/login');
+    }
+
+    return (
+        <AdminLayoutShell user={user}>
+            {children}
+        </AdminLayoutShell>
     );
 }

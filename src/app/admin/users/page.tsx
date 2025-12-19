@@ -1,6 +1,9 @@
 "use client"
 import React, { useState, useEffect, useCallback } from 'react';
-import { Crown, User, Shield, Search, Filter, MoreVertical, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Crown, User, Eye, Trash2 } from 'lucide-react';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminSearchFilters } from '@/components/admin/AdminSearchFilters';
+import { AdminPagination } from '@/components/admin/AdminPagination';
 
 interface UserData {
     id: string;
@@ -175,7 +178,7 @@ export default function UserManagement() {
                 </div>
             )}
 
-            <h1 className="text-2xl font-bold mb-6 text-black dark:text-white">User Management</h1>
+            <AdminPageHeader title="User Management" />
 
             {/* Stats Cards - Note: These are now somewhat approximate as we don't have separate stats API yet, using total from pagination */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -189,41 +192,32 @@ export default function UserManagement() {
                 {/* Other stats would ideally come from a stats endpoint, keeping placeholders or removing if inaccurate */}
             </div>
 
-            {/* Search and Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Search users by name or email..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] focus:outline-none focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] bg-white dark:bg-gray-800 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                    />
-                </div>
-                <div className="flex gap-3">
-                    <select
-                        value={filterRole}
-                        onChange={(e) => setFilterRole(e.target.value)}
-                        className="px-3 pr-10 py-2 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] appearance-none bg-white dark:bg-gray-800 font-semibold text-black dark:text-white"
-                        style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
-                    >
-                        <option value="all">All Roles</option>
-                        <option value="admin">Admins</option>
-                        <option value="player">Players</option>
-                    </select>
-                    <select
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                        className="px-3 pr-10 py-2 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] appearance-none bg-white dark:bg-gray-800 font-semibold text-black dark:text-white"
-                        style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
-                    >
-                        <option value="all">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
-            </div>
+            <AdminSearchFilters
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchPlaceholder="Search users by name or email..."
+            >
+                <select
+                    value={filterRole}
+                    onChange={(e) => setFilterRole(e.target.value)}
+                    className="px-3 pr-10 py-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] appearance-none bg-white dark:bg-gray-800 font-semibold text-black dark:text-white"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
+                >
+                    <option value="all">All Roles</option>
+                    <option value="admin">Admins</option>
+                    <option value="player">Players</option>
+                </select>
+                <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="px-3 pr-10 py-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] appearance-none bg-white dark:bg-gray-800 font-semibold text-black dark:text-white"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
+                >
+                    <option value="all">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </AdminSearchFilters>
 
             {/* Loading State */}
             {loading ? (
@@ -306,28 +300,14 @@ export default function UserManagement() {
                             </table>
                         </div>
 
-                        {/* Pagination Controls */}
-                        <div className="flex justify-between items-center p-4 border-t-2 border-black dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50">
-                            <div className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-                                Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} users
-                            </div>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                    disabled={currentPage === 1}
-                                    className="p-2 border-2 border-black dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                                >
-                                    <ChevronLeft size={20} />
-                                </button>
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
-                                    disabled={currentPage === pagination.totalPages}
-                                    className="p-2 border-2 border-black dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                                >
-                                    <ChevronRight size={20} />
-                                </button>
-                            </div>
-                        </div>
+                        <AdminPagination
+                            currentPage={currentPage}
+                            totalPages={pagination.totalPages}
+                            totalItems={pagination.total}
+                            itemsPerPage={pagination.limit}
+                            onPageChange={setCurrentPage}
+                            itemName="users"
+                        />
                     </div>
 
                     {users.length === 0 && (

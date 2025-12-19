@@ -66,11 +66,6 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
                     categoryId: Number(categoryId),
                     timeLimit: Number(timeLimit),
                     status,
-                    political: Number(political),
-                    economic: Number(economic),
-                    infrastructure: Number(infrastructure),
-                    society: Number(society),
-                    environment: Number(environment),
                 }
             });
 
@@ -82,7 +77,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
             // 3. Create new response options
             if (responseOptions && Array.isArray(responseOptions)) {
                 await tx.cardResponse.createMany({
-                    data: responseOptions.map((opt: { text: string; politicalEffect: number; economicEffect: number; infrastructureEffect: number; societyEffect: number; environmentEffect: number; score: number }, index: number) => ({
+                    data: responseOptions.map((opt: { text: string; politicalEffect: number; economicEffect: number; infrastructureEffect: number; societyEffect: number; environmentEffect: number; score: number; impactDescription?: string }, index: number) => ({
                         cardId: idNum,
                         text: opt.text,
                         politicalEffect: Number(opt.politicalEffect),
@@ -91,7 +86,8 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
                         societyEffect: Number(opt.societyEffect),
                         environmentEffect: Number(opt.environmentEffect),
                         score: Number(opt.score),
-                        order: index
+                        order: index,
+                        impactDescription: opt.impactDescription || null
                     }))
                 });
             }

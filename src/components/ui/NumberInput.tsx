@@ -27,6 +27,7 @@ export const NumberInput: React.FC<NumberInputProps> = ({
             value={value === 0 ? '' : value}
             onChange={(e) => onChange(e.target.value)}
             onFocus={(e) => e.target.select()}
+            onWheel={(e) => e.currentTarget.blur()}
             className={`w-full px-4 py-3 border-2 border-black dark:border-gray-700 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] focus:translate-x-[1px] focus:translate-y-[1px] transition-all duration-200 outline-none bg-white dark:bg-gray-800 text-black dark:text-white ${className}`}
             placeholder={placeholder}
         />

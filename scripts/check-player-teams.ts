@@ -23,8 +23,8 @@ async function checkGamePlayers() {
     console.log(`Game: ${game.name} (${game.gameCode})`);
     console.log(`  Players: ${game.players.length}`);
 
-    const redTeam = game.players.filter(p => p.team === 'RED');
-    const blueTeam = game.players.filter(p => p.team === 'BLUE');
+    const redTeam = game.players.filter(p => p.team?.name === 'The Red Team' || p.team?.name === 'RED');
+    const blueTeam = game.players.filter(p => p.team?.name === 'The Blue Team' || p.team?.name === 'BLUE');
     const noTeam = game.players.filter(p => !p.team);
 
     console.log(`  RED team: ${redTeam.length} players`);
@@ -35,7 +35,7 @@ async function checkGamePlayers() {
 
     if (noTeam.length > 0) {
       console.log(`  No team: ${noTeam.length} players`);
-      noTeam.forEach(p => console.log(`    - ${p.nickname} (team: ${p.team})`));
+      noTeam.forEach(p => console.log(`    - ${p.nickname} (team: ${JSON.stringify(p.team)})`));
     }
 
     console.log('');

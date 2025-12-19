@@ -7,7 +7,7 @@ interface PollingOptions {
 }
 
 export const useGamePolling = ({
-    interval = 3000,
+    interval = 1000,
     enabled = true,
     onPoll
 }: PollingOptions) => {

@@ -212,13 +212,8 @@ async function seedDatabase() {
                     categoryId: category.id,
                     createdBy: adminUser.id,
                     status: 'OPEN',
-                    political: cardData.political || 0,
-                    economic: cardData.economic || 0,
-                    infrastructure: cardData.infrastructure || 0,
-                    society: cardData.society || 0,
-                    environment: cardData.environment || 0,
                     cardResponses: {
-                        create: cardData.responses.map((r: any) => ({
+                        create: cardData.responses.map((r: { text: string; politicalEffect?: number; economicEffect?: number; infrastructureEffect?: number; societyEffect?: number; environmentEffect?: number; score?: number }) => ({
                             text: r.text,
                             politicalEffect: r.politicalEffect || 0,
                             economicEffect: r.economicEffect || 0,

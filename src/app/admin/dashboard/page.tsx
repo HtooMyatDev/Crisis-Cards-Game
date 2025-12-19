@@ -91,7 +91,7 @@ const Dashboard = () => {
 
     // Real-time updates
     useGamePolling({
-        interval: 10000, // 10 seconds
+        interval: 5000, // 5 seconds
         enabled: true,
         onPoll: fetchDashboard
     });

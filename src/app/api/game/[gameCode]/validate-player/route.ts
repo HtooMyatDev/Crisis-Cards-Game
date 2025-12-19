@@ -21,7 +21,8 @@ export async function GET(
         const player = await prisma.player.findUnique({
             where: { id: parseInt(playerId) },
             include: {
-                gameSession: true
+                gameSession: true,
+                team: true
             }
         });
 

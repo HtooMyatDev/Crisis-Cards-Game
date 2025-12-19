@@ -153,9 +153,23 @@ const GameDetailsPage = () => {
             }
 
             const data = await response.json();
+            const newHash = hashObject(data.game);
 
-            // Always update to ensure teams appear immediately
-            setGame(data.game);
+            // Only update if data changed
+            if (newHash !== lastDataHashRef.current) {
+                lastDataHashRef.current = newHash;
+                setGame(data.game);
+
+                // Initialize config form from data
+                if (data.game) {
+                    setConfigForm({
+                        initialBudget: data.game.initialBudget || 5000,
+                        leaderTermLength: data.game.leaderTermLength || 4,
+                        gameDurationMinutes: data.game.gameDurationMinutes || 60
+                    });
+                }
+            }
+
             setError('');
             setLoading(false);
 
@@ -172,10 +186,10 @@ const GameDetailsPage = () => {
         setLoading(true);
         fetchGameDetails();
 
-        // Poll every 2 seconds for updates
+        // Poll every 3 seconds for updates (reduced from 1s to save resources)
         const interval = setInterval(() => {
             fetchGameDetails();
-        }, 2000);
+        }, 3000);
 
         return () => clearInterval(interval);
     }, [fetchGameDetails]);
@@ -205,6 +219,20 @@ const GameDetailsPage = () => {
     const [newTeamColor, setNewTeamColor] = useState('#3B82F6');
     const [showDeleteTeamModal, setShowDeleteTeamModal] = useState(false);
     const [teamToDelete, setTeamToDelete] = useState<{ id: string, name: string } | null>(null);
+
+    // Configuration editing state
+    const [isEditingConfig, setIsEditingConfig] = useState(false);
+    const [configForm, setConfigForm] = useState({
+        initialBudget: 5000,
+        leaderTermLength: 4,
+        gameDurationMinutes: 60
+    });
+    const [isSavingConfig, setIsSavingConfig] = useState(false);
+
+    // Team renaming state
+    const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
+    const [editingTeamName, setEditingTeamName] = useState('');
+    const [isRenamingTeam, setIsRenamingTeam] = useState(false);
 
     // Drag and drop sensors
     const sensors = useSensors(
@@ -366,12 +394,22 @@ const GameDetailsPage = () => {
 
             if (!res.ok) throw new Error('Failed to assign player');
 
+            const data = await res.json();
+
+            // Update local state with the authoritative player list from server
+            if (data.players) {
+                setGame(prevGame => {
+                    if (!prevGame) return null;
+                    return { ...prevGame, players: data.players };
+                });
+            }
+
             toast.success('Player assigned!');
-            fetchGameDetails(); // Refresh data to ensure consistency
+            // Removed fetchGameDetails() to prevent N+1 fetch spam
         } catch (err) {
             console.error('Error assigning player:', err);
             toast.error('Failed to assign player');
-            fetchGameDetails(); // Revert optimistic update on error
+            fetchGameDetails(); // Revert optimistic update only on error
         } finally {
             setIsAssigning(false);
         }
@@ -389,8 +427,17 @@ const GameDetailsPage = () => {
 
             if (!res.ok) throw new Error('Failed to assign teams');
 
+            const data = await res.json();
+
+            // Update local state with returned players
+            if (data.players) {
+                setGame(prevGame => {
+                    if (!prevGame) return null;
+                    return { ...prevGame, players: data.players };
+                });
+            }
+
             toast.success('Teams assigned randomly!');
-            fetchGameDetails();
         } catch (err) {
             console.error('Error assigning teams:', err);
             toast.error('Failed to assign teams');
@@ -454,9 +501,9 @@ const GameDetailsPage = () => {
 
             // Immediate refresh without hard reload
             await fetchGameDetails();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error creating team:', err);
-            toast.error(err.message || 'Failed to create team');
+            toast.error(err instanceof Error ? err.message : 'Failed to create team');
         }
     };
 
@@ -491,11 +538,107 @@ const GameDetailsPage = () => {
             setShowDeleteTeamModal(false);
             setTeamToDelete(null);
             await fetchGameDetails();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error deleting team:', err);
-            toast.error(err.message || 'Failed to delete team');
+            toast.error(err instanceof Error ? err.message : 'Failed to delete team');
             setShowDeleteTeamModal(false);
             setTeamToDelete(null);
+        }
+    };
+
+    // Update game configuration
+    const handleUpdateConfig = async () => {
+        try {
+            setIsSavingConfig(true);
+            const res = await fetch(`/api/admin/games/${gameId}/config`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(configForm)
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to update configuration');
+            }
+
+            toast.success('Configuration updated!');
+            setIsEditingConfig(false);
+            fetchGameDetails();
+        } catch (err: unknown) {
+            console.error('Error updating config:', err);
+            toast.error(err instanceof Error ? err.message : 'Failed to update configuration');
+        } finally {
+            setIsSavingConfig(false);
+        }
+    };
+
+    // Rename a team
+    const handleRenameTeam = async (teamId: string) => {
+        if (!editingTeamName.trim()) return;
+
+        try {
+            setIsRenamingTeam(true);
+            const res = await fetch(`/api/admin/games/${gameId}/teams`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    teamId,
+                    name: editingTeamName
+                })
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to rename team');
+            }
+
+            toast.success('Team renamed!');
+            setEditingTeamId(null);
+            fetchGameDetails();
+        } catch (err: unknown) {
+            console.error('Error renaming team:', err);
+            toast.error(err instanceof Error ? err.message : 'Failed to rename team');
+        } finally {
+            setIsRenamingTeam(false);
+        }
+    };
+
+    // Bulk create/set number of teams
+    const handleSetTeamCount = async (count: number) => {
+        if (!game) return;
+        try {
+            const currentCount = game.teams?.length || 0;
+            if (count === currentCount) return;
+
+            if (count < currentCount) {
+                toast.error(`Please delete teams manually down to ${count}.`);
+                return;
+            }
+
+            // Create missing teams
+            const teamsToCreate = count - currentCount;
+            const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
+
+            for (let i = 0; i < teamsToCreate; i++) {
+                const color = colors[(currentCount + i) % colors.length];
+                await fetch(`/api/admin/games/${gameId}/teams`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: `Team ${currentCount + i + 1}`,
+                        color: color,
+                        order: currentCount + i,
+                        budget: game.initialBudget || 5000,
+                        baseValue: 5
+                    })
+                });
+            }
+
+            toast.success(`Created ${teamsToCreate} new teams!`);
+            fetchGameDetails();
+        } catch (err: unknown) {
+            console.error('Error setting team count:', err);
+            toast.error('Failed to create new teams');
         }
     };
 
@@ -609,6 +752,15 @@ const GameDetailsPage = () => {
                         <span className="hidden sm:inline">QR Code</span>
                     </button>
 
+                    <button
+                        onClick={() => router.push(`/admin/games/${gameId}/host`)}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white font-bold rounded-lg border-2 border-black dark:border-gray-500 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-sm"
+                        title="Open Live Spectator View"
+                    >
+                        <Play size={16} />
+                        <span className="hidden sm:inline">Live View</span>
+                    </button>
+
                     {/* Live Indicator */}
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-900/20 border-2 border-green-500 dark:border-green-600 rounded-lg">
                         <div className="relative flex items-center">
@@ -707,6 +859,36 @@ const GameDetailsPage = () => {
                             {game.teams?.map(team => (
                                 <div key={team.id} className="space-y-2">
                                     <DroppableArea id={team.id} title={team.name} color={team.color}>
+                                        <div className="flex justify-between items-center mb-2 px-2">
+                                            {editingTeamId === team.id ? (
+                                                <div className="flex items-center gap-1 w-full">
+                                                    <input
+                                                        type="text"
+                                                        value={editingTeamName}
+                                                        onChange={(e) => setEditingTeamName(e.target.value)}
+                                                        className="flex-1 px-2 py-0.5 text-xs border border-blue-500 rounded outline-none"
+                                                        autoFocus
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') handleRenameTeam(team.id);
+                                                            if (e.key === 'Escape') setEditingTeamId(null);
+                                                        }}
+                                                    />
+                                                    <button onClick={() => handleRenameTeam(team.id)} className="text-green-500">
+                                                        <Check size={14} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingTeamId(team.id);
+                                                        setEditingTeamName(team.name);
+                                                    }}
+                                                    className="text-[10px] text-gray-400 hover:text-blue-500 underline font-bold"
+                                                >
+                                                    Rename
+                                                </button>
+                                            )}
+                                        </div>
                                         <AnimatePresence>
                                             {game.players?.filter(p => p.teamId === team.id).map(player => (
                                                 <DraggablePlayer key={player.id} player={player} teamColor={team.color} />
@@ -769,7 +951,103 @@ const GameDetailsPage = () => {
                                 </div>
                             </div>
 
-                            <div className="pt-2">
+                            {/* Game Settings Section */}
+                            <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Game Settings</span>
+                                    {game.status === 'WAITING' && (
+                                        <button
+                                            onClick={() => setIsEditingConfig(!isEditingConfig)}
+                                            className="text-[10px] font-black text-blue-500 hover:text-blue-600 uppercase"
+                                        >
+                                            {isEditingConfig ? 'Cancel' : 'Edit'}
+                                        </button>
+                                    )}
+                                </div>
+
+                                {isEditingConfig ? (
+                                    <div className="space-y-3 bg-blue-50 dark:bg-blue-900/10 p-3 rounded border border-blue-100 dark:border-blue-900/30">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Initial Budget</label>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => setConfigForm({ ...configForm, initialBudget: 5000 })}
+                                                    className={`flex-1 py-1 text-xs font-bold border-2 rounded ${configForm.initialBudget === 5000 ? 'bg-blue-500 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200'}`}
+                                                >
+                                                    $5000
+                                                </button>
+                                                <button
+                                                    onClick={() => setConfigForm({ ...configForm, initialBudget: 10000 })}
+                                                    className={`flex-1 py-1 text-xs font-bold border-2 rounded ${configForm.initialBudget === 10000 ? 'bg-blue-500 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200'}`}
+                                                >
+                                                    $10000
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Game Duration (Mins)</label>
+                                            <input
+                                                type="number"
+                                                value={configForm.gameDurationMinutes}
+                                                onChange={(e) => setConfigForm({ ...configForm, gameDurationMinutes: parseInt(e.target.value) || 0 })}
+                                                className="w-full px-2 py-1 text-xs border-2 border-gray-200 rounded focus:border-blue-500 outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Leader term (Rounds)</label>
+                                            <input
+                                                type="number"
+                                                value={configForm.leaderTermLength}
+                                                onChange={(e) => setConfigForm({ ...configForm, leaderTermLength: parseInt(e.target.value) || 0 })}
+                                                className="w-full px-2 py-1 text-xs border-2 border-gray-200 rounded focus:border-blue-500 outline-none"
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={handleUpdateConfig}
+                                            disabled={isSavingConfig}
+                                            className="w-full py-1.5 bg-green-500 text-white text-xs font-black rounded border-b-4 border-green-700 active:border-b-0 active:translate-y-1 transition-all"
+                                        >
+                                            {isSavingConfig ? 'Saving...' : 'SAVE SETTINGS'}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2 text-xs">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">Initial Budget</span>
+                                            <span className="font-bold">${game.initialBudget || 5000}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">Game Duration</span>
+                                            <span className="font-bold">{game.gameDurationMinutes || 60} Mins</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">Leader Term</span>
+                                            <span className="font-bold">{game.leaderTermLength || 4} Rounds</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Team Control Section */}
+                            <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+                                <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2 block">Set Team Count</span>
+                                <div className="flex gap-2">
+                                    {[2, 3, 4, 6].map(num => (
+                                        <button
+                                            key={num}
+                                            onClick={() => handleSetTeamCount(num)}
+                                            className={`flex-1 py-1 text-xs font-bold border-2 rounded transition-all ${game.teams?.length === num ? 'bg-orange-500 text-white border-orange-600' : 'bg-white text-gray-600 border-gray-200 hover:border-orange-300'}`}
+                                        >
+                                            {num}
+                                        </button>
+                                    ))}
+                                </div>
+                                <p className="text-[10px] text-gray-400 mt-1 italic italic">
+                                    Setting a higher number will instantly add new teams.
+                                </p>
+                            </div>
+
+                            <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
                                 <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2 block">Categories</span>
                                 <div className="flex flex-wrap gap-2">
                                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}

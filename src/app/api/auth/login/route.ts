@@ -75,9 +75,21 @@ export async function POST(request: NextRequest) {
         return response;
 
     }
-    catch {
+    catch (error) {
+        console.error('Login API error:', error);
+
+        const isDbError = error instanceof Error &&
+            (error.message.includes('Prisma') || error.message.includes('database') || error.message.includes('connection'));
+
         return NextResponse.json(
-            { error: 'Internal server error' },
+            {
+                error: isDbError
+                    ? 'Database connection error'
+                    : 'Internal server error',
+                message: isDbError
+                    ? "Database connection error. Please try again later."
+                    : "An error occurred during login. Please try again."
+            },
             { status: 500 })
     }
 }

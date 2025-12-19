@@ -26,7 +26,8 @@ const AdminSidebarFooter: React.FC<AdminSidebarFooterProps> = ({
     onNavigation,
     onLogout,
     pathname,
-    userInfo
+    userInfo,
+    isCollapsed = false
 }) => {
     const [mounted, setMounted] = useState(false);
 
@@ -57,7 +58,7 @@ const AdminSidebarFooter: React.FC<AdminSidebarFooterProps> = ({
     return (
         <div className="absolute bottom-3 left-3 right-3">
             <div className="space-y-2">
-                <div className={`ml-4 space-y-2 overflow-hidden transition-all duration-300 ease-out pe-1 pb-1 ${isProfileOpen
+                <div className={`ml-4 space-y-2 overflow-hidden transition-all duration-300 ease-out pe-1 pb-1 ${isProfileOpen && !isCollapsed
                     ? 'max-h-[280px] opacity-100 translate-y-0 mb-2'
                     : 'max-h-0 opacity-0 translate-y-2 mb-0'
                     }`}>
@@ -106,14 +107,18 @@ const AdminSidebarFooter: React.FC<AdminSidebarFooterProps> = ({
                         ${isProfileSectionActive
                             ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-indigo-800'
                             : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-indigo-50 hover:to-indigo-100 dark:hover:from-indigo-900/30 dark:hover:to-indigo-900/20 text-black dark:text-white'
-                        }`}
+                        } ${isCollapsed ? 'justify-center' : ''}`}
                     title={userInfo.name}
                 >
                     <div className="flex flex-col items-start">
-                        <span className="text-xs font-bold">{userInfo.name}</span>
-                        <span className={`text-xs ${isProfileSectionActive ? 'text-indigo-200' : 'text-gray-500 dark:text-gray-400'}`}>
-                            {userInfo.role}
-                        </span>
+                        {!isCollapsed && (
+                            <>
+                                <span className="text-xs font-bold">{userInfo.name}</span>
+                                <span className={`text-xs ${isProfileSectionActive ? 'text-indigo-200' : 'text-gray-500 dark:text-gray-400'}`}>
+                                    {userInfo.role}
+                                </span>
+                            </>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -122,9 +127,11 @@ const AdminSidebarFooter: React.FC<AdminSidebarFooterProps> = ({
                         `}>
                             {userInfo.initials}
                         </div>
-                        <div className={`transition-transform duration-200 ${isProfileOpen ? 'rotate-90' : 'rotate-0'}`}>
-                            <ChevronRight size={14} />
-                        </div>
+                        {!isCollapsed && (
+                            <div className={`transition-transform duration-200 ${isProfileOpen ? 'rotate-90' : 'rotate-0'}`}>
+                                <ChevronRight size={14} />
+                            </div>
+                        )}
                     </div>
                 </button>
             </div>

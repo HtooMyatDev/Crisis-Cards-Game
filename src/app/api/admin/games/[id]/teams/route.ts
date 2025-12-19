@@ -99,17 +99,13 @@ export async function DELETE(
             }, { status: 400 });
         }
 
-        // Check if team has players
-        const playersCount = await prisma.player.count({
-            where: { teamId }
+        // Unassign players first instead of blocking
+        await prisma.player.updateMany({
+            where: { teamId },
+            data: { teamId: null }
         });
 
-        if (playersCount > 0) {
-            return NextResponse.json({
-                error: 'Cannot delete team with assigned players. Unassign players first.'
-            }, { status: 400 });
-        }
-
+        // Now safe to delete
         await prisma.team.delete({
             where: { id: teamId }
         });

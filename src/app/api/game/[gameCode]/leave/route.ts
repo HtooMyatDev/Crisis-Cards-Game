@@ -21,7 +21,7 @@ export async function POST(
         // 1. Get the player to check if they are a leader
         const player = await prisma.player.findUnique({
             where: { id },
-            include: { gameSession: true }
+            include: { gameSession: true, team: true }
         });
 
         if (!player) {
@@ -37,7 +37,7 @@ export async function POST(
             const teammates = await prisma.player.findMany({
                 where: {
                     gameSessionId: player.gameSessionId,
-                    team: player.team,
+                    teamId: player.teamId,
                     id: { not: id }, // Exclude the leaving player
                     isConnected: true // Only consider connected players
                 },
@@ -53,9 +53,9 @@ export async function POST(
                     where: { id: newLeader.id },
                     data: { isLeader: true }
                 });
-                console.log(`Leadership transferred from ${player.nickname} to ${newLeader.nickname} for team ${player.team}`);
+                console.log(`Leadership transferred from ${player.nickname} to ${newLeader.nickname} for team ${player.team?.name}`);
             } else {
-                console.log(`No teammates found for team ${player.team}. Team is now leaderless.`);
+                console.log(`No teammates found for team ${player.team?.name}. Team is now leaderless.`);
             }
         }
 

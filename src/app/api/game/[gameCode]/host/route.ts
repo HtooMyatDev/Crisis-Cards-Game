@@ -74,9 +74,14 @@ export async function GET(
         }
 
         // Verify user is the host
-        if (gameSession.hostId !== parseInt(user.userId)) {
+        // Verify user is the host or an admin
+        // Parse host ID safely
+        const hostId = typeof gameSession.hostId === 'number' ? gameSession.hostId : parseInt(gameSession.hostId as unknown as string);
+        const userId = parseInt(user.userId);
+
+        if (hostId !== userId && user.role !== 'ADMIN') {
             return NextResponse.json(
-                { error: 'Forbidden - Only the host can access this view' },
+                { error: 'Forbidden - Only the host or an admin can access this view' },
                 { status: 403 }
             );
         }

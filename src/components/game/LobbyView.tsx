@@ -20,6 +20,7 @@ interface Player {
 interface LobbyViewProps {
     gameCode: string;
     nickname: string;
+    playerId?: number | null;
     team: Team | null;
     teammates: Player[];
     allPlayers?: Player[];
@@ -30,6 +31,7 @@ interface LobbyViewProps {
 export const LobbyView: React.FC<LobbyViewProps> = ({
     gameCode,
     nickname,
+    playerId,
     team,
     teammates,
     allPlayers = [],
@@ -69,11 +71,10 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                                 <div
                                     className="w-12 h-12 border-2 border-black dark:border-gray-600 rounded-lg flex items-center justify-center"
                                     style={{
-                                        backgroundColor: team ? `${team.color}20` : undefined,
-                                        color: team?.color
+                                        backgroundColor: team?.color ? `${team.color}33` : undefined,
                                     }}
                                 >
-                                    <User size={24} />
+                                    <User size={24} className="text-gray-700 dark:text-gray-300" />
                                 </div>
                                 <div>
                                     <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Playing as</p>
@@ -81,7 +82,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                                     <div className="flex items-center gap-2">
                                         <p
                                             className="text-sm font-bold"
-                                            style={{ color: team?.color }}
+                                            style={{ color: team?.color || '#6B7280' }}
                                         >
                                             {team ? team.name : 'No Team Assigned'}
                                         </p>
@@ -100,11 +101,11 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                                             key={idx}
                                             className="px-3 py-1 rounded-full text-xs font-bold border-2 border-black dark:border-gray-600"
                                             style={{
-                                                backgroundColor: `${team.color}20`,
+                                                backgroundColor: `${team.color}33`,
                                                 color: team.color
                                             }}
                                         >
-                                            {p.nickname} {p.nickname === nickname && '(You)'}
+                                            {p.nickname} {p.id === playerId && '(You)'}
                                         </span>
                                     ))}
                                 </div>
@@ -140,12 +141,12 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                                                             key={p.id}
                                                             className="px-2 py-1 rounded text-xs font-medium border"
                                                             style={{
-                                                                backgroundColor: `${t.color}15`,
-                                                                borderColor: `${t.color}40`,
+                                                                backgroundColor: `${t.color}26`,
+                                                                borderColor: `${t.color}66`,
                                                                 color: t.color
                                                             }}
                                                         >
-                                                            {p.nickname}{p.nickname === nickname && ' (You)'}
+                                                            {p.nickname}{p.id === playerId && ' (You)'}
                                                         </span>
                                                     ))}
                                                 </div>

@@ -112,9 +112,16 @@ export async function registerAction(
     }
     catch (error) {
         console.error('Registration error:', error);
+
+        // Detect database connection errors
+        const isDbError = error instanceof Error &&
+            (error.message.includes('Prisma') || error.message.includes('database') || error.message.includes('connection'));
+
         return {
             success: false,
-            message: "An error occurred during registration. Please try again.",
+            message: isDbError
+                ? "Database connection error. Please try again later."
+                : "An error occurred during registration. Please try again.",
             errors: {},
             redirectTo: null
         };
@@ -215,9 +222,16 @@ export async function loginAction(
     }
     catch (error) {
         console.error('Login error', error)
+
+        // Detect database connection errors
+        const isDbError = error instanceof Error &&
+            (error.message.includes('Prisma') || error.message.includes('database') || error.message.includes('connection'));
+
         return {
             success: false,
-            message: 'An error occured during login. Please try again.',
+            message: isDbError
+                ? "Database connection error. Please try again later."
+                : 'An error occurred during login. Please try again.',
             errors: {},
             redirectTo: null
         }
@@ -259,7 +273,9 @@ export async function getCurrentUser() {
                 id: true,
                 name: true,
                 email: true,
-                role: true
+                role: true,
+                bio: true,
+                location: true
             }
         });
 

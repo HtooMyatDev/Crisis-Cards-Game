@@ -1,11 +1,17 @@
 "use client"
 import React, { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import AdminSidebarContent from './SidebarContent';
 import AdminSidebarFooter from './SidebarFooter';
 
-const AdminSidebar = () => {
+interface AdminSidebarProps {
+    isCollapsed?: boolean;
+    toggleCollapse?: () => void;
+    user?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+}
+
+const AdminSidebar: React.FC<AdminSidebarProps> = ({ isCollapsed = false, toggleCollapse, user }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isCardsOpen, setIsCardsOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -17,6 +23,7 @@ const AdminSidebar = () => {
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     const toggleCards = () => {
+        if (isCollapsed && toggleCollapse) toggleCollapse();
         setIsCardsOpen(!isCardsOpen);
         if (!isCardsOpen) {
             setIsCategoriesOpen(false);
@@ -26,6 +33,7 @@ const AdminSidebar = () => {
     };
 
     const toggleProfile = () => {
+        if (isCollapsed && toggleCollapse) toggleCollapse();
         setIsProfileOpen(!isProfileOpen);
         if (!isProfileOpen) {
             setIsCardsOpen(false);
@@ -35,6 +43,7 @@ const AdminSidebar = () => {
     };
 
     const toggleCategories = () => {
+        if (isCollapsed && toggleCollapse) toggleCollapse();
         setIsCategoriesOpen(!isCategoriesOpen);
         if (!isCategoriesOpen) {
             setIsCardsOpen(false);
@@ -44,6 +53,7 @@ const AdminSidebar = () => {
     };
 
     const toggleGames = () => {
+        if (isCollapsed && toggleCollapse) toggleCollapse();
         setIsGamesOpen(!isGamesOpen);
         if (!isGamesOpen) {
             setIsCardsOpen(false);
@@ -62,9 +72,9 @@ const AdminSidebar = () => {
     };
 
     const userInfo = {
-        name: 'Htoo Myat Aung',
-        role: 'Administrator',
-        initials: 'JD'
+        name: user?.name || 'Administrator',
+        role: user?.role || 'Admin',
+        initials: user?.name ? user.name.charAt(0).toUpperCase() : 'A'
     };
 
     return (
@@ -91,8 +101,8 @@ const AdminSidebar = () => {
                 fixed left-0 top-0 h-full bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900
                 border-r-4 border-black dark:border-gray-700 z-50 transform transition-all duration-300 ease-in-out
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-                md:translate-x-0 shadow-[8px_0px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[8px_0px_0px_0px_rgba(255,255,255,0.05)] overflow-hidden
-                md:w-64 w-64
+                md:translate-x-0 shadow-[8px_0px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[8px_0px_0px_0px_rgba(255,255,255,0.05)]
+                w-64 ${isCollapsed ? 'md:w-20' : 'md:w-64'}
             `}>
                 <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-red-500"></div>
 
@@ -105,6 +115,7 @@ const AdminSidebar = () => {
                     onToggleCategories={toggleCategories}
                     onToggleGames={toggleGames}
                     onNavigation={handleNavigation}
+                    isCollapsed={isCollapsed}
                 />
 
                 <AdminSidebarFooter
@@ -114,7 +125,18 @@ const AdminSidebar = () => {
                     onNavigation={handleNavigation}
                     onLogout={handleLogout}
                     userInfo={userInfo}
+                    isCollapsed={isCollapsed}
                 />
+
+                {/* Desktop Collapse Toggle */}
+                <button
+                    onClick={toggleCollapse}
+                    className="hidden md:flex absolute bottom-20 -right-3 w-6 h-6 bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-600 rounded-full items-center justify-center
+                        shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all z-50"
+                    aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                >
+                    {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+                </button>
             </div>
         </>
     );

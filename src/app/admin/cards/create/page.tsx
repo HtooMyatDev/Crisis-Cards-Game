@@ -14,6 +14,7 @@ interface ResponseOption {
     environmentEffect: number;
     score: number;
     cost: number; // Cost field (negative values = spending)
+    impactDescription?: string; // Narrative consequence
 }
 
 interface CardFormData {
@@ -56,9 +57,9 @@ export default function CreateCards() {
             category: '',
             timeLimit: 1,
             responseOptions: [
-                { value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, cost: 0 },
-                { value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, cost: 0 },
-                { value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, cost: 0 }
+                { value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, cost: 0, impactDescription: '' },
+                { value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, cost: 0, impactDescription: '' },
+                { value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, cost: 0, impactDescription: '' }
             ],
             status: 'Active'
         }
@@ -185,7 +186,8 @@ export default function CreateCards() {
                     societyEffect: option.societyEffect,
                     environmentEffect: option.environmentEffect,
                     score: option.score,
-                    cost: option.cost // Include cost field
+                    cost: option.cost, // Include cost field
+                    impactDescription: option.impactDescription
                 }));
 
             // Find category ID from category name
@@ -431,6 +433,26 @@ export default function CreateCards() {
                                             />
                                         </div>
 
+                                        {/* Impact Description */}
+                                        <div className="mb-4">
+                                            <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                                                Impact Description (Narrative Consequence)
+                                            </label>
+                                            <textarea
+                                                {...register(`responseOptions.${index}.impactDescription`, {
+                                                    maxLength: {
+                                                        value: 500,
+                                                        message: 'Impact description cannot exceed 500 characters'
+                                                    }
+                                                })}
+                                                className="w-full p-3 border-2 border-gray-400 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:outline-none bg-white dark:bg-gray-800 text-black dark:text-white resize-y min-h-[60px]"
+                                                placeholder="Describe the narrative consequence..."
+                                            />
+                                            {errors.responseOptions?.[index]?.impactDescription && (
+                                                <p className="text-red-600 text-sm mt-1">{errors.responseOptions[index].impactDescription?.message}</p>
+                                            )}
+                                        </div>
+
                                         {/* Effects for this response option */}
                                         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                                             <div>
@@ -583,7 +605,7 @@ export default function CreateCards() {
                                 {fields.length < 4 && (
                                     <button
                                         type="button"
-                                        onClick={() => append({ value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, cost: 0 })}
+                                        onClick={() => append({ value: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, cost: 0, impactDescription: '' })}
                                         className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-gray-500 dark:text-gray-400 hover:border-gray-400 dark:hover:border-gray-600 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center justify-center gap-2 font-medium"
                                     >
                                         <Plus size={20} />

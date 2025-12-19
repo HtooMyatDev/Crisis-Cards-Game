@@ -16,6 +16,7 @@ export type ResponseOption = {
     societyEffect: number;
     environmentEffect: number;
     score: number; // Score field for tracking points
+    impactDescription?: string; // Narrative consequence of this choice
 };
 
 export type FormState = {
@@ -41,6 +42,7 @@ export type ResponseOptionErrors = Partial<{
     societyEffect: string;
     environmentEffect: string;
     score: string; // Score validation errors
+    impactDescription: string;
 }>;
 
 export type FormErrors = Partial<{

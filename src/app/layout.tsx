@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Russo_One, Roboto_Condensed } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -11,6 +11,18 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
     variable: "--font-geist-mono",
+    subsets: ["latin"],
+});
+
+const russo = Russo_One({
+    weight: "400",
+    variable: "--font-russo",
+    subsets: ["latin"],
+});
+
+const roboto = Roboto_Condensed({
+    weight: ["300", "400", "700"],
+    variable: "--font-roboto",
     subsets: ["latin"],
 });
 
@@ -27,7 +39,7 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             <body
-                className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+                className={`${geistSans.variable} ${geistMono.variable} ${russo.variable} ${roboto.variable} antialiased`}
             >
                 <ThemeProvider>
                     <ToastProvider>

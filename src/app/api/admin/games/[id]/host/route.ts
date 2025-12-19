@@ -89,8 +89,8 @@ export async function GET(
                         order: 'asc'
                     }
                 }
-            } as any // Cast the entire include object to any
-        }) as unknown as GameSessionHostData | null;
+            }
+        });
 
         if (!gameSession) {
             return NextResponse.json(
@@ -175,6 +175,7 @@ export async function GET(
                 }))
             },
             players: playersWithResponses,
+            teams: gameSession.teams,
             teamStats,
             totalPlayers: playersWithResponses.length,
             respondedCount: playersWithResponses.filter(p => p.hasResponded).length

@@ -22,9 +22,10 @@ import { getCurrentUser } from "@/app/actions/auth";
  */
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         // Authentication and authorization check
         const user = await getCurrentUser();
 
@@ -35,7 +36,7 @@ export async function POST(
             }, { status: 401 });
         }
 
-        const gameSessionId = params.id;
+        const gameSessionId = id;
 
         // Fetch game session with teams and connected players
         const gameSession = await prisma.gameSession.findUnique({
@@ -85,24 +86,31 @@ export async function POST(
         // Shuffle players using Fisher-Yates algorithm for fair random distribution
         const shuffledPlayers = [...gameSession.players].sort(() => Math.random() - 0.5);
 
-        // Distribute players evenly across teams using round-robin
-        // This ensures balanced teams even with uneven player counts
-        const playerUpdates = shuffledPlayers.map((player, index) => {
-            const teamIndex = index % gameSession.teams.length;
-            const assignedTeam = gameSession.teams[teamIndex];
+        // Group players by team index for batch updates
+        const teamAssignments: Record<string, number[]> = {}; // teamId -> playerIds[]
 
-            return prisma.player.update({
-                where: { id: player.id },
-                data: {
-                    teamId: assignedTeam.id,
-                    isLeader: false // Reset leader status (will be voted on later)
-                }
-            });
+        shuffledPlayers.forEach((player, index) => {
+            const teamIndex = index % gameSession.teams.length;
+            const teamId = gameSession.teams[teamIndex].id;
+
+            if (!teamAssignments[teamId]) {
+                teamAssignments[teamId] = [];
+            }
+            teamAssignments[teamId].push(player.id);
         });
 
+        const transactionOperations = Object.entries(teamAssignments).map(([teamId, playerIds]) =>
+            prisma.player.updateMany({
+                where: { id: { in: playerIds } },
+                data: {
+                    teamId: teamId,
+                    isLeader: false
+                }
+            })
+        );
+
         // Execute all updates in a transaction for atomicity
-        // If any update fails, all updates are rolled back
-        await prisma.$transaction(playerUpdates);
+        await prisma.$transaction(transactionOperations);
 
         // Fetch updated players with team information for response
         const updatedPlayers = await prisma.player.findMany({

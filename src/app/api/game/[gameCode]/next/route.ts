@@ -1,9 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-// GameStatus is an enum in Prisma schema but might not be exported directly from client in some setups
-// or it's just a value. Let's use the string literal if enum import fails, or ensure correct import.
-// Actually, GameStatus IS exported from @prisma/client usually.
-// If it fails, we can use the string 'COMPLETED' directly or type it.
 
 export async function POST(
     request: NextRequest,
@@ -11,6 +7,8 @@ export async function POST(
 ) {
     try {
         const { gameCode } = await params;
+        const body = await request.json().catch(() => ({}));
+        const clientCurrentIndex = body.currentCardIndex;
 
         if (!gameCode) {
             return NextResponse.json(
@@ -23,6 +21,7 @@ export async function POST(
         const gameSession = await prisma.gameSession.findUnique({
             where: { gameCode: gameCode.toUpperCase() },
             include: {
+                teams: true,
                 categories: {
                     include: {
                         category: {
@@ -47,16 +46,24 @@ export async function POST(
             );
         }
 
+        // Idempotency Check: If client is trying to advance a card that is already past, ignore.
+        if (typeof clientCurrentIndex === 'number' && gameSession.currentCardIndex > clientCurrentIndex) {
+            return NextResponse.json({
+                success: true,
+                status: gameSession.status,
+                game: gameSession,
+                message: 'Game already advanced'
+            });
+        }
+
         // Calculate total cards from shuffledCardIds if available, otherwise from categories
         let totalCards: number;
         if (gameSession.shuffledCardIds && gameSession.shuffledCardIds.length > 0) {
             totalCards = gameSession.shuffledCardIds.length;
         } else {
             // Fallback for backward compatibility (shouldn't happen in normal flow)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            totalCards = (gameSession.categories as any[]).reduce(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (acc: number, gc: any) => acc + gc.category.cards.length,
+            totalCards = gameSession.categories.reduce(
+                (acc: number, gc) => acc + gc.category.cards.length,
                 0
             );
             console.warn(`Game ${gameCode}: shuffledCardIds is empty, using category count as fallback`);
@@ -69,7 +76,7 @@ export async function POST(
             const completedGame = await prisma.gameSession.update({
                 where: { id: gameSession.id },
                 data: {
-                    status: 'COMPLETED', // Using string literal to avoid import issues if any
+                    status: 'COMPLETED',
                     endedAt: new Date()
                 }
             });
@@ -81,116 +88,29 @@ export async function POST(
             });
         } else {
             // Next card
+            const cardsPerRound = gameSession.cardsPerRound || 3;
+            const isNewRound = nextIndex % cardsPerRound === 0;
+            const nextRoundStatus = isNewRound ? 'LEADER_ELECTION' : 'DECISION_PHASE';
+
             const updatedGame = await prisma.gameSession.update({
                 where: { id: gameSession.id },
                 data: {
                     currentCardIndex: nextIndex,
-                    lastCardStartedAt: new Date() // Reset timer for next card
+                    lastCardStartedAt: new Date(), // Reset timer for next card
+                    roundStatus: nextRoundStatus,
+                    currentRound: { increment: isNewRound ? 1 : 0 }
                 }
             });
 
-            // --- LEADER ROTATION LOGIC ---
-            // Fetch all players in this game
-            const players = await prisma.player.findMany({
-                where: { gameSessionId: gameSession.id },
-                orderBy: { joinedAt: 'asc' } // Consistent order based on join time
+            // --- RESET TURN STATE ---
+            // Clear the temporary results from the previous turn since we are moving on
+            await prisma.gameSession.update({
+                where: { id: gameSession.id },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                data: { lastTurnResult: null } as any
             });
 
-            const teams = ['RED', 'BLUE'];
-            const updatePromises = [];
-
-            // Determine the card that just finished using shuffledCardIds
-            let finishedCard;
-            if (gameSession.shuffledCardIds && gameSession.shuffledCardIds.length > 0) {
-                const finishedCardId = gameSession.shuffledCardIds[gameSession.currentCardIndex];
-                // Fetch the finished card details
-                const allCards = gameSession.categories.flatMap((gc) => gc.category.cards);
-                finishedCard = allCards.find((c) => c.id === finishedCardId);
-            } else {
-                console.warn(`Game ${gameCode}: Cannot determine finished card, shuffledCardIds is empty`);
-            }
-
-            for (const team of teams) {
-                const teamPlayers = players.filter((p) => p.team === team);
-                if (teamPlayers.length === 0) continue;
-
-                const currentLeaderIndex = teamPlayers.findIndex((p) => p.isLeader);
-
-                if (currentLeaderIndex !== -1) {
-                    const currentLeader = teamPlayers[currentLeaderIndex];
-
-                    // 1. UPDATE SCORES
-                    if (finishedCard) {
-                        let leaderResponse = await prisma.playerResponse.findUnique({
-                            where: {
-                                playerId_cardId: {
-                                    playerId: currentLeader.id,
-                                    cardId: finishedCard.id
-                                }
-                            },
-                            include: { response: true }
-                        });
-
-                        // If no response found (timeout), pick a random one
-                        if (!leaderResponse) {
-                            const responses = await prisma.cardResponse.findMany({
-                                where: { cardId: finishedCard.id }
-                            });
-
-                            if (responses.length > 0) {
-                                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-
-                                // Record the random response
-                                leaderResponse = await prisma.playerResponse.create({
-                                    data: {
-                                        playerId: currentLeader.id,
-                                        cardId: finishedCard.id,
-                                        responseId: randomResponse.id
-                                    },
-                                    include: { response: true }
-                                });
-                            }
-                        }
-
-                        if (leaderResponse?.response?.score) {
-                            const scoreChange = leaderResponse.response.score;
-                            // Update score for ALL players in the team
-                            for (const player of teamPlayers) {
-                                updatePromises.push(prisma.player.update({
-                                    where: { id: player.id },
-                                    data: { score: { increment: scoreChange } }
-                                }));
-                            }
-                        }
-                    }
-
-                    // 2. ROTATE LEADER
-                    const nextLeaderIndex = (currentLeaderIndex + 1) % teamPlayers.length;
-                    const nextLeader = teamPlayers[nextLeaderIndex];
-
-                    if (currentLeader.id !== nextLeader.id) {
-                        updatePromises.push(prisma.player.update({
-                            where: { id: currentLeader.id },
-                            data: { isLeader: false }
-                        }));
-                        updatePromises.push(prisma.player.update({
-                            where: { id: nextLeader.id },
-                            data: { isLeader: true }
-                        }));
-                    }
-                } else {
-                    // No leader found, assign first
-                    if (teamPlayers.length > 0) {
-                        updatePromises.push(prisma.player.update({
-                            where: { id: teamPlayers[0].id },
-                            data: { isLeader: true }
-                        }));
-                    }
-                }
-            }
-
-            await Promise.all(updatePromises);
-            // -----------------------------
+            // (Leader rotation handled by round logic or specific vote API, not auto-rotate here anymore)
 
             return NextResponse.json({ success: true, status: 'IN_PROGRESS', game: updatedGame });
         }

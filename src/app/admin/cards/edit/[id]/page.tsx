@@ -46,9 +46,9 @@ export default function EditCrisisCardDesign() {
         }
     };
 
-    const handleResponseOptionText = (index: number, value: string) => {
+    const handleResponseOptionText = (index: number, value: string, field: 'text' | 'impactDescription' = 'text') => {
         updateResponseOptions(options =>
-            options.map((option, i) => i === index ? { ...option, text: value } : option)
+            options.map((option, i) => i === index ? { ...option, [field]: value } : option)
         );
     };
 
@@ -295,7 +295,7 @@ export default function EditCrisisCardDesign() {
                                     {formData.responseOptions.length < 4 && (
                                         <button
                                             type="button"
-                                            onClick={() => updateResponseOptions(options => [...options, { text: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0 }])}
+                                            onClick={() => updateResponseOptions(options => [...options, { text: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, impactDescription: '' }])}
                                             className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-gray-500 dark:text-gray-400 hover:border-gray-400 dark:hover:border-gray-600 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center justify-center gap-2 font-medium"
                                         >
                                             <Plus size={20} />

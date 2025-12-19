@@ -45,7 +45,7 @@ export async function POST(
         const existingLeader = await prisma.player.findFirst({
             where: {
                 gameSessionId: gameSession.id,
-                team,
+                teamId: team,
                 isLeader: true
             }
         });
@@ -57,9 +57,10 @@ export async function POST(
         const updatedPlayer = await prisma.player.update({
             where: { id: parseInt(playerId) },
             data: {
-                team,
+                teamId: team,
                 isLeader
-            }
+            },
+            include: { team: true }
         });
 
         return NextResponse.json({

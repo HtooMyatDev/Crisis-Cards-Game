@@ -32,6 +32,7 @@ interface AdminSidebarContentProps {
     activeSessionsCount?: number;
     pendingUsersCount?: number;
     archivedCardsCount?: number;
+    isCollapsed?: boolean;
 }
 
 const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
@@ -45,7 +46,8 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
     onToggleGames,
     activeSessionsCount,
     pendingUsersCount,
-    archivedCardsCount
+    archivedCardsCount,
+    isCollapsed = false
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -131,8 +133,8 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
     return (
         <nav className="p-3 pt-14 md:pt-4 h-full overflow-y-auto scrollbar-thin">
             <div className="flex flex-col gap-y-2 pb-40">
-                {/* Search Bar */}
-                <div className="mb-2 relative">
+                {/* Search Bar - hidden when collapsed */}
+                <div className={`mb-2 relative ${isCollapsed ? 'hidden' : 'block'}`}>
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
                         <input
@@ -177,7 +179,7 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                 </div>
 
                 {/* Dashboard */}
-                <a
+                <Link
                     href="/admin/dashboard"
                     className={`flex items-center gap-2.5 px-3 py-2 border-2 border-black rounded-lg font-bold text-sm
                         shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none
@@ -186,12 +188,13 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                         ${pathname === '/admin/dashboard'
                             ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-800'
                             : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-blue-50 hover:to-blue-100 dark:hover:from-blue-900/30 dark:hover:to-blue-900/20 text-black dark:text-white'
-                        }`}
+                        } ${isCollapsed ? 'justify-center' : ''}`}
                     onClick={onNavigation}
+                    title={isCollapsed ? "Dashboard" : ""}
                 >
-                    <LayoutDashboard size={18} />
-                    <span>Dashboard</span>
-                </a>
+                    <LayoutDashboard size={isCollapsed ? 20 : 18} />
+                    {!isCollapsed && <span>Dashboard</span>}
+                </Link>
 
                 {/* Game Sessions Dropdown */}
                 <div>
@@ -204,47 +207,52 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                             ${pathname.includes('/admin/games')
                                 ? 'bg-gradient-to-r from-green-600 to-green-700 text-white border-green-800'
                                 : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-green-50 hover:to-green-100 dark:hover:from-green-900/30 dark:hover:to-green-900/20 text-black dark:text-white'
-                            }`}
+                            } ${isCollapsed ? 'justify-center' : ''}`}
+                        title={isCollapsed ? "Game Sessions" : ""}
                     >
                         <div className="flex items-center gap-2.5">
-                            <Gamepad2 size={18} />
-                            <span>Game Sessions</span>
+                            <Gamepad2 size={isCollapsed ? 20 : 18} />
+                            {!isCollapsed && <span>Game Sessions</span>}
                         </div>
-                        <div className={`transition-transform duration-200 ${isGamesOpen ? 'rotate-90' : 'rotate-0'}`}>
-                            <ChevronRight size={16} />
-                        </div>
+                        {!isCollapsed && (
+                            <div className={`transition-transform duration-200 ${isGamesOpen ? 'rotate-90' : 'rotate-0'}`}>
+                                <ChevronRight size={16} />
+                            </div>
+                        )}
                     </button>
 
-                    <div className={`ml-3 overflow-hidden transition-all duration-300 ease-out pe-0.5 pb-0.5 ${isGamesOpen
-                        ? 'mt-2 max-h-96 opacity-100 translate-y-0'
-                        : 'mt-0 max-h-0 opacity-0 -translate-y-2'
-                        }`}>
-                        <div className="space-y-1.5">
-                            {gameOptions.map((option) => (
-                                <Link
-                                    key={option.href}
-                                    href={option.href}
-                                    className={`flex items-center gap-2.5 px-3 py-1.5 border-2 border-black rounded-md font-semibold text-xs
+                    {!isCollapsed && (
+                        <div className={`ml-3 overflow-hidden transition-all duration-300 ease-out pe-0.5 pb-0.5 ${isGamesOpen
+                            ? 'mt-2 max-h-96 opacity-100 translate-y-0'
+                            : 'mt-0 max-h-0 opacity-0 -translate-y-2'
+                            }`}>
+                            <div className="space-y-1.5">
+                                {gameOptions.map((option) => (
+                                    <Link
+                                        key={option.href}
+                                        href={option.href}
+                                        className={`flex items-center gap-2.5 px-3 py-1.5 border-2 border-black rounded-md font-semibold text-xs
                                         shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none
                                         hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-150
                                         active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                                         ${pathname === option.href
-                                            ? 'bg-green-700 text-white'
-                                            : 'bg-white dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-green-900/30 text-black dark:text-white'
-                                        }`}
-                                    onClick={onNavigation}
-                                >
-                                    <option.icon size={16} />
-                                    {option.label}
-                                    <Badge count={option.badge} />
-                                </Link>
-                            ))}
+                                                ? 'bg-green-700 text-white'
+                                                : 'bg-white dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-green-900/30 text-black dark:text-white'
+                                            }`}
+                                        onClick={onNavigation}
+                                    >
+                                        <option.icon size={16} />
+                                        {option.label}
+                                        <Badge count={option.badge} />
+                                    </Link>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* User Management */}
-                <a
+                <Link
                     href="/admin/users"
                     className={`flex items-center gap-2.5 px-3 py-2 border-2 border-black rounded-lg font-bold text-sm
                         shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none
@@ -253,13 +261,14 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                         ${pathname === '/admin/users'
                             ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white border-purple-800'
                             : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-purple-50 hover:to-purple-100 dark:hover:from-purple-900/30 dark:hover:to-purple-900/20 text-black dark:text-white'
-                        }`}
+                        } ${isCollapsed ? 'justify-center' : ''}`}
                     onClick={onNavigation}
+                    title={isCollapsed ? "User Management" : ""}
                 >
-                    <Users size={18} />
-                    <span>User Management</span>
-                    <Badge count={pendingUsersCount} />
-                </a>
+                    <Users size={isCollapsed ? 20 : 18} />
+                    {!isCollapsed && <span>User Management</span>}
+                    {!isCollapsed && <Badge count={pendingUsersCount} />}
+                </Link>
 
                 {/* Crisis Cards Dropdown */}
                 <div>
@@ -272,43 +281,48 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                             ${pathname.includes('/admin/cards')
                                 ? 'bg-gradient-to-r from-red-600 to-red-700 text-white border-red-800'
                                 : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/30 dark:hover:to-red-900/20 text-black dark:text-white'
-                            }`}
+                            } ${isCollapsed ? 'justify-center' : ''}`}
+                        title={isCollapsed ? "Crisis Cards" : ""}
                     >
                         <div className="flex items-center gap-2.5">
-                            <CreditCard size={18} />
-                            <span>Crisis Cards</span>
+                            <CreditCard size={isCollapsed ? 20 : 18} />
+                            {!isCollapsed && <span>Crisis Cards</span>}
                         </div>
-                        <div className={`transition-transform duration-200 ${isCardsOpen ? 'rotate-90' : 'rotate-0'}`}>
-                            <ChevronRight size={16} />
-                        </div>
+                        {!isCollapsed && (
+                            <div className={`transition-transform duration-200 ${isCardsOpen ? 'rotate-90' : 'rotate-0'}`}>
+                                <ChevronRight size={16} />
+                            </div>
+                        )}
                     </button>
 
-                    <div className={`ml-3 overflow-hidden transition-all duration-300 ease-out pe-0.5 pb-0.5 ${isCardsOpen
-                        ? 'mt-2 max-h-96 opacity-100 translate-y-0'
-                        : 'mt-0 max-h-0 opacity-0 -translate-y-2'
-                        }`}>
-                        <div className="space-y-1.5">
-                            {cardOptions.map((option) => (
-                                <Link
-                                    key={option.href}
-                                    href={option.href}
-                                    className={`flex items-center gap-2.5 px-3 py-1.5 border-2 border-black rounded-md font-semibold text-xs
+                    {!isCollapsed && (
+                        <div className={`ml-3 overflow-hidden transition-all duration-300 ease-out pe-0.5 pb-0.5 ${isCardsOpen
+                            ? 'mt-2 max-h-96 opacity-100 translate-y-0'
+                            : 'mt-0 max-h-0 opacity-0 -translate-y-2'
+                            }`}>
+                            <div className="space-y-1.5">
+                                {cardOptions.map((option) => (
+                                    <Link
+                                        key={option.href}
+                                        href={option.href}
+                                        className={`flex items-center gap-2.5 px-3 py-1.5 border-2 border-black rounded-md font-semibold text-xs
                                         shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none
                                         hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-150
                                         active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                                         ${pathname === option.href
-                                            ? 'bg-red-700 text-white'
-                                            : 'bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/30 text-black dark:text-white'
-                                        }`}
-                                    onClick={onNavigation}
-                                >
-                                    <option.icon size={16} />
-                                    {option.label}
-                                    <Badge count={option.badge} />
-                                </Link>
-                            ))}
+                                                ? 'bg-red-700 text-white'
+                                                : 'bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/30 text-black dark:text-white'
+                                            }`}
+                                        onClick={onNavigation}
+                                    >
+                                        <option.icon size={16} />
+                                        {option.label}
+                                        <Badge count={option.badge} />
+                                    </Link>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* Categories Dropdown */}
@@ -322,49 +336,54 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                             ${pathname.includes('/admin/categories')
                                 ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white border-orange-800'
                                 : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-orange-50 hover:to-orange-100 dark:hover:from-orange-900/30 dark:hover:to-orange-900/20 text-black dark:text-white'
-                            }`}
+                            } ${isCollapsed ? 'justify-center' : ''}`}
+                        title={isCollapsed ? "Categories" : ""}
                     >
                         <div className="flex items-center gap-2.5">
-                            <Tag size={18} />
-                            <span>Categories</span>
+                            <Tag size={isCollapsed ? 20 : 18} />
+                            {!isCollapsed && <span>Categories</span>}
                         </div>
-                        <div className={`transition-transform duration-200 ${isCategoriesOpen ? 'rotate-90' : 'rotate-0'}`}>
-                            <ChevronRight size={16} />
-                        </div>
+                        {!isCollapsed && (
+                            <div className={`transition-transform duration-200 ${isCategoriesOpen ? 'rotate-90' : 'rotate-0'}`}>
+                                <ChevronRight size={16} />
+                            </div>
+                        )}
                     </button>
 
-                    <div className={`ml-3 overflow-hidden transition-all duration-300 ease-out pe-0.5 pb-0.5 ${isCategoriesOpen
-                        ? 'mt-2 max-h-96 opacity-100 translate-y-0'
-                        : 'mt-0 max-h-0 opacity-0 -translate-y-2'
-                        }`}>
-                        <div className="space-y-1.5">
-                            {categoryOptions.map((option) => (
-                                <Link
-                                    key={option.href}
-                                    href={option.href}
-                                    className={`flex items-center gap-2.5 px-3 py-1.5 border-2 border-black rounded-md font-semibold text-xs
+                    {!isCollapsed && (
+                        <div className={`ml-3 overflow-hidden transition-all duration-300 ease-out pe-0.5 pb-0.5 ${isCategoriesOpen
+                            ? 'mt-2 max-h-96 opacity-100 translate-y-0'
+                            : 'mt-0 max-h-0 opacity-0 -translate-y-2'
+                            }`}>
+                            <div className="space-y-1.5">
+                                {categoryOptions.map((option) => (
+                                    <Link
+                                        key={option.href}
+                                        href={option.href}
+                                        className={`flex items-center gap-2.5 px-3 py-1.5 border-2 border-black rounded-md font-semibold text-xs
                                         shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none
                                         hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-150
                                         active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                                         ${pathname === option.href
-                                            ? 'bg-orange-700 text-white'
-                                            : 'bg-white dark:bg-gray-700 hover:bg-orange-50 dark:hover:bg-orange-900/30 text-black dark:text-white'
-                                        }`}
-                                    onClick={onNavigation}
-                                >
-                                    <option.icon size={16} />
-                                    {option.label}
-                                </Link>
-                            ))}
+                                                ? 'bg-orange-700 text-white'
+                                                : 'bg-white dark:bg-gray-700 hover:bg-orange-50 dark:hover:bg-orange-900/30 text-black dark:text-white'
+                                            }`}
+                                        onClick={onNavigation}
+                                    >
+                                        <option.icon size={16} />
+                                        {option.label}
+                                    </Link>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* Divider */}
                 <div className="border-t-2 border-gray-300 dark:border-gray-700 my-2"></div>
 
                 {/* Analytics & Reports */}
-                <a
+                <Link
                     href="/admin/analytics"
                     className={`flex items-center gap-2.5 px-3 py-2 border-2 border-black rounded-lg font-bold text-sm
                         shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none
@@ -373,15 +392,16 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                         ${pathname === '/admin/analytics'
                             ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 text-white border-cyan-800'
                             : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-cyan-50 hover:to-cyan-100 dark:hover:from-cyan-900/30 dark:hover:to-cyan-900/20 text-black dark:text-white'
-                        }`}
+                        } ${isCollapsed ? 'justify-center' : ''}`}
                     onClick={onNavigation}
+                    title={isCollapsed ? "Analytics & Reports" : ""}
                 >
-                    <BarChart3 size={18} />
-                    <span>Analytics & Reports</span>
-                </a>
+                    <BarChart3 size={isCollapsed ? 20 : 18} />
+                    {!isCollapsed && <span>Analytics & Reports</span>}
+                </Link>
 
                 {/* Audit Logs */}
-                <a
+                <Link
                     href="/admin/audit-logs"
                     className={`flex items-center gap-2.5 px-3 py-2 border-2 border-black rounded-lg font-bold text-sm
                         shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none
@@ -390,15 +410,16 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                         ${pathname === '/admin/audit-logs'
                             ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white border-slate-800'
                             : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-slate-50 hover:to-slate-100 dark:hover:from-slate-900/30 dark:hover:to-slate-900/20 text-black dark:text-white'
-                        }`}
+                        } ${isCollapsed ? 'justify-center' : ''}`}
                     onClick={onNavigation}
+                    title={isCollapsed ? "Audit Logs" : ""}
                 >
-                    <FileText size={18} />
-                    <span>Audit Logs</span>
-                </a>
+                    <FileText size={isCollapsed ? 20 : 18} />
+                    {!isCollapsed && <span>Audit Logs</span>}
+                </Link>
 
                 {/* Settings */}
-                <a
+                <Link
                     href="/admin/settings"
                     className={`flex items-center gap-2.5 px-3 py-2 border-2 border-black rounded-lg font-bold text-sm
                         shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none
@@ -407,15 +428,16 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                         ${pathname === '/admin/settings'
                             ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white border-gray-800'
                             : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-700 text-black dark:text-white'
-                        }`}
+                        } ${isCollapsed ? 'justify-center' : ''}`}
                     onClick={onNavigation}
+                    title={isCollapsed ? "Settings" : ""}
                 >
-                    <Settings size={18} />
-                    <span>Settings</span>
-                </a>
+                    <Settings size={isCollapsed ? 20 : 18} />
+                    {!isCollapsed && <span>Settings</span>}
+                </Link>
 
                 {/* Help & Documentation */}
-                <a
+                <Link
                     href="/admin/help"
                     className={`flex items-center gap-2.5 px-3 py-2 border-2 border-black rounded-lg font-bold text-sm
                         shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none
@@ -424,12 +446,13 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({
                         ${pathname === '/admin/help'
                             ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-indigo-800'
                             : 'bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-indigo-50 hover:to-indigo-100 dark:hover:from-indigo-900/30 dark:hover:to-indigo-900/20 text-black dark:text-white'
-                        }`}
+                        } ${isCollapsed ? 'justify-center' : ''}`}
                     onClick={onNavigation}
+                    title={isCollapsed ? "Help & Documentation" : ""}
                 >
-                    <HelpCircle size={18} />
-                    <span>Help & Documentation</span>
-                </a>
+                    <HelpCircle size={isCollapsed ? 20 : 18} />
+                    {!isCollapsed && <span>Help & Documentation</span>}
+                </Link>
             </div>
         </nav>
     );
