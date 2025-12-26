@@ -1,62 +1,103 @@
 # Crisis Cards Game App
 
-A collaborative, real-time strategy card game where players work in teams to solve global crises. Built with **Next.js 14**, **Prisma**, **PostgreSQL**, and **Tailwind CSS**.
+A collaborative, real-time strategy card game where players work in teams to solve global crises. Built with **Next.js 14**, **Prisma**, **PostgreSQL**, and **Pusher**.
+
+![Crisis Cards Banner](https://via.placeholder.com/1200x400?text=Crisis+Cards+Game)
 
 ## Features
 
-- **Real-time Gameplay**: Vote on team leaders, make timed decisions, and see live results.
-- **Team Management**: Dynamic team assignment, budget tracking, and role-based gameplay.
-- **Admin Dashboard**: Comprehensive control over games, cards, categories, and users.
-- **Responsive Design**: Mobile-first UI optimized for any device.
+### 🎮 Gameplay
+- **Hybrid Real-time System**: Instant updates using Pusher Websockets with robust polling fallback.
+- **Team-Based Strategy**: Players are assigned teams (Red, Blue, etc.) with shared budgets and scores.
+- **Role-Based Mechanics**: Rotational "Leader" system where one player makes the final call after team deliberation.
+- **Dynamic Phases**: Lobby -> Team Assignment -> Leader Election -> Decision Phase -> Results.
+
+### 🛠 Host Controls
+- **Optimistic UI**: Instant-feedback controls for pausing, resuming, and advancing cards.
+- **Live Dashboard**: Watch player submissions and team stats update in real-time.
+- **Full Customization**: Create custom scenarios (cards), categories, and game modes.
+
+### 🎨 UX & Design
+- **Neo-Brutalist / Modern UI**: Distinctive aesthetic with heavy borders and bold shadows.
+- **Mobile First**: Fully optimized for players on smartphones.
+- **Smooth Transitions**: Cinematic fade transitions between game phases.
+
+---
 
 ## Tech Stack
 
 - **Framework**: Next.js 14 (App Router)
-- **Database**: PostgreSQL with Prisma ORM
-- **Styling**: Tailwind CSS, Lucide Icons
-- **State Management**: Custom React Hooks
+- **Database**: PostgreSQL (via Prisma ORM)
+- **Real-time**: Pusher Channels (WebSockets)
+- **Styling**: Tailwind CSS + Framer Motion
+- **Icons**: Lucide React
+
+---
 
 ## Getting Started
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd crisis-card-game-app
-   ```
+### 1. Clone & Install
+```bash
+git clone <repository-url>
+cd crisis-card-game-app
+npm install
+```
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+### 2. Database Setup
+Ensure you have a PostgreSQL database running (local or cloud like database.new).
 
-3. **Environment Setup:**
-   Create a `.env` file in the root:
-   ```env
-   DATABASE_URL="postgresql://user:password@localhost:5432/crisis_game"
-   # Add other required vars (AUTH_SECRET, etc.)
-   ```
+```bash
+# Create .env file
+cp .env.example .env
+```
 
-4. **Database Setup:**
-   ```bash
-   npx prisma generate
-   npx prisma db push
-   # Optional: Seed data
-   npx ts-node prisma/seed.ts
-   ```
+Update `.env` with your database URL:
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/crisis_game"
+```
 
-5. **Run Development Server:**
-   ```bash
-   npm run dev
-   ```
+Run migrations and seed data:
+```bash
+npx prisma generate
+npx prisma db push
+npx ts-node prisma/seed.ts
+```
+
+### 3. Real-time Setup (Pusher)
+To enable instant updates (highly recommended), create a free app on [pusher.com](https://pusher.com) and add the keys to `.env`:
+
+```env
+NEXT_PUBLIC_PUSHER_KEY=your_key
+NEXT_PUBLIC_PUSHER_CLUSTER=your_cluster
+PUSHER_APP_ID=your_app_id
+PUSHER_SECRET=your_secret
+```
+*If skipped, the app will fall back to 3-second polling.*
+
+### 4. Run Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000).
+
+---
 
 ## Project Structure
 
 - `src/app`: App Router pages and API routes.
-- `src/components`: Reusable UI components (Game, Admin, UI).
-- `src/hooks`: Custom hooks (`useGameSession`, `useGameState`).
-- `src/services`: API service layer (`gameService.ts`).
-- `prisma`: Database schema and migrations.
+    - `/api/game`: Player-facing endpoints (join, vote, submit).
+    - `/api/admin`: Host/Admin management endpoints.
+- `src/components`:
+    - `/game`: Core game views (Lobby, Decision, Results).
+    - `/admin`: Dashboard widgets and management tables.
+- `src/lib`:
+    - `pusher.ts`: Server-side WebSocket trigger.
+    - `pusher-client.ts`: Client-side WebSocket listener.
+- `src/hooks`: Custom hooks (`useGamePolling`, `useGameState`).
 
 ## Deployment
 
-Deploy easily on **Vercel** or any Node.js compatible host. Ensure your database is accessible (e.g., via Supabase or Railway).
+Deploy easily on **Vercel**.
+1. Import project to Vercel.
+2. Add Environment Variables (`DATABASE_URL`, `PUSHER_...`).
+3. Deploy!

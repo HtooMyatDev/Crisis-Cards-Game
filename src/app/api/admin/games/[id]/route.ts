@@ -157,6 +157,22 @@ export async function PATCH(
             data: updateData
         });
 
+        // Trigger real-time update
+        try {
+            const { pusherServer } = await import('@/lib/pusher');
+            if (updatedGame.gameCode) {
+                await pusherServer.trigger(`game-${updatedGame.gameCode}`, 'game-update', {
+                    type: 'STATUS_CHANGE',
+                    data: {
+                        status: updatedGame.status,
+                        timestamp: Date.now()
+                    }
+                });
+            }
+        } catch (pusherError) {
+            console.error('Failed to trigger Pusher event:', pusherError);
+        }
+
         return NextResponse.json({
             success: true,
             message: 'Game status updated successfully',

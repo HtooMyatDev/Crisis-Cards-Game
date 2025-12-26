@@ -72,6 +72,23 @@ export async function POST(request: NextRequest) {
             }
         });
 
+        // Trigger real-time update
+        try {
+            const { pusherServer } = await import('@/lib/pusher');
+            if (gameSession.gameCode) {
+                await pusherServer.trigger(`game-${gameSession.gameCode}`, 'game-update', {
+                    type: 'PLAYER_JOINED',
+                    data: {
+                        playerId: player.id,
+                        nickname: player.nickname,
+                        timestamp: Date.now()
+                    }
+                });
+            }
+        } catch (pusherError) {
+            console.error('Failed to trigger Pusher event:', pusherError);
+        }
+
         // Return success with game details
         return NextResponse.json({
             success: true,

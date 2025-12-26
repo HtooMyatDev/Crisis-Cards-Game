@@ -102,8 +102,22 @@ export async function GET(
         // Get all cards from all categories
         const allCards = gameSession.categories.flatMap(gc => gc.category.cards);
 
-        // Get current card
-        const currentCard = allCards[gameSession.currentCardIndex];
+        // Get current card using shuffledCardIds for synchronization with players
+        let currentCard = allCards[0];
+        if (gameSession.shuffledCardIds && gameSession.shuffledCardIds.length > 0) {
+            const currentCardId = gameSession.shuffledCardIds[gameSession.currentCardIndex % gameSession.shuffledCardIds.length];
+            const foundCard = allCards.find(c => c.id === currentCardId);
+            if (foundCard) {
+                currentCard = foundCard;
+            } else {
+                console.warn(`Host View: Card ID ${currentCardId} from shuffledIds not found in Active/Non-Archived cards.`);
+                // Fallback to index if mapping fails (e.g. card deleted/archived?)
+                currentCard = allCards[gameSession.currentCardIndex % allCards.length];
+            }
+        } else {
+             // Fallback if no shuffled IDs
+             currentCard = allCards[gameSession.currentCardIndex % allCards.length];
+        }
 
         if (!currentCard) {
             return NextResponse.json(

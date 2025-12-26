@@ -189,6 +189,24 @@ export async function POST(
             }
         });
 
+        // Trigger real-time update
+        try {
+            const { pusherServer } = await import('@/lib/pusher');
+            if (gameCode) {
+                await pusherServer.trigger(`game-${gameCode}`, 'game-update', {
+                    type: 'RESPONSE_SUBMITTED',
+                    data: {
+                        playerId: player.id,
+                        teamId: player.teamId,
+                        isLeader: player.isLeader,
+                        timestamp: Date.now()
+                    }
+                });
+            }
+        } catch (pusherError) {
+            console.error('Failed to trigger Pusher event:', pusherError);
+        }
+
         return NextResponse.json({
             success: true,
             message: player.isLeader ? 'Leader decision recorded & round complete' : 'Vote recorded',

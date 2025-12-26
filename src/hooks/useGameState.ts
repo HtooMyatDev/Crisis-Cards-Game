@@ -141,8 +141,9 @@ export const useGameState = (gameCode: string, playerId: number | null) => {
     }, [gameCode, playerId]);
 
     useGamePolling({
-        interval: 500,
+        interval: 3000,
         enabled: true,
+        gameCode,
         onPoll: fetchGameData
     });
 

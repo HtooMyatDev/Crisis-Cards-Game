@@ -36,7 +36,7 @@ export async function POST(
                         }
                     }
                 }
-            }
+            }r
         });
 
         if (!gameSession) {
@@ -58,8 +58,12 @@ export async function POST(
 
         // Calculate total cards from shuffledCardIds if available, otherwise from categories
         let totalCards: number;
-        if (gameSession.shuffledCardIds && gameSession.shuffledCardIds.length > 0) {
-            totalCards = gameSession.shuffledCardIds.length;
+
+        // Ensure shuffledCardIds is typed correctly (it might be Json or null in Prisma types depending on generation)
+        const shuffledIds = Array.isArray(gameSession.shuffledCardIds) ? gameSession.shuffledCardIds as number[] : [];
+
+        if (shuffledIds.length > 0) {
+            totalCards = shuffledIds.length;
         } else {
             // Fallback for backward compatibility (shouldn't happen in normal flow)
             totalCards = gameSession.categories.reduce(
@@ -111,6 +115,23 @@ export async function POST(
             });
 
             // (Leader rotation handled by round logic or specific vote API, not auto-rotate here anymore)
+
+            // Trigger real-time update
+            try {
+                // We use await here to ensure it attempts to send, but wrapped in try/catch to not block response on failure
+                // Dynamically import to avoid circular dep issues if any, though not expected here
+                const { pusherServer } = await import('@/lib/pusher');
+                await pusherServer.trigger(`game-${gameCode}`, 'game-update', {
+                    type: 'NEXT_CARD',
+                    data: {
+                        currentCardIndex: nextIndex,
+                        roundStatus: nextRoundStatus,
+                        timestamp: Date.now()
+                    }
+                });
+            } catch (pusherError) {
+                console.error('Failed to trigger Pusher event:', pusherError);
+            }
 
             return NextResponse.json({ success: true, status: 'IN_PROGRESS', game: updatedGame });
         }

@@ -7,6 +7,7 @@ import {
     Trophy, Target, Loader2,
     AlertCircle, Activity, Eye
 } from 'lucide-react';
+import { useGamePolling } from '@/hooks/useGamePolling';
 
 interface PlayerData {
     id: number;
@@ -98,11 +99,18 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
         }
     }, [gameId]);
 
+    // Initial fetch
     useEffect(() => {
         fetchHostData();
-        const interval = setInterval(fetchHostData, 1000); // Poll every 1 second
-        return () => clearInterval(interval);
     }, [fetchHostData]);
+
+    // Real-time updates (Pusher + Polling Fallback)
+    useGamePolling({
+        interval: 3000,
+        enabled: !!hostData,
+        gameCode: hostData?.game.gameCode,
+        onPoll: fetchHostData
+    });
 
     // Calculate time left
     useEffect(() => {
@@ -139,6 +147,19 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
             stop: 'COMPLETED'
         };
 
+        const previousData = hostData;
+        // Optimistic update
+        if (hostData) {
+            setHostData({
+                ...hostData,
+                game: {
+                    ...hostData.game,
+                    // @ts-ignore - status string compatibility
+                    status: statusMap[action]
+                }
+            });
+        }
+
         try {
             const res = await fetch(`/api/admin/games/${hostData?.game.id}`, {
                 method: 'PATCH',
@@ -150,12 +171,28 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
             fetchHostData();
         } catch (err) {
             console.error('Error updating game:', err);
+            // Revert optimistic update
+            setHostData(previousData);
             alert('Failed to update game status');
         }
     };
 
     const handleNextCard = async () => {
         if (!confirm('Advance to the next card?')) return;
+
+        const previousData = hostData;
+        // Optimistic update
+        if (hostData) {
+            setHostData({
+                ...hostData,
+                game: {
+                    ...hostData.game,
+                    currentCardIndex: hostData.game.currentCardIndex + 1
+                },
+                // Reset player response state visually
+                players: hostData.players.map(p => ({ ...p, hasResponded: false, responseId: null }))
+            });
+        }
 
         try {
             const res = await fetch(`/api/game/${hostData?.game.gameCode}/next`, {
@@ -166,6 +203,8 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
             fetchHostData();
         } catch (err) {
             console.error('Error advancing card:', err);
+            // Revert optimistic update
+            setHostData(previousData);
             alert('Failed to advance to next card');
         }
     };

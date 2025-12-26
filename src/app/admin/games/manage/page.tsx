@@ -1039,26 +1039,29 @@ const GameSessionsManagement = () => {
             {/* Delete Confirmation Modal */}
             {
                 deleteConfirmation && (
-                    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-700 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] p-6 max-w-md w-full">
+                    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="bg-white dark:bg-gray-800 border-4 border-red-600 dark:border-red-500 rounded-2xl shadow-[8px_8px_0px_0px_rgba(220,38,38,1)] dark:shadow-[8px_8px_0px_0px_rgba(239,68,68,0.3)] p-6 max-w-md w-full relative transform transition-all animate-in zoom-in-95 duration-200">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 border-2 border-red-600 dark:border-red-500 rounded-full flex items-center justify-center">
                                     <AlertCircle size={24} className="text-red-600 dark:text-red-400" />
                                 </div>
-                                <h3 className="text-xl font-black text-black dark:text-white">Delete Game Session?</h3>
+                                <h3 className="text-xl font-black text-black dark:text-white">Delete Session?</h3>
                             </div>
 
-                            <p className="text-gray-700 dark:text-gray-300 mb-2">
-                                Are you sure you want to delete <span className="font-bold">&quot;{deleteConfirmation.sessionName}&quot;</span>?
+                            <p className="text-gray-700 dark:text-gray-300 mb-2 font-medium text-lg">
+                                Delete <span className="font-bold text-black dark:text-white">&quot;{deleteConfirmation.sessionName}&quot;</span>?
                             </p>
-                            <p className="text-sm text-red-600 dark:text-red-400 font-bold mb-6">
-                                ⚠️ This action cannot be undone. All players and game data will be permanently deleted.
-                            </p>
+                            <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border-2 border-red-100 dark:border-red-900/50 mb-6">
+                                <p className="text-sm text-red-600 dark:text-red-400 font-bold flex gap-2">
+                                    <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                                    This action cannot be undone. All game data will be lost.
+                                </p>
+                            </div>
 
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setDeleteConfirmation(null)}
-                                    className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold rounded-lg border-2 border-gray-300 dark:border-gray-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                                    className="flex-1 px-4 py-3 bg-white dark:bg-gray-800 text-black dark:text-white font-bold rounded-lg border-2 border-black dark:border-gray-500 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
                                 >
                                     Cancel
                                 </button>
