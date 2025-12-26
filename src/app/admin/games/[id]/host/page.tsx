@@ -8,6 +8,7 @@ import {
     AlertCircle, Activity, Eye
 } from 'lucide-react';
 import { useGamePolling } from '@/hooks/useGamePolling';
+import { useGameSounds } from '@/hooks/useGameSounds';
 
 interface PlayerData {
     id: number;
@@ -124,21 +125,59 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
         }
     }, [hostData]);
 
-    // Timer countdown
-    useEffect(() => {
-        if (hostData?.game.status === 'IN_PROGRESS') {
-            const timer = setInterval(() => {
-                setTimeLeft(prev => Math.max(0, prev - 1));
-            }, 1000);
-            return () => clearInterval(timer);
-        }
-    }, [hostData?.game.status]);
-
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
+
+    // --- Sound Effects Logic ---
+    const { playJoin, playTick, playNotification, playSuccess } = useGameSounds();
+
+    // Refs for tracking changes
+    const prevPlayerCountRef = React.useRef(0);
+    const prevCardIndexRef = React.useRef<number | null>(null);
+    const prevStatusRef = React.useRef<string | null>(null);
+
+    useEffect(() => {
+        if (!hostData) return;
+
+        // 1. Join Sound (if player count increases)
+        if (hostData.players.length > prevPlayerCountRef.current && prevPlayerCountRef.current > 0) {
+            playJoin();
+        }
+        prevPlayerCountRef.current = hostData.players.length;
+
+        // 2. Notification Sound (New Card)
+        if (prevCardIndexRef.current !== null && hostData.game.currentCardIndex !== prevCardIndexRef.current) {
+            playNotification();
+        }
+        prevCardIndexRef.current = hostData.game.currentCardIndex;
+
+        // 3. Success Sound (Game Completed)
+        if (prevStatusRef.current !== 'COMPLETED' && hostData.game.status === 'COMPLETED') {
+            playSuccess();
+        }
+        prevStatusRef.current = hostData.game.status;
+
+    }, [hostData, playJoin, playNotification, playSuccess]);
+
+    // 4. Tick Sound (Timer) - Integrated into timer effect
+    useEffect(() => {
+        if (hostData?.game.status === 'IN_PROGRESS') {
+            const timer = setInterval(() => {
+                setTimeLeft(prev => {
+                    const newVal = Math.max(0, prev - 1);
+                    // Play tick in last 10 seconds
+                    if (newVal <= 10 && newVal > 0) {
+                        playTick();
+                    }
+                    return newVal;
+                });
+            }, 1000);
+            return () => clearInterval(timer);
+        }
+    }, [hostData?.game.status, playTick]);
 
     const handleGameAction = async (action: 'pause' | 'resume' | 'stop') => {
         const statusMap = {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Gamepad2, User, BookOpen } from 'lucide-react';
 import PageTransition from '@/components/ui/PageTransition';
 import { GameInstructions } from '@/components/game/GameInstructions';
+import { useGameSounds } from '@/hooks/useGameSounds';
 
 interface Team {
     id: string;
@@ -39,6 +40,17 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
     onLeaveGame
 }) => {
     const [showInstructions, setShowInstructions] = useState(false);
+
+    // Sound Effects
+    const { playJoin } = useGameSounds();
+    const prevPlayerCount = React.useRef(allPlayers.length);
+
+    React.useEffect(() => {
+        if (allPlayers.length > prevPlayerCount.current) {
+            playJoin();
+        }
+        prevPlayerCount.current = allPlayers.length;
+    }, [allPlayers.length, playJoin]);
 
     return (
         <PageTransition>

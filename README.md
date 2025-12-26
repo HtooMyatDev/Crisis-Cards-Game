@@ -21,6 +21,12 @@ A collaborative, real-time strategy card game where players work in teams to sol
 - **Neo-Brutalist / Modern UI**: Distinctive aesthetic with heavy borders and bold shadows.
 - **Mobile First**: Fully optimized for players on smartphones.
 - **Smooth Transitions**: Cinematic fade transitions between game phases.
+- **Smooth Transitions**: Cinematic fade transitions between game phases.
+- **Immersive Audio**: Sound effects for key game events (Lobby Join, Timer, Alerts).
+
+### ⚡️ Performance
+- **Redis Caching**: Host view calls are cached to support 1000+ concurrent users.
+- **Optimized Database**: strategic indexing for fast queries.
 
 ---
 
@@ -29,6 +35,7 @@ A collaborative, real-time strategy card game where players work in teams to sol
 - **Framework**: Next.js 14 (App Router)
 - **Database**: PostgreSQL (via Prisma ORM)
 - **Real-time**: Pusher Channels (WebSockets)
+- **Caching**: Redis (Upstash / Local)
 - **Styling**: Tailwind CSS + Framer Motion
 - **Icons**: Lucide React
 
@@ -63,8 +70,19 @@ npx prisma db push
 npx ts-node prisma/seed.ts
 ```
 
+npx ts-node prisma/seed.ts
+```
+
 ### 3. Real-time Setup (Pusher)
-To enable instant updates (highly recommended), create a free app on [pusher.com](https://pusher.com) and add the keys to `.env`:
+To enable instant updates (highly recommended), create a free app on [pusher.com](https://pusher.com) and add the keys to `.env`.
+
+### 4. Caching Setup (Redis) - Optional
+To enable high-performance caching for the Host View:
+1.  Install Redis locally or use [Upstash](https://upstash.com).
+2.  Add `REDIS_URL` to your `.env` file (see `.env.example`).
+*If skipped, the app gracefully falls back to direct DB calls.*
+
+### 5. Sound Effects Setup (Optional)
 
 ```env
 NEXT_PUBLIC_PUSHER_KEY=your_key
@@ -74,7 +92,16 @@ PUSHER_SECRET=your_secret
 ```
 *If skipped, the app will fall back to 3-second polling.*
 
-### 4. Run Development Server
+### 4. Sound Effects Setup (Optional)
+To enable audio feedback, place the following .wav files in `public/sounds/`:
+- `join.wav` (Player joined)
+- `notification.wav` (Next card)
+- `tick.wav` (Timer countdown)
+- `success.wav` (Game completed)
+
+*Free assets can be found on Mixkit or Pixabay.*
+
+### 6. Run Development Server
 ```bash
 npm run dev
 ```

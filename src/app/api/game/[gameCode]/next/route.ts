@@ -36,7 +36,7 @@ export async function POST(
                         }
                     }
                 }
-            }r
+            }
         });
 
         if (!gameSession) {
@@ -129,8 +129,17 @@ export async function POST(
                         timestamp: Date.now()
                     }
                 });
-            } catch (pusherError) {
-                console.error('Failed to trigger Pusher event:', pusherError);
+
+                // Invalidate Redis Cache for Host View AND Player View
+                const { redis } = await import('@/lib/redis');
+                if (redis) {
+                    await Promise.all([
+                        redis.del(`host_view:${gameSession.id}`),
+                        redis.del(`game_player_view:${gameCode}`)
+                    ]);
+                }
+            } catch (error) {
+                console.error('Failed to trigger Pusher or Redis:', error);
             }
 
             return NextResponse.json({ success: true, status: 'IN_PROGRESS', game: updatedGame });
