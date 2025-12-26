@@ -4,6 +4,7 @@ import { Crown, User, Eye, Trash2 } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminSearchFilters } from '@/components/admin/AdminSearchFilters';
 import { AdminPagination } from '@/components/admin/AdminPagination';
+import ConfirmationModal from '@/components/modals/ConfirmationModal';
 
 interface UserData {
     id: string;
@@ -82,86 +83,132 @@ export default function UserManagement() {
         fetchUsers();
     }, [fetchUsers]);
 
-    const toggleUserRole = async (userId: string) => {
+    // Modal state
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => Promise<void>;
+        type: 'danger' | 'warning' | 'info' | 'success';
+        isLoading?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: async () => { },
+        type: 'danger',
+        isLoading: false
+    });
+
+    const closeConfirmModal = () => {
+        if (confirmModal.isLoading) return;
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+    };
+
+    const toggleUserRole = (userId: string) => {
         const user = users.find(u => u.id === userId);
         if (!user) return;
 
         const newRole = user.role === 'admin' ? 'player' : 'admin';
-        const confirmed = window.confirm(`Are you sure you want to change ${user.name}'s role to ${newRole}?`);
 
-        if (!confirmed) return;
+        setConfirmModal({
+            isOpen: true,
+            title: 'Change User Role',
+            message: `Are you sure you want to change ${user.name}'s role to ${newRole}?`,
+            type: 'warning',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isLoading: true }));
+                try {
+                    const res = await fetch(`/api/admin/users/${userId}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ role: newRole })
+                    });
 
-        try {
-            const res = await fetch(`/api/admin/users/${userId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ role: newRole })
-            });
+                    if (!res.ok) throw new Error('Failed to update role');
 
-            if (!res.ok) throw new Error('Failed to update role');
-
-            const data = await res.json();
-            setUsers(users.map(u => u.id === userId ? data.user : u));
-            setNotification({ type: 'success', message: `Successfully updated ${user.name}'s role to ${newRole}` });
-            setTimeout(() => setNotification(null), 3000);
-        } catch (error) {
-            console.error('Failed to update role:', error);
-            setNotification({ type: 'error', message: 'Failed to update user role' });
-            setTimeout(() => setNotification(null), 3000);
-        }
+                    const data = await res.json();
+                    setUsers(prev => prev.map(u => u.id === userId ? data.user : u));
+                    setNotification({ type: 'success', message: `Successfully updated ${user.name}'s role to ${newRole}` });
+                    setTimeout(() => setNotification(null), 3000);
+                    closeConfirmModal();
+                } catch (error) {
+                    console.error('Failed to update role:', error);
+                    setNotification({ type: 'error', message: 'Failed to update user role' });
+                    setTimeout(() => setNotification(null), 3000);
+                    setConfirmModal(prev => ({ ...prev, isLoading: false, isOpen: false }));
+                }
+            }
+        });
     };
 
-    const toggleUserStatus = async (userId: string) => {
+    const toggleUserStatus = (userId: string) => {
         const user = users.find(u => u.id === userId);
         if (!user) return;
 
         const newStatus = user.status === 'active' ? 'inactive' : 'active';
-        const confirmed = window.confirm(`Are you sure you want to ${newStatus === 'active' ? 'activate' : 'deactivate'} ${user.name}'s account?`);
 
-        if (!confirmed) return;
+        setConfirmModal({
+            isOpen: true,
+            title: user.status === 'active' ? 'Deactivate User' : 'Activate User',
+            message: `Are you sure you want to ${newStatus === 'active' ? 'activate' : 'deactivate'} ${user.name}'s account?`,
+            type: user.status === 'active' ? 'danger' : 'success',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isLoading: true }));
+                try {
+                    const res = await fetch(`/api/admin/users/${userId}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ isActive: newStatus === 'active' })
+                    });
 
-        try {
-            const res = await fetch(`/api/admin/users/${userId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ isActive: newStatus === 'active' })
-            });
+                    if (!res.ok) throw new Error('Failed to update status');
 
-            if (!res.ok) throw new Error('Failed to update status');
-
-            const data = await res.json();
-            setUsers(users.map(u => u.id === userId ? data.user : u));
-            setNotification({ type: 'success', message: `Successfully ${newStatus === 'active' ? 'activated' : 'deactivated'} ${user.name}'s account` });
-            setTimeout(() => setNotification(null), 3000);
-        } catch (error) {
-            console.error('Failed to update status:', error);
-            setNotification({ type: 'error', message: 'Failed to update user status' });
-            setTimeout(() => setNotification(null), 3000);
-        }
+                    const data = await res.json();
+                    setUsers(prev => prev.map(u => u.id === userId ? data.user : u));
+                    setNotification({ type: 'success', message: `Successfully ${newStatus === 'active' ? 'activated' : 'deactivated'} ${user.name}'s account` });
+                    setTimeout(() => setNotification(null), 3000);
+                    closeConfirmModal();
+                } catch (error) {
+                    console.error('Failed to update status:', error);
+                    setNotification({ type: 'error', message: 'Failed to update user status' });
+                    setTimeout(() => setNotification(null), 3000);
+                    setConfirmModal(prev => ({ ...prev, isLoading: false, isOpen: false }));
+                }
+            }
+        });
     };
 
-    const deleteUser = async (userId: string) => {
+    const deleteUser = (userId: string) => {
         const user = users.find(u => u.id === userId);
         if (!user) return;
 
-        const confirmed = window.confirm(`Are you sure you want to PERMANENTLY DELETE ${user.name}? This action cannot be undone.`);
-        if (!confirmed) return;
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete User',
+            message: `Are you sure you want to PERMANENTLY DELETE ${user.name}? This action cannot be undone.`,
+            type: 'danger',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isLoading: true }));
+                try {
+                    const res = await fetch(`/api/admin/users/${userId}`, {
+                        method: 'DELETE',
+                    });
 
-        try {
-            const res = await fetch(`/api/admin/users/${userId}`, {
-                method: 'DELETE',
-            });
+                    if (!res.ok) throw new Error('Failed to delete user');
 
-            if (!res.ok) throw new Error('Failed to delete user');
-
-            setNotification({ type: 'success', message: `Successfully deleted ${user.name}` });
-            fetchUsers(); // Refresh list
-            setTimeout(() => setNotification(null), 3000);
-        } catch (error) {
-            console.error('Failed to delete user:', error);
-            setNotification({ type: 'error', message: 'Failed to delete user' });
-            setTimeout(() => setNotification(null), 3000);
-        }
+                    setNotification({ type: 'success', message: `Successfully deleted ${user.name}` });
+                    fetchUsers(); // Refresh list
+                    setTimeout(() => setNotification(null), 3000);
+                    closeConfirmModal();
+                } catch (error) {
+                    console.error('Failed to delete user:', error);
+                    setNotification({ type: 'error', message: 'Failed to delete user' });
+                    setTimeout(() => setNotification(null), 3000);
+                    setConfirmModal(prev => ({ ...prev, isLoading: false, isOpen: false }));
+                }
+            }
+        });
     };
 
     // Calculate stats from pagination data if available, otherwise fallback (though stats endpoint would be better)
@@ -177,6 +224,16 @@ export default function UserManagement() {
                     <p className="font-bold">{notification.message}</p>
                 </div>
             )}
+
+            <ConfirmationModal
+                isOpen={confirmModal.isOpen}
+                onClose={closeConfirmModal}
+                onConfirm={confirmModal.onConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                isLoading={confirmModal.isLoading}
+            />
 
             <AdminPageHeader title="User Management" />
 

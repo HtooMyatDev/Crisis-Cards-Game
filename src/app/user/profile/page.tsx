@@ -34,14 +34,16 @@ const UserProfilePage = () => {
         username: '',
         bio: '',
         joinDate: '',
-        location: ''
+        location: '',
+        image: null as string | null
     });
 
     const [editedData, setEditedData] = useState({
         name: '',
         username: '',
         bio: '',
-        location: ''
+        location: '',
+        image: null as string | null
     });
 
     const [settings, setSettings] = useState({
@@ -94,14 +96,16 @@ const UserProfilePage = () => {
                 username: profile.username || '',
                 bio: profile.bio || '',
                 joinDate,
-                location: profile.location || ''
+                location: profile.location || '',
+                image: profile.image || null
             });
 
             setEditedData({
                 name: profile.name || '',
                 username: profile.username || '',
                 bio: profile.bio || '',
-                location: profile.location || ''
+                location: profile.location || '',
+                image: profile.image || null
             });
 
             setUserStats(profile.stats);
@@ -131,6 +135,23 @@ const UserProfilePage = () => {
         } catch (err) {
             console.error('Failed to fetch settings:', err);
         }
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Check file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            setError('Image size must be less than 2MB');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setEditedData(prev => ({ ...prev, image: reader.result as string }));
+        };
+        reader.readAsDataURL(file);
     };
 
     const updateSettings = async (newSettings: typeof settings) => {
@@ -175,7 +196,8 @@ const UserProfilePage = () => {
                 name: profile.name || '',
                 username: profile.username || '',
                 bio: profile.bio || '',
-                location: profile.location || ''
+                location: profile.location || '',
+                image: profile.image || null
             });
 
             setIsEditing(false);
@@ -194,7 +216,8 @@ const UserProfilePage = () => {
             name: profileData.name,
             username: profileData.username,
             bio: profileData.bio,
-            location: profileData.location
+            location: profileData.location,
+            image: profileData.image
         });
     };
 
@@ -398,15 +421,32 @@ const UserProfilePage = () => {
                                 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.1)]
                                 transition-all duration-200 text-center">
 
-                                <div className="relative inline-block mb-4">
+                                <div className="relative inline-block mb-4 group">
                                     <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 border-4 border-black dark:border-gray-600
-                                        rounded-full flex items-center justify-center font-bold text-white text-2xl">
-                                        P1
+                                        rounded-full flex items-center justify-center font-bold text-white text-2xl overflow-hidden">
+                                        {(isEditing ? editedData.image : profileData.image) ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img
+                                                src={(isEditing ? editedData.image : profileData.image) as string}
+                                                alt="Profile"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            "P1"
+                                        )}
                                     </div>
-                                    <button className="absolute -bottom-1 -right-1 bg-gray-800 dark:bg-gray-600 border-2 border-black dark:border-gray-400
-                                        rounded-full p-2 text-white hover:bg-gray-700 dark:hover:bg-gray-500 transition-colors">
-                                        <Camera size={16} />
-                                    </button>
+                                    {isEditing && (
+                                        <label className="absolute -bottom-1 -right-1 bg-gray-800 dark:bg-gray-600 border-2 border-black dark:border-gray-400
+                                            rounded-full p-2 text-white hover:bg-gray-700 dark:hover:bg-gray-500 transition-colors cursor-pointer">
+                                            <Camera size={16} />
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={handleImageChange}
+                                            />
+                                        </label>
+                                    )}
                                 </div>
 
                                 <h3 className="text-xl font-bold text-black dark:text-white mb-1">

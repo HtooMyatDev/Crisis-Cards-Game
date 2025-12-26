@@ -50,7 +50,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                 </div>
 
                 <div className="w-full max-w-md relative z-10">
-                    <div className="bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-700 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] p-8 relative">
+                    <div className="bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-700 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] p-6 sm:p-8 relative">
                         {/* Header */}
                         <div className="text-center mb-8">
                             <div className="inline-block p-4 bg-green-100 dark:bg-green-900/30 border-4 border-black dark:border-gray-700 rounded-full mb-4">

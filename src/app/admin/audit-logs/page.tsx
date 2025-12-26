@@ -64,7 +64,7 @@ const AuditLogsPage = () => {
                         placeholder="Search logs by description..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 dark:border-gray-700 rounded-md bg-transparent focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                        className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 dark:border-gray-700 rounded-md bg-transparent focus:outline-none focus:border-black dark:focus:border-white text-black dark:text-white transition-colors"
                     />
                 </div>
             </div>
@@ -75,11 +75,11 @@ const AuditLogsPage = () => {
                     <table className="w-full">
                         <thead className="bg-gray-50 dark:bg-gray-700 border-b-2 border-black dark:border-gray-600">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Action</th>
-                                <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-wider">User</th>
-                                <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Description</th>
-                                <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Resource</th>
-                                <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Time</th>
+                                <th className="px-6 py-4 text-left text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
+                                <th className="px-6 py-4 text-left text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-wider">User</th>
+                                <th className="px-6 py-4 text-left text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
+                                <th className="px-6 py-4 text-left text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-wider">Resource</th>
+                                <th className="px-6 py-4 text-left text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-wider">Time</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -100,10 +100,10 @@ const AuditLogsPage = () => {
                                     <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border
-                                                ${log.action.includes('CREATED') ? 'bg-green-100 text-green-800 border-green-200' :
-                                                    log.action.includes('DELETED') ? 'bg-red-100 text-red-800 border-red-200' :
-                                                        log.action.includes('UPDATED') ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                                                            'bg-gray-100 text-gray-800 border-gray-200'}`}>
+                                                ${log.action.includes('CREATED') ? 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800' :
+                                                    log.action.includes('DELETED') ? 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800' :
+                                                        log.action.includes('UPDATED') ? 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800' :
+                                                            'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600'}`}>
                                                 {log.action}
                                             </span>
                                         </td>
@@ -114,7 +114,7 @@ const AuditLogsPage = () => {
                                                 </div>
                                                 <div className="ml-3">
                                                     <div className="text-sm font-medium text-gray-900 dark:text-white">{log.user.name}</div>
-                                                    <div className="text-xs text-gray-500">{log.user.email}</div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">{log.user.email}</div>
                                                 </div>
                                             </div>
                                         </td>
@@ -125,13 +125,13 @@ const AuditLogsPage = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             {log.card && (
-                                                <div className="flex items-center text-sm text-gray-500">
+                                                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                                                     <FileText size={14} className="mr-1" />
                                                     {log.card.title}
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                             {new Date(log.createdAt).toLocaleString()}
                                         </td>
                                     </tr>
@@ -146,7 +146,7 @@ const AuditLogsPage = () => {
                     <button
                         onClick={() => setPage(p => Math.max(1, p - 1))}
                         disabled={page === 1}
-                        className="px-4 py-2 border-2 border-gray-300 rounded-md text-sm font-bold text-gray-700 disabled:opacity-50 hover:bg-white transition-colors"
+                        className="px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-md text-sm font-bold text-gray-700 dark:text-gray-300 disabled:opacity-50 hover:bg-white dark:hover:bg-gray-700 transition-colors"
                     >
                         Previous
                     </button>
@@ -156,7 +156,7 @@ const AuditLogsPage = () => {
                     <button
                         onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                         disabled={page === totalPages}
-                        className="px-4 py-2 border-2 border-gray-300 rounded-md text-sm font-bold text-gray-700 disabled:opacity-50 hover:bg-white transition-colors"
+                        className="px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-md text-sm font-bold text-gray-700 dark:text-gray-300 disabled:opacity-50 hover:bg-white dark:hover:bg-gray-700 transition-colors"
                     >
                         Next
                     </button>

@@ -116,9 +116,79 @@ export async function DELETE(
         });
 
     } catch (error) {
-        console.error('Error deleting team:', error);
-        return NextResponse.json({
+       return NextResponse.json({
             error: 'Failed to delete team'
+        }, { status: 500 });
+    }
+}
+
+/**
+ * PATCH /api/admin/games/[id]/teams
+ * Update a team's details (e.g. rename)
+ */
+export async function PATCH(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const user = await getCurrentUser();
+        if (!user || user.role !== 'ADMIN') {
+            return NextResponse.json({
+                error: 'Unauthorized. Admin access required.'
+            }, { status: 401 });
+        }
+
+        const body = await request.json();
+        const { teamId, name, color } = body;
+
+        if (!teamId) {
+            return NextResponse.json({
+                error: 'Team ID is required'
+            }, { status: 400 });
+        }
+
+        // Prepare update data
+        const updateData: any = {};
+        if (name) {
+            const { id } = await params;
+            // Check for duplicate name if name is being changed
+            // But we must exclude the current team itself from the check
+            const duplicate = await prisma.team.findFirst({
+                where: {
+                    gameSessionId: id,
+                    name: {
+                        equals: name,
+                        mode: 'insensitive'
+                    },
+                    id: {
+                        not: teamId
+                    }
+                }
+            });
+
+            if (duplicate) {
+                return NextResponse.json({
+                    error: 'A team with this name already exists'
+                }, { status: 400 });
+            }
+            updateData.name = name;
+        }
+        if (color) updateData.color = color;
+
+        const team = await prisma.team.update({
+            where: { id: teamId },
+            data: updateData
+        });
+
+        return NextResponse.json({
+            success: true,
+            team
+        });
+
+    } catch (error) {
+        console.error('Error updating team:', error);
+        return NextResponse.json({
+            error: 'Failed to update team'
         }, { status: 500 });
     }
 }

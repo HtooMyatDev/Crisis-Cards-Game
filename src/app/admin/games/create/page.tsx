@@ -18,6 +18,7 @@ import { Category, GameFormData, GameMode, CreatedGame } from '@/types/game';
 import { generateGameCode } from '@/utils/gameCode';
 import { GameSuccessModal } from '@/components/admin/GameSuccessModal';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import ConfirmationModal from '@/components/modals/ConfirmationModal';
 
 const CreateGameSession = () => {
     const [formData, setFormData] = useState<GameFormData>({
@@ -41,7 +42,26 @@ const CreateGameSession = () => {
     const [isShuffling, setIsShuffling] = useState(false);
     const [globalError, setGlobalError] = useState<string | null>(null);
 
-    const gameModes: GameMode[] = ['Standard', 'Quick Play', 'Advanced', 'Custom'];
+    // Modal state
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+        type: 'danger' | 'warning' | 'info' | 'success';
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
+
+    const closeConfirmModal = () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+    };
+
+    const gameModes: GameMode[] = ['Standard'];
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -193,7 +213,7 @@ const CreateGameSession = () => {
 
     const handleSubmit = async () => {
         if (!validateForm()) {
-            setGlobalError('Please fix the errors in the form.');
+            setGlobalError('Please check the form for errors.');
             // Scroll to error container
             if (errorContainerRef.current) {
                 errorContainerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -253,9 +273,15 @@ const CreateGameSession = () => {
     };
 
     const handleCancel = () => {
-        if (window.confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
-            window.history.back();
-        }
+        setConfirmModal({
+            isOpen: true,
+            title: 'Cancel Creation',
+            message: 'Are you sure you want to cancel? All unsaved changes will be lost.',
+            type: 'warning',
+            onConfirm: () => {
+                window.history.back();
+            }
+        });
     };
 
     return (
@@ -265,6 +291,15 @@ const CreateGameSession = () => {
                 isOpen={showSuccess}
                 game={createdGame}
                 onStartHosting={(gameId) => window.location.href = `/admin/games/${gameId}/host`}
+            />
+
+            <ConfirmationModal
+                isOpen={confirmModal.isOpen}
+                onClose={closeConfirmModal}
+                onConfirm={confirmModal.onConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
             />
 
 
@@ -292,7 +327,9 @@ const CreateGameSession = () => {
                             <div className="flex items-start gap-3">
                                 <AlertCircle className="text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" size={20} />
                                 <div className="flex-1">
-                                    <h3 className="font-bold text-red-800 dark:text-red-300">Something went wrong</h3>
+                                    <h3 className="font-bold text-red-800 dark:text-red-300">
+                                        {globalError.includes('check the form') ? 'Validation Error' : 'Error'}
+                                    </h3>
                                     <p className="text-red-700 dark:text-red-400 text-sm mt-1">{globalError}</p>
                                 </div>
                                 <button
@@ -399,12 +436,11 @@ const CreateGameSession = () => {
                                                 className={`
                                                 relative p-3 rounded-lg text-left transition-all duration-300 group flex items-center gap-3 overflow-hidden border-2
                                                 ${isSelected
-                                                        ? 'translate-x-[-1px] translate-y-[-1px]'
+                                                        ? 'bg-white dark:bg-slate-900 translate-x-[-1px] translate-y-[-1px]'
                                                         : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md hover:translate-x-[-1px] hover:translate-y-[-1px]'
                                                     }
                                             `}
                                                 style={isSelected ? {
-                                                    backgroundColor: '#0f172a',
                                                     borderColor: category.color,
                                                     boxShadow: `2px 2px 0px 0px ${category.color}`
                                                 } : undefined}
@@ -455,12 +491,12 @@ const CreateGameSession = () => {
                                                 {/* Text Content */}
                                                 <div className="flex-1 relative z-10">
                                                     <h3
-                                                        className={`font-bold text-base leading-tight mb-0.5 transition-colors duration-300 ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}
+                                                        className={`font-bold text-base leading-tight mb-0.5 transition-colors duration-300 ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'}`}
                                                     >
                                                         {category.name}
                                                     </h3>
                                                     <p
-                                                        className={`text-xs font-medium transition-colors duration-300 ${isSelected ? 'text-gray-400' : 'text-gray-500 dark:text-gray-400'}`}
+                                                        className={`text-xs font-medium transition-colors duration-300 ${isSelected ? 'text-gray-600 dark:text-gray-400' : 'text-gray-500 dark:text-gray-400'}`}
                                                     >
                                                         {category.cards?.length || 0} Cards
                                                     </p>
@@ -711,8 +747,8 @@ const CreateGameSession = () => {
                         )}
                     </div>
                 </ErrorBoundary>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

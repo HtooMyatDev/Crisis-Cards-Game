@@ -171,7 +171,8 @@ export async function GET(
                     infrastructureEffect: r.infrastructureEffect,
                     societyEffect: r.societyEffect,
                     environmentEffect: r.environmentEffect,
-                    score: r.score
+                    score: r.score,
+                    cost: r.cost
                 }))
             },
             players: playersWithResponses,

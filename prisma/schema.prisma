@@ -19,6 +19,8 @@ model User {
   bio               String?
   location          String?
   username          String?
+  image             String?
+  phone             String?
   cardActivities    Activity[]
   archivedCards     Card[]            @relation("CardArchivedBy")
   assignedCards     Card[]            @relation("CardAssignee")

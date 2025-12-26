@@ -20,6 +20,8 @@ export async function GET() {
         username: true,
         bio: true,
         location: true,
+        image: true,
+        phone: true,
         createdAt: true,
         updatedAt: true,
       }
@@ -155,7 +157,7 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { name, username, bio, location } = body;
+    const { name, username, bio, location, image, phone } = body;
 
     // Validate input
     if (name !== undefined && typeof name !== 'string') {
@@ -174,6 +176,14 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Invalid location' }, { status: 400 });
     }
 
+    if (image !== undefined && typeof image !== 'string' && image !== null) {
+        return NextResponse.json({ error: 'Invalid image format' }, { status: 400 });
+    }
+
+    if (phone !== undefined && typeof phone !== 'string') {
+        return NextResponse.json({ error: 'Invalid phone' }, { status: 400 });
+    }
+
     // Update user profile
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
@@ -182,6 +192,8 @@ export async function PATCH(request: Request) {
         ...(username !== undefined && { username }),
         ...(bio !== undefined && { bio }),
         ...(location !== undefined && { location }),
+        ...(image !== undefined && { image }),
+        ...(phone !== undefined && { phone }),
       },
       select: {
         id: true,
@@ -190,6 +202,8 @@ export async function PATCH(request: Request) {
         username: true,
         bio: true,
         location: true,
+        image: true,
+        phone: true,
         createdAt: true,
         updatedAt: true,
       }

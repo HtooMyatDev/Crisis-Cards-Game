@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/app/actions/auth';
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
@@ -121,6 +122,15 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
+        // Authentication check
+        const user = await getCurrentUser();
+        if (!user || user.role !== 'ADMIN') {
+            return NextResponse.json(
+                { error: 'Unauthorized. Admin access required.' },
+                { status: 401 }
+            );
+        }
+
         const body = await request.json();
         const params = await context.params;
         const idNum = Number(params.id);
@@ -141,7 +151,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
             data: {
                 isArchived,
                 archivedAt: isArchived ? new Date() : null,
-                archivedById: isArchived ? 2 : null
+                archivedById: isArchived ? user.id : null
             },
             include: {
                 category: true,
@@ -156,11 +166,13 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
         });
 
     } catch (error: unknown) {
+        console.error('Error archiving card:', error);
+
         if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'P2025') {
             return NextResponse.json({ error: 'Card not found' }, { status: 404 });
         }
 
-        return NextResponse.json({ error: 'Failed to update card' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to update card status' }, { status: 500 });
     }
 }
 

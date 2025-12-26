@@ -771,36 +771,36 @@ const GameSessionsManagement = () => {
                                     </span>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                                <div className="flex items-center gap-2">
+                                    <Target size={14} className="text-gray-500 dark:text-gray-400" />
+                                    <span className="text-gray-700 dark:text-gray-300">Mode: <span className="font-medium">{session.gameMode}</span></span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Users size={14} className="text-gray-500 dark:text-gray-400" />
+                                    <span className="text-gray-700 dark:text-gray-300">Host: <span className="font-medium">{session.host?.name || 'Unknown'}</span></span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Clock size={14} className="text-gray-500 dark:text-gray-400" />
+                                    <span className="text-gray-700 dark:text-gray-300">Created: <span className="font-medium">{new Date(session.createdAt).toLocaleDateString()}</span></span>
+                                </div>
+                                {session.categories && session.categories.length > 0 && (
                                     <div className="flex items-center gap-2">
                                         <Target size={14} className="text-gray-500 dark:text-gray-400" />
-                                        <span className="text-gray-700 dark:text-gray-300">Mode: <span className="font-medium">{session.gameMode}</span></span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Users size={14} className="text-gray-500 dark:text-gray-400" />
-                                        <span className="text-gray-700 dark:text-gray-300">Host: <span className="font-medium">{session.host?.name || 'Unknown'}</span></span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Clock size={14} className="text-gray-500 dark:text-gray-400" />
-                                        <span className="text-gray-700 dark:text-gray-300">Created: <span className="font-medium">{new Date(session.createdAt).toLocaleDateString()}</span></span>
-                                    </div>
-                                    {session.categories && session.categories.length > 0 && (
-                                        <div className="flex items-center gap-2">
-                                            <Target size={14} className="text-gray-500 dark:text-gray-400" />
-                                            <span className="text-gray-700 dark:text-gray-300">
-                                                Categories:
-                                                <span className="font-medium ml-1">
-                                                    {session.categories.map(c => c.category.name).join(', ')}
-                                                </span>
+                                        <span className="text-gray-700 dark:text-gray-300">
+                                            Categories:
+                                            <span className="font-medium ml-1">
+                                                {session.categories.map(c => c.category.name).join(', ')}
                                             </span>
-                                        </div>
-                                    )}
-                                </div>
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
 
+
+
                             {/* Actions */}
-                            <div className="flex gap-2 lg:flex-col lg:gap-2">
+                            <div className="flex flex-wrap gap-2 lg:flex-col lg:gap-2">
                                 {session.status === 'WAITING' && (() => {
                                     // Check if all teams have at least one player
                                     const players = session.players || [];
@@ -940,73 +940,76 @@ const GameSessionsManagement = () => {
                             </div>
                         </div>
                     </div>
+
                 ))}
             </div>
 
             {/* Pagination Controls */}
-            {filteredSessions.length > 0 && (
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 mb-8">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                        Showing <span className="font-bold text-black dark:text-white">{filteredSessions.length}</span> of <span className="font-bold text-black dark:text-white">{totalGames}</span> games
-                        {totalPages > 1 && <span className="ml-1">(Page {currentPage} of {totalPages})</span>}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => fetchGameSessions(false, Math.max(1, currentPage - 1))}
-                            disabled={currentPage === 1 || loading}
-                            className={`px-4 py-2 font-bold rounded-lg border-2 transition-all text-sm flex items-center gap-2 ${currentPage === 1 || loading
-                                ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 cursor-not-allowed'
-                                : 'bg-white dark:bg-gray-800 text-black dark:text-white border-black dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]'
-                                }`}
-                        >
-                            <ChevronDown className="rotate-90" size={16} />
-                            Previous
-                        </button>
-
-                        <div className="flex items-center gap-1">
-                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                // Logic to show window of pages around current
-                                let pageNum = i + 1;
-                                if (totalPages > 5) {
-                                    if (currentPage > 3) {
-                                        pageNum = currentPage - 2 + i;
-                                    }
-                                    if (pageNum > totalPages) {
-                                        pageNum = totalPages - 4 + i;
-                                    }
-                                }
-
-                                return (
-                                    <button
-                                        key={pageNum}
-                                        onClick={() => fetchGameSessions(false, pageNum)}
-                                        disabled={loading}
-                                        className={`w-10 h-10 font-bold rounded-lg border-2 transition-all text-sm flex items-center justify-center ${currentPage === pageNum
-                                            ? 'bg-blue-500 text-white border-blue-600 shadow-[2px_2px_0px_0px_rgba(37,99,235,1)]'
-                                            : 'bg-white dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
-                                            }`}
-                                    >
-                                        {pageNum}
-                                    </button>
-                                );
-                            })}
+            {
+                filteredSessions.length > 0 && (
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 mb-8">
+                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                            Showing <span className="font-bold text-black dark:text-white">{filteredSessions.length}</span> of <span className="font-bold text-black dark:text-white">{totalGames}</span> games
+                            {totalPages > 1 && <span className="ml-1">(Page {currentPage} of {totalPages})</span>}
                         </div>
 
-                        <button
-                            onClick={() => fetchGameSessions(false, Math.min(totalPages, currentPage + 1))}
-                            disabled={currentPage === totalPages || loading}
-                            className={`px-4 py-2 font-bold rounded-lg border-2 transition-all text-sm flex items-center gap-2 ${currentPage === totalPages || loading
-                                ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 cursor-not-allowed'
-                                : 'bg-white dark:bg-gray-800 text-black dark:text-white border-black dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]'
-                                }`}
-                        >
-                            Next
-                            <ChevronDown className="-rotate-90" size={16} />
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => fetchGameSessions(false, Math.max(1, currentPage - 1))}
+                                disabled={currentPage === 1 || loading}
+                                className={`px-4 py-2 font-bold rounded-lg border-2 transition-all text-sm flex items-center gap-2 ${currentPage === 1 || loading
+                                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 cursor-not-allowed'
+                                    : 'bg-white dark:bg-gray-800 text-black dark:text-white border-black dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]'
+                                    }`}
+                            >
+                                <ChevronDown className="rotate-90" size={16} />
+                                Previous
+                            </button>
+
+                            <div className="flex items-center gap-1">
+                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                    // Logic to show window of pages around current
+                                    let pageNum = i + 1;
+                                    if (totalPages > 5) {
+                                        if (currentPage > 3) {
+                                            pageNum = currentPage - 2 + i;
+                                        }
+                                        if (pageNum > totalPages) {
+                                            pageNum = totalPages - 4 + i;
+                                        }
+                                    }
+
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            onClick={() => fetchGameSessions(false, pageNum)}
+                                            disabled={loading}
+                                            className={`w-10 h-10 font-bold rounded-lg border-2 transition-all text-sm flex items-center justify-center ${currentPage === pageNum
+                                                ? 'bg-blue-500 text-white border-blue-600 shadow-[2px_2px_0px_0px_rgba(37,99,235,1)]'
+                                                : 'bg-white dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                                }`}
+                                        >
+                                            {pageNum}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <button
+                                onClick={() => fetchGameSessions(false, Math.min(totalPages, currentPage + 1))}
+                                disabled={currentPage === totalPages || loading}
+                                className={`px-4 py-2 font-bold rounded-lg border-2 transition-all text-sm flex items-center gap-2 ${currentPage === totalPages || loading
+                                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 cursor-not-allowed'
+                                    : 'bg-white dark:bg-gray-800 text-black dark:text-white border-black dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]'
+                                    }`}
+                            >
+                                Next
+                                <ChevronDown className="-rotate-90" size={16} />
+                            </button>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* No Results */}
             {

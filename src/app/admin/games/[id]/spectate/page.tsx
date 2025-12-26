@@ -3,9 +3,10 @@
 import React, { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-    Users, Clock, Play, Pause, Square, SkipForward,
+    Users, Clock,
     Trophy, Target, Loader2,
-    AlertCircle, Activity, Eye
+    AlertCircle, Activity,
+    Eye, Pause
 } from 'lucide-react';
 
 interface PlayerData {
@@ -61,7 +62,7 @@ interface HostData {
     respondedCount: number;
 }
 
-export default function HostControlPage({ params }: { params: Promise<{ id: string }> }) {
+export default function SpectatorPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
     const gameId = resolvedParams.id;
     const router = useRouter();
@@ -71,19 +72,19 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
     const [error, setError] = useState('');
     const [timeLeft, setTimeLeft] = useState(0);
 
-    // Fetch host data
+    // Fetch host data (Spectator uses same API)
     const fetchHostData = React.useCallback(async () => {
         try {
             const res = await fetch(`/api/admin/games/${gameId}/host`);
 
             if (res.status === 403) {
-                setError('Only the game host can access this view');
+                setError('Access denied');
                 setLoading(false);
                 return;
             }
 
             if (!res.ok) {
-                throw new Error('Failed to fetch host data');
+                throw new Error('Failed to fetch game data');
             }
 
             const data = await res.json();
@@ -91,7 +92,7 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
             setError('');
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-            console.error('Error fetching host data:', err);
+            console.error('Error fetching game data:', err);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -100,7 +101,7 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
 
     useEffect(() => {
         fetchHostData();
-        const interval = setInterval(fetchHostData, 1000); // Poll every 1 second
+        const interval = setInterval(fetchHostData, 2000); // Poll every 2 seconds
         return () => clearInterval(interval);
     }, [fetchHostData]);
 
@@ -132,85 +133,13 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const handleGameAction = async (action: 'pause' | 'resume' | 'stop') => {
-        const statusMap = {
-            pause: 'PAUSED',
-            resume: 'IN_PROGRESS',
-            stop: 'COMPLETED'
-        };
-
-        try {
-            const res = await fetch(`/api/admin/games/${hostData?.game.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: statusMap[action] })
-            });
-
-            if (!res.ok) throw new Error('Failed to update game status');
-            fetchHostData();
-        } catch (err) {
-            console.error('Error updating game:', err);
-            alert('Failed to update game status');
-        }
-    };
-
-    const handleNextCard = async () => {
-        if (!confirm('Advance to the next card?')) return;
-
-        try {
-            const res = await fetch(`/api/game/${hostData?.game.gameCode}/next`, {
-                method: 'POST'
-            });
-
-            if (!res.ok) throw new Error('Failed to advance card');
-            fetchHostData();
-        } catch (err) {
-            console.error('Error advancing card:', err);
-            alert('Failed to advance to next card');
-        }
-    };
-
-    const handleAssignPlayer = async (playerId: number, teamId: string) => {
-        try {
-            const res = await fetch(`/api/admin/games/${hostData?.game.id}/players`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    assignments: [{ playerId, teamId }]
-                })
-            });
-
-            if (!res.ok) throw new Error('Failed to assign player');
-            fetchHostData();
-        } catch (err) {
-            console.error('Error assigning player:', err);
-            alert('Failed to assign player');
-        }
-    };
-
-    const handleStartGame = async () => {
-        if (!confirm('Are you sure you want to start the game? Ensure teams are balanced.')) return;
-
-        try {
-            const res = await fetch(`/api/game/${hostData?.game.gameCode}/start`, {
-                method: 'POST'
-            });
-
-            if (!res.ok) throw new Error('Failed to start game');
-            fetchHostData();
-        } catch (err) {
-            console.error('Error starting game:', err);
-            alert('Failed to start game');
-        }
-    };
-
 
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
                 <div className="text-center">
                     <Loader2 className="animate-spin mx-auto mb-4" size={48} />
-                    <p className="text-gray-600 dark:text-gray-400 font-bold">Loading host control...</p>
+                    <p className="text-gray-600 dark:text-gray-400 font-bold">Connecting as Spectator...</p>
                 </div>
             </div>
         );
@@ -221,13 +150,13 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
             <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4">
                 <div className="bg-white dark:bg-gray-800 border-4 border-red-500 dark:border-red-400 rounded-xl p-8 max-w-md">
                     <AlertCircle className="text-red-500 mx-auto mb-4" size={48} />
-                    <h2 className="text-2xl font-black text-center mb-2 text-black dark:text-white">Access Denied</h2>
+                    <h2 className="text-2xl font-black text-center mb-2 text-black dark:text-white">Unable to Connect</h2>
                     <p className="text-gray-700 dark:text-gray-300 text-center">{error}</p>
                     <button
                         onClick={() => router.push('/admin/games/manage')}
                         className="mt-6 w-full px-4 py-3 bg-blue-500 text-white font-bold rounded-lg border-2 border-blue-600 dark:border-blue-400"
                     >
-                        Go to Game Management
+                        Return to Dashboard
                     </button>
                 </div>
             </div>
@@ -237,8 +166,7 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
     if (!hostData) return null;
 
 
-    // ----------- TEAM ASSIGNMENT VIEW -----------
-    // Show when game is WAITING or IN_PROGRESS without cards started
+    // ----------- TEAM ASSIGNMENT VIEW (READ ONLY) -----------
     if ((hostData.game.status === 'WAITING' || (hostData.game.status === 'IN_PROGRESS' && !hostData.game.lastCardStartedAt))) {
         const unassignedPlayers = hostData.players.filter(p => !p.team);
 
@@ -248,24 +176,18 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
                     <div className="bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-700 rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] p-6 mb-6">
                         <div className="flex items-center justify-between mb-6">
                             <div>
-                                <h1 className="text-3xl font-black text-black dark:text-white mb-2">TEAM ASSIGNMENT</h1>
-                                <p className="text-gray-600 dark:text-gray-400">Assign players to teams before starting the game.</p>
+                                <h1 className="text-3xl font-black text-black dark:text-white mb-2 flex items-center gap-2">
+                                    <Eye className="text-blue-500" size={32} />
+                                    SPECTATOR MODE
+                                </h1>
+                                <p className="text-gray-600 dark:text-gray-400">Waiting for host to start the game.</p>
                             </div>
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => router.push('/admin/games/manage')}
                                     className="px-4 py-2 bg-gray-200 text-gray-800 font-bold rounded-lg border-2 border-gray-300"
                                 >
-                                    Back
-                                </button>
-                                <button
-                                    onClick={handleStartGame}
-                                    disabled={hostData.teams.some(t =>
-                                        !hostData.players.some(p => p.team === t.name || p.team === t.id)
-                                    )}
-                                    className="px-6 py-2 bg-green-500 text-white font-bold rounded-lg border-2 border-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                                >
-                                    <Play size={20} /> START GAME
+                                    Exit
                                 </button>
                             </div>
                         </div>
@@ -280,23 +202,7 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
                                 <div className="space-y-2 max-h-[600px] overflow-y-auto">
                                     {unassignedPlayers.map(player => (
                                         <div key={player.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
-                                            <div className="font-bold mb-2 text-black dark:text-white">{player.nickname}</div>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                {hostData.teams.map(team => (
-                                                    <button
-                                                        key={team.id}
-                                                        onClick={() => handleAssignPlayer(player.id, team.id)}
-                                                        className="px-2 py-1 text-xs font-bold rounded border transition-colors"
-                                                        style={{
-                                                            backgroundColor: `${team.color}20`,
-                                                            color: team.color,
-                                                            borderColor: team.color
-                                                        }}
-                                                    >
-                                                        {team.name}
-                                                    </button>
-                                                ))}
-                                            </div>
+                                            <div className="font-bold text-black dark:text-white">{player.nickname}</div>
                                         </div>
                                     ))}
                                     {unassignedPlayers.length === 0 && (
@@ -343,7 +249,7 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
     }
 
 
-    // ----------- MAIN GAME DASHBOARD -----------
+    // ----------- MAIN GAME DASHBOARD (READ ONLY) -----------
     const teamsSortedByScore = [...hostData.teams].sort((a, b) => {
         const statsA = hostData.teamStats[a.name] || { avgScore: 0 };
         const statsB = hostData.teamStats[b.name] || { avgScore: 0 };
@@ -385,30 +291,18 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
                     </div>
                 </div>
 
-                {/* Controls */}
+                {/* Controls (Just Timer for Spectator) */}
                 <div className="flex items-center gap-3 mt-4 md:mt-0">
                     <div className="flex flex-col items-center mr-4 px-4 border-r-2 border-gray-100 dark:border-gray-800">
                         <span className="text-3xl font-black text-black dark:text-white tabular-nums">{formatTime(timeLeft)}</span>
                         <span className="text-[10px] font-bold text-gray-400 uppercase">Time Left</span>
                     </div>
 
-
-                    {hostData.game.status === 'IN_PROGRESS' && (
-                        <button onClick={() => handleGameAction('pause')} className="p-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors border-2 border-transparent">
-                            <Pause size={20} />
-                        </button>
-                    )}
-                    {hostData.game.status === 'PAUSED' && (
-                        <button onClick={() => handleGameAction('resume')} className="p-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors shadow-lg shadow-green-500/30">
-                            <Play size={20} />
-                        </button>
-                    )}
-                    <button onClick={handleNextCard} className="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-all hover:scale-105 active:scale-95">
-                        <SkipForward size={20} />
-                        <span className="hidden sm:inline">Next</span>
-                    </button>
-                    <button onClick={() => handleGameAction('stop')} className="p-3 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-colors border-2 border-transparent">
-                        <Square size={20} />
+                    <button
+                        onClick={() => router.push('/admin/games/manage')}
+                        className="px-4 py-2 bg-gray-200 text-gray-800 font-bold rounded-lg border-2 border-gray-300 hover:bg-gray-300 transition-colors"
+                    >
+                        Exit
                     </button>
                 </div>
             </header>
@@ -418,11 +312,11 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
                 <div className="lg:col-span-8 flex flex-col gap-6">
                     {/* Active Card */}
                     <div className="bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm overflow-hidden flex-1">
-                        <div className="bg-red-500 p-1"></div>
+                        <div className="bg-blue-500 p-1"></div> {/* Blue used for spectator accent */}
                         <div className="p-8">
                             <div className="flex items-center gap-3 mb-6">
-                                <span className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                                    <Target size={14} /> Only {formatTime(timeLeft)} remaining
+                                <span className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                                    <Target size={14} /> Specating API
                                 </span>
                             </div>
 
@@ -520,27 +414,21 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
 
                                         {/* Mini Player Icons */}
                                         <div className="flex flex-wrap gap-1">
-                                            {teamPlayers.map(p => {
-                                                const responseIdx = hostData.currentCard.responses.findIndex(r => r.id === p.responseId);
-                                                const responseLetter = responseIdx >= 0 ? String.fromCharCode(65 + responseIdx) : null;
-                                                const response = responseLetter ? hostData.currentCard.responses[responseIdx] : null;
-
-                                                return (
-                                                    <div
-                                                        key={p.id}
-                                                        title={`${p.nickname}: ${p.score}pts ${response ? `(Selected ${responseLetter}: ${response.text})` : '(Thinking)'}`}
-                                                        className={`
-                                                            w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold border cursor-help transition-transform hover:scale-110
-                                                            ${p.hasResponded
-                                                                ? 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30'
-                                                                : 'bg-gray-50 text-gray-400 border-gray-200 dark:bg-gray-800 dark:border-gray-700'
-                                                            }
-                                                        `}
-                                                    >
-                                                        {p.hasResponded ? responseLetter : p.nickname.substring(0, 1)}
-                                                    </div>
-                                                );
-                                            })}
+                                            {teamPlayers.map(p => (
+                                                <div
+                                                    key={p.id}
+                                                    title={`${p.nickname}: ${p.score}pts ${p.hasResponded ? '(Responded)' : '(Thinking)'}`}
+                                                    className={`
+                                                        w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold border
+                                                        ${p.hasResponded
+                                                            ? 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30'
+                                                            : 'bg-gray-50 text-gray-400 border-gray-200 dark:bg-gray-800 dark:border-gray-700'
+                                                        }
+                                                    `}
+                                                >
+                                                    {p.nickname.substring(0, 1)}
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
                                 );

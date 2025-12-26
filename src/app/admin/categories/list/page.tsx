@@ -230,7 +230,7 @@ export default function ListCategories() {
                             className="w-5 h-5 rounded-full border-2 border-black flex-shrink-0"
                             style={{ backgroundColor: colors.textColor }}
                         ></div>
-                        <div>
+                        <div className="min-w-0">
                             <h3 className="font-bold text-lg truncate">{category.name}</h3>
                             {colors.presetName && (
                                 <p className="text-xs text-gray-500 dark:text-gray-400">{colors.presetName} preset</p>
@@ -238,43 +238,33 @@ export default function ListCategories() {
                         </div>
                     </div>
 
-                    {/* Action buttons - show on hover */}
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleCategoryAction(category.id, 'view');
-                            }}
-                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                            title="View category"
-                        >
-                            <Eye size={14} />
-                        </button>
+                    {/* Action buttons - always visible */}
+                    <div className="flex gap-2 flex-shrink-0">
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleCategoryAction(category.id, 'edit');
                             }}
-                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                            className="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md transition-colors text-blue-600 dark:text-blue-400"
                             title="Edit category"
                         >
-                            <Edit size={14} />
+                            <Edit size={16} />
                         </button>
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleCategoryAction(category.id, 'archive');
                             }}
-                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-red-600 dark:text-red-400"
+                            className="p-2 bg-gray-100 hover:bg-red-100 dark:bg-gray-700 dark:hover:bg-red-900/30 rounded-md transition-colors text-red-600 dark:text-red-400"
                             title="Archive category"
                         >
-                            <Archive size={14} />
+                            <Archive size={16} />
                         </button>
                     </div>
                 </div>
 
                 {/* Description */}
-                <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm line-clamp-2">{category.description}</p>
+                <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm line-clamp-2 h-10">{category.description || 'No description provided.'}</p>
 
                 {/* Item Count and Status */}
                 <div className="flex items-center justify-between">
@@ -341,27 +331,20 @@ export default function ListCategories() {
                         </div>
 
                         {/* Action buttons */}
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                                onClick={() => handleCategoryAction(category.id, 'view')}
-                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                                title="View category"
-                            >
-                                <Eye size={14} />
-                            </button>
+                        <div className="flex gap-2 flex-shrink-0">
                             <button
                                 onClick={() => handleCategoryAction(category.id, 'edit')}
-                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                                className="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md transition-colors text-blue-600 dark:text-blue-400"
                                 title="Edit category"
                             >
-                                <Edit size={14} />
+                                <Edit size={16} />
                             </button>
                             <button
                                 onClick={() => handleCategoryAction(category.id, 'archive')}
-                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-red-600 dark:text-red-400"
+                                className="p-2 bg-gray-100 hover:bg-red-100 dark:bg-gray-700 dark:hover:bg-red-900/30 rounded-md transition-colors text-red-600 dark:text-red-400"
                                 title="Archive category"
                             >
-                                <Archive size={14} />
+                                <Archive size={16} />
                             </button>
                         </div>
                     </div>

@@ -10,10 +10,11 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 
-    if (isAuthenticated && request.nextUrl.pathname.startsWith("/auth")) {
-        const redirectPath = userRole?.value === 'ADMIN' ? '/admin/dashboard' : '/user/home';
-        return NextResponse.redirect(new URL(redirectPath, request.url));
-    }
+    // Prevent redirect loop if verification fails on server side but cookie exists
+    // if (isAuthenticated && request.nextUrl.pathname.startsWith("/auth")) {
+    //     const redirectPath = userRole?.value === 'ADMIN' ? '/admin/dashboard' : '/user/home';
+    //     return NextResponse.redirect(new URL(redirectPath, request.url));
+    // }
 
     // Prevent authenticated users from accessing /play page
     if (isAuthenticated && currentPath.startsWith('/play')) {

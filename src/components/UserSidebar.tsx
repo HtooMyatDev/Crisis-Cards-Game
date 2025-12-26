@@ -36,11 +36,35 @@ const UserSidebar = () => {
             router.push('/auth/login')
         }
     }, [state, router])
-    const userInfo = {
-        name: 'Htoo Myat Aung',
-        level: 'Level 5',
-        initials: 'P1'
-    };
+    const [userInfo, setUserInfo] = useState({
+        name: '',
+        level: 'Level 1',
+        initials: '',
+        image: null as string | null
+    });
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const res = await fetch('/api/user/profile');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.profile) {
+                        setUserInfo({
+                            name: data.profile.name || data.profile.username || 'User',
+                            level: `Level ${data.profile.stats?.level || 1}`,
+                            initials: (data.profile.name || data.profile.username || 'U').charAt(0).toUpperCase(),
+                            image: data.profile.image
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch user data for sidebar:', error);
+            }
+        };
+
+        fetchUserData();
+    }, []);
 
     const isProfileSectionActive = pathname.includes('/user/profile') || pathname.includes('/user/settings');
 
@@ -215,7 +239,16 @@ const UserSidebar = () => {
                                 <div className={`w-8 h-8 border-2 border-black rounded-full flex items-center justify-center font-bold text-xs
                                     ${isProfileSectionActive ? 'bg-white text-black' : 'bg-gray-200 text-gray-700'}
                                 `}>
-                                    {userInfo.initials}
+                                    {userInfo.image ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img
+                                            src={userInfo.image}
+                                            alt={userInfo.name}
+                                            className="w-full h-full object-cover rounded-full"
+                                        />
+                                    ) : (
+                                        userInfo.initials
+                                    )}
                                 </div>
                                 <div className={`transition-transform duration-200 ${isProfileOpen ? 'rotate-90' : 'rotate-0'}`}>
                                     <ChevronRight size={14} />

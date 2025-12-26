@@ -146,27 +146,34 @@ export default function ColorPresetsPage() {
     };
 
     const handleDelete = async (id: number) => {
+        if (!confirm('Are you sure you want to delete this preset?')) return;
+
         try {
             const response = await fetch(`/api/admin/color-presets/${id}`, {
                 method: 'DELETE'
             });
 
-            if (!response.ok) throw new Error('Failed to delete preset');
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to delete preset');
+            }
 
             await fetchPresets();
             setDeleteConfirm(null);
         } catch (error) {
             console.error('Error deleting preset:', error);
+            alert(error instanceof Error ? error.message : 'Failed to delete preset');
         }
     };
 
     const handleToggleActive = async (preset: ColorPreset) => {
         try {
             const response = await fetch(`/api/admin/color-presets/${preset.id}`, {
-                method: 'PUT',
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    ...preset,
+                    action: 'toggle_active',
                     isActive: !preset.isActive
                 })
             });
@@ -176,6 +183,7 @@ export default function ColorPresetsPage() {
             await fetchPresets();
         } catch (error) {
             console.error('Error updating preset:', error);
+            alert('Failed to update preset status');
         }
     };
 

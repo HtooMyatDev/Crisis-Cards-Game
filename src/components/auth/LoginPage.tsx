@@ -185,7 +185,7 @@ const LoginPage: React.FC = () => {
                         {/* Submit Button */}
                         <button
                             type="submit"
-                            disabled={pending}
+                            disabled={pending || state.success}
                             className="w-full px-6 py-4 border-4 border-black rounded-lg font-bold text-lg
                             bg-green-600 text-white transition-all duration-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
                             hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-green-700
@@ -199,6 +199,11 @@ const LoginPage: React.FC = () => {
                                 <>
                                     <Loader2 size={20} className="relative z-10 animate-spin" />
                                     <span className="relative z-10">Logging in...</span>
+                                </>
+                            ) : state.success ? (
+                                <>
+                                    <Loader2 size={20} className="relative z-10 animate-spin" />
+                                    <span className="relative z-10">Redirecting...</span>
                                 </>
                             ) : (
                                 <>

@@ -52,6 +52,7 @@ export interface TeamScoreChange {
     teamName: string;
     teamColor: string;
     scoreChange: number;
+    budgetChange?: number;
     selectedResponse?: string;
     impactDescription?: string;
     selectedResponseEffects?: SelectedResponseEffects;

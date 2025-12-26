@@ -18,6 +18,7 @@ import {
     Unlock,
     RotateCcw
 } from 'lucide-react';
+import ConfirmationModal from '@/components/modals/ConfirmationModal';
 
 const SessionSettings = () => {
     const [settings, setSettings] = useState({
@@ -82,6 +83,25 @@ const SessionSettings = () => {
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [showSaveSuccess, setShowSaveSuccess] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    // Modal state
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+        type: 'danger' | 'warning' | 'info' | 'success';
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
+
+    const closeConfirmModal = () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+    };
 
     const tabs = [
         { id: 'general', label: 'General', icon: Settings },
@@ -162,19 +182,26 @@ const SessionSettings = () => {
     };
 
     const handleReset = () => {
-        if (window.confirm('Are you sure you want to reset all settings to default values?')) {
-            // Reset to defaults
-            setSettings(prev => ({
-                ...prev,
-                maxPlayers: 12,
-                gameMode: "Team Challenge",
-                difficulty: "Medium",
-                timeLimit: 180,
-                totalCards: 50,
-                // ... reset other values
-            }));
-            setHasUnsavedChanges(true);
-        }
+        setConfirmModal({
+            isOpen: true,
+            title: 'Reset Settings',
+            message: 'Are you sure you want to reset all settings to default values?',
+            type: 'warning',
+            onConfirm: () => {
+                // Reset to defaults
+                setSettings(prev => ({
+                    ...prev,
+                    maxPlayers: 12,
+                    gameMode: "Team Challenge",
+                    difficulty: "Medium",
+                    timeLimit: 180,
+                    totalCards: 50,
+                    // ... reset other values
+                }));
+                setHasUnsavedChanges(true);
+                closeConfirmModal();
+            }
+        });
     };
 
     const renderGeneralTab = () => (
@@ -594,6 +621,15 @@ const SessionSettings = () => {
     return (
         <div className="p-4 sm:p-6">
             {/* Header */}
+            <ConfirmationModal
+                isOpen={confirmModal.isOpen}
+                onClose={closeConfirmModal}
+                onConfirm={confirmModal.onConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+            />
+
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div className="flex items-center gap-4">
                     <button

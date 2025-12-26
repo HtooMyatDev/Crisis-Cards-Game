@@ -13,7 +13,7 @@ export const GameInstructions: React.FC<GameInstructionsProps> = ({ isOpen, onCl
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border-4 border-black relative">
                 {/* Header */}
-                <div className="sticky top-0 bg-white border-b-4 border-black p-6 flex justify-between items-center z-10">
+                <div className="sticky top-0 bg-white border-b-4 border-black p-4 sm:p-6 flex justify-between items-center z-10">
                     <div className="flex items-center gap-3">
                         <div className="bg-yellow-400 p-2 rounded-lg border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             <BookOpen size={24} className="text-black" />
@@ -29,7 +29,7 @@ export const GameInstructions: React.FC<GameInstructionsProps> = ({ isOpen, onCl
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-8">
+                <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
                     {/* Section 1: Objective */}
                     <section>
                         <h3 className="text-xl font-black text-black mb-4 flex items-center gap-2">
@@ -118,7 +118,7 @@ export const GameInstructions: React.FC<GameInstructionsProps> = ({ isOpen, onCl
                 <div className="sticky bottom-0 bg-gray-50 border-t-4 border-black p-6 flex justify-end rounded-b-xl">
                     <button
                         onClick={onClose}
-                        className="bg-black text-white px-8 py-3 rounded-xl font-black text-lg hover:bg-gray-800 transition-transform hover:scale-105 active:scale-95 shadow-lg"
+                        className="bg-black text-white px-6 py-3 rounded-xl font-black text-base sm:text-lg hover:bg-gray-800 transition-transform hover:scale-105 active:scale-95 shadow-lg"
                     >
                         GOT IT, LET&apos;S PLAY!
                     </button>

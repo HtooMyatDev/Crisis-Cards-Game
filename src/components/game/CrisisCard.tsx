@@ -71,7 +71,7 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
 
     return (
         <div
-            className={`relative w-full max-w-2xl mx-auto rounded-[3rem] p-8 md:p-12 shadow-2xl transition-all duration-500 overflow-hidden ${isTimeCritical ? 'animate-pulse ring-8 ring-red-500/50' : ''}`}
+            className={`relative w-full max-w-2xl mx-auto rounded-3xl sm:rounded-[3rem] p-4 sm:p-8 md:p-12 shadow-2xl transition-all duration-500 overflow-hidden ${isTimeCritical ? 'animate-pulse ring-8 ring-red-500/50' : ''}`}
             style={{ backgroundColor: categoryColor }}
         >
             {/* Top Header Circles Area */}
@@ -86,11 +86,11 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
             </div>
 
             {/* Title & Description */}
-            <div className="text-center mb-12">
-                <h2 className="font-[family-name:var(--font-russo)] text-5xl text-white mb-4 tracking-tight leading-tight uppercase drop-shadow-md">
+            <div className="text-center mb-6 sm:mb-12">
+                <h2 className="font-[family-name:var(--font-russo)] text-3xl sm:text-5xl text-white mb-4 tracking-tight leading-tight uppercase drop-shadow-md">
                     {title}
                 </h2>
-                <p className="font-[family-name:var(--font-roboto)] text-white/90 text-xl md:text-2xl font-medium leading-relaxed max-w-lg mx-auto drop-shadow-sm">
+                <p className="font-[family-name:var(--font-roboto)] text-white/90 text-lg sm:text-xl md:text-2xl font-medium leading-relaxed max-w-lg mx-auto drop-shadow-sm">
                     {description}
                 </p>
             </div>
@@ -98,7 +98,7 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
             {/* Header Info Row */}
             <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-8 px-4 gap-4">
                 <div className="flex flex-col items-center md:items-start">
-                    <h3 className="font-[family-name:var(--font-russo)] text-white text-3xl leading-none uppercase tracking-wide drop-shadow-md">
+                    <h3 className="font-[family-name:var(--font-russo)] text-white text-xl sm:text-3xl leading-none uppercase tracking-wide drop-shadow-md">
                         {isLeader ? 'Final Decision' : 'Cast Your Vote'}
                     </h3>
                     <p className="text-white/70 text-xs font-black uppercase tracking-[0.2em] mt-2 font-[family-name:var(--font-roboto)] drop-shadow-sm">

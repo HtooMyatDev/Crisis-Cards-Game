@@ -25,7 +25,7 @@ export async function GET() {
     // Basic counts
     const [totalUsers, totalCards, totalCategories, totalGames] = await Promise.all([
       prisma.user.count(),
-      prisma.card.count({ where: { status: 'OPEN', isArchived: false } }),
+      prisma.card.count({ where: { isArchived: false } }),
       prisma.category.count(),
       prisma.gameSession.count(),
     ]);
@@ -40,7 +40,6 @@ export async function GET() {
           select: {
             cards: {
               where: {
-                status: 'OPEN',
                 isArchived: false
               }
             }

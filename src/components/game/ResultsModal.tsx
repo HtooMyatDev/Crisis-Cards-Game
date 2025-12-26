@@ -8,6 +8,7 @@ interface TeamScoreChange {
     teamName: string;
     teamColor: string;
     scoreChange: number;
+    budgetChange?: number; // Added optional budget change
 }
 
 interface ResultsModalProps {
@@ -84,7 +85,7 @@ export const ResultsModal: React.FC<ResultsModalProps> = ({
                         initial={{ scale: 0.9, opacity: 0, y: 20 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="relative bg-white dark:bg-gray-900/90 dark:backdrop-blur-xl text-black dark:text-white border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl p-8 max-w-2xl w-full text-center"
+                        className="relative bg-white dark:bg-gray-900/90 dark:backdrop-blur-xl text-black dark:text-white border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl p-4 sm:p-8 max-w-2xl w-full text-center"
                     >
                         {/* Close Button implementation remains same... */}
                         <button
@@ -96,7 +97,8 @@ export const ResultsModal: React.FC<ResultsModalProps> = ({
                         </button>
 
                         {/* Title */}
-                        <h2 className="text-4xl font-black text-center mb-8 uppercase text-gray-900 dark:text-white tracking-wider font-[family-name:var(--font-russo)] drop-shadow-md">
+                        {/* Title */}
+                        <h2 className="text-2xl sm:text-4xl font-black text-center mb-6 sm:mb-8 uppercase text-gray-900 dark:text-white tracking-wider font-[family-name:var(--font-russo)] drop-shadow-md">
                             Round Results
                         </h2>
 
@@ -147,12 +149,24 @@ export const ResultsModal: React.FC<ResultsModalProps> = ({
                                         <p className="text-md font-black mb-2 uppercase tracking-wide" style={{ color: team.teamColor }}>
                                             {team.teamName}
                                         </p>
-                                        <div className="flex items-center justify-center gap-2 mb-2">
-                                            {getScoreIcon(team.scoreChange)}
+                                        <div className="flex flex-col items-center justify-center gap-1">
+                                            {/* Score */}
+                                            <div className="flex items-center gap-2">
+                                                {getScoreIcon(team.scoreChange)}
+                                                <p className={`text-5xl font-black ${getScoreColor(team.scoreChange)} font-[family-name:var(--font-russo)] drop-shadow-sm`}>
+                                                    {team.scoreChange > 0 ? '+' : ''}{team.scoreChange}
+                                                </p>
+                                            </div>
+
+                                            {/* Budget Change - NEW */}
+                                            {team.budgetChange !== undefined && team.budgetChange !== 0 && (
+                                                <div className={`mt-2 font-mono font-bold px-3 py-1 rounded bg-black/5 dark:bg-white/10
+                                                    ${team.budgetChange > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}
+                                                `}>
+                                                    {team.budgetChange > 0 ? '+' : ''}{team.budgetChange} Funds
+                                                </div>
+                                            )}
                                         </div>
-                                        <p className={`text-5xl font-black ${getScoreColor(team.scoreChange)} font-[family-name:var(--font-russo)] drop-shadow-sm`}>
-                                            {team.scoreChange > 0 ? '+' : ''}{team.scoreChange}
-                                        </p>
                                     </div>
                                 </motion.div>
                             ))}

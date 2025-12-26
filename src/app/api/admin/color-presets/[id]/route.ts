@@ -196,6 +196,23 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
         const body = await request.json();
         const { action } = body;
 
+        if (action === 'toggle_active') {
+            const { isActive } = body;
+            const updatedPreset = await prisma.colorPreset.update({
+                where: { id },
+                data: {
+                    isActive: isActive,
+                    updatedAt: new Date()
+                }
+            });
+
+            return NextResponse.json({
+                success: true,
+                message: 'Active status updated',
+                preset: updatedPreset
+            });
+        }
+
         if (action === 'increment_usage') {
             const updatedPreset = await prisma.colorPreset.update({
                 where: { id },

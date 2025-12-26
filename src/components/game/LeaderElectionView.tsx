@@ -57,7 +57,7 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8 flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 sm:p-8 flex items-center justify-center">
             <div className="w-full max-w-3xl">
                 {/* Header */}
                 <motion.div
@@ -65,12 +65,12 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center mb-12"
                 >
-                    <div className="flex items-center justify-center gap-3 mb-4">
-                        <Crown className="text-yellow-400" size={48} />
-                        <h1 className="text-5xl font-black text-white">
+                    <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4">
+                        <Crown className="text-yellow-400 w-8 h-8 sm:w-12 sm:h-12" />
+                        <h1 className="text-3xl sm:text-5xl font-black text-white">
                             ELECT YOUR LEADER
                         </h1>
-                        <Crown className="text-yellow-400" size={48} />
+                        <Crown className="text-yellow-400 w-8 h-8 sm:w-12 sm:h-12" />
                     </div>
                     <p className="text-xl text-white/60 font-bold">
                         Team <span style={{ color: teamColor }}>{teamName}</span>
