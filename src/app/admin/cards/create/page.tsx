@@ -711,7 +711,7 @@ export default function CreateCards() {
                                                 <div key={index} className="relative">
                                                     <div
                                                         className="p-4 rounded-lg"
-                                                        style={{ backgroundColor: '#FDFAE5' }}
+                                                        style={{ backgroundColor: '#FDFBF7' }}
                                                     >
                                                         <div className="flex items-center gap-3">
                                                             <div

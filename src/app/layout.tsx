@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Russo_One, Roboto_Condensed } from "next/font/google";
+import { Geist, Geist_Mono, Russo_One, Roboto_Condensed, Pixelify_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "../contexts/ThemeContext";
@@ -25,6 +25,13 @@ const roboto = Roboto_Condensed({
     weight: ["300", "400", "700"],
     variable: "--font-roboto",
     subsets: ["latin"],
+});
+
+const pixelify = Pixelify_Sans({
+    weight: ["400", "500", "600", "700"],
+    variable: "--font-pixel",
+    subsets: ["latin"],
+    display: "swap"
 });
 
 const nohemi = localFont({
@@ -73,7 +80,7 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             <body
-                className={`${geistSans.variable} ${geistMono.variable} ${russo.variable} ${roboto.variable} ${nohemi.variable} ${perfectlyNostalgic.variable} antialiased`}
+                className={`${geistSans.variable} ${geistMono.variable} ${russo.variable} ${roboto.variable} ${nohemi.variable} ${perfectlyNostalgic.variable} ${pixelify.variable} antialiased`}
             >
                 <ThemeProvider>
                     <ToastProvider>

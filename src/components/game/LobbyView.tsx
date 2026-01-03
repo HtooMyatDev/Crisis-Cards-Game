@@ -67,10 +67,10 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
             <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#3E3E3C] flex flex-col items-center p-4 relative overflow-hidden font-sans transition-colors duration-300">
                 {/* Decorative Background - Reuse from Join Page for consistency */}
                 <div className="absolute top-10 flex flex-col items-center gap-2">
-                    <h2 className="text-3xl font-serif italic text-black/80 dark:text-[#FDFAE5]">Cards of Crisis</h2>
+                    <h2 className="text-3xl font-serif italic text-black/80 dark:text-[#FDFBF7]">Cards of Crisis</h2>
                     {/* Color bar placeholder */}
                     {/* 5 Color bar with border */}
-                    <div className="flex -space-x-0.5 border-2 border-[#333] dark:border-[#FDFAE5] px-2 py-1 rounded-full bg-transparent items-center">
+                    <div className="flex -space-x-0.5 border-2 border-[#333] dark:border-[#FDFBF7] px-2 py-1 rounded-full bg-transparent items-center">
                         <div className="w-2.5 h-2.5 rounded-full bg-[#4CAF50] z-0"></div>
                         <div className="w-2.5 h-2.5 rounded-full bg-[#EBA937] z-10"></div>
                         <div className="w-2.5 h-2.5 rounded-full bg-[#2196F3] z-20"></div>
@@ -83,7 +83,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                 <div className="w-full max-w-lg relative z-10 mt-32">
 
                     {/* My Player Card */}
-                    <div className={`bg-white dark:bg-[#FDFAE5] border-[6px] rounded-2xl p-8 mb-12 text-center shadow-lg transition-colors ${team ? '' : 'border-[#333] dark:border-[#FDFAE5]'}`}
+                    <div className={`bg-white dark:bg-[#FDFBF7] border-[6px] rounded-2xl p-8 mb-12 text-center shadow-lg transition-colors ${team ? '' : 'border-[#333] dark:border-[#FDFBF7]'}`}
                         style={{ borderColor: team?.color }}>
 
                         {/* Team Color Strip at top (optional based on design, but good for feedback) */}
@@ -101,7 +101,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
 
                     {/* All Players List */}
                     <div className="mb-8">
-                        <h3 className="text-3xl font-serif italic text-[#333] dark:text-[#FDFAE5] mb-4">
+                        <h3 className="text-3xl font-serif italic text-[#333] dark:text-[#FDFBF7] mb-4">
                             All Players ({allPlayers.length})
                         </h3>
 
@@ -112,17 +112,17 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                                 if (teamPlayers.length === 0) return null;
 
                                 return (
-                                    <div key={t.id} className="bg-white dark:bg-[#FDFAE5] border-[4px] rounded-xl overflow-hidden shadow-sm"
+                                    <div key={t.id} className="bg-white dark:bg-[#FDFBF7] border-[4px] rounded-xl overflow-hidden shadow-sm"
                                         style={{ borderColor: t.color }}>
                                         {/* Team Header */}
-                                        <div className="px-4 py-2 bg-gray-50 dark:bg-[#FDFAE5] border-b-2" style={{ borderColor: `${t.color}33`, color: t.color }}>
+                                        <div className="px-4 py-2 bg-gray-50 dark:bg-[#FDFBF7] border-b-2" style={{ borderColor: `${t.color}33`, color: t.color }}>
                                             <span className="text-sm font-bold uppercase tracking-wider text-[#333] dark:text-[#3E3E3C]">{t.name}</span>
                                         </div>
 
                                         {/* Player Chips */}
                                         <div className="p-4 flex flex-wrap gap-2">
                                             {teamPlayers.map(p => (
-                                                <div key={p.id} className="border-[3px] border-[#333] dark:border-[#3E3E3C] rounded-lg px-3 py-1 font-serif italic font-bold text-lg bg-white dark:bg-[#FDFAE5] text-[#333] dark:text-[#3E3E3C] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(62,62,60,1)]">
+                                                <div key={p.id} className="border-[3px] border-[#333] dark:border-[#3E3E3C] rounded-lg px-3 py-1 font-serif italic font-bold text-lg bg-white dark:bg-[#FDFBF7] text-[#333] dark:text-[#3E3E3C] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(62,62,60,1)]">
                                                     {p.nickname} {p.id === playerId && '(You)'}
                                                 </div>
                                             ))}
@@ -136,13 +136,13 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                                 const unassigned = allPlayers.filter(p => !p.teamId);
                                 if (unassigned.length === 0) return null;
                                 return (
-                                    <div className="bg-white dark:bg-[#FDFAE5] border-[4px] border-[#666] dark:border-[#FDFAE5] rounded-xl overflow-hidden shadow-sm border-dashed">
-                                        <div className="px-4 py-2 bg-gray-50 dark:bg-[#FDFAE5] border-b-2 border-[#666] dark:border-[#3E3E3C]/20">
+                                    <div className="bg-white dark:bg-[#FDFBF7] border-[4px] border-[#666] dark:border-[#FDFBF7] rounded-xl overflow-hidden shadow-sm border-dashed">
+                                        <div className="px-4 py-2 bg-gray-50 dark:bg-[#FDFBF7] border-b-2 border-[#666] dark:border-[#3E3E3C]/20">
                                             <span className="text-sm font-bold uppercase tracking-wider text-[#666] dark:text-[#3E3E3C]">Unassigned</span>
                                         </div>
                                         <div className="p-4 flex flex-wrap gap-2">
                                             {unassigned.map(p => (
-                                                <div key={p.id} className="border-[2px] border-[#666] dark:border-[#3E3E3C] rounded-lg px-3 py-1 text-gray-500 dark:text-[#3E3E3C] font-medium bg-gray-50 dark:bg-[#FDFAE5]">
+                                                <div key={p.id} className="border-[2px] border-[#666] dark:border-[#3E3E3C] rounded-lg px-3 py-1 text-gray-500 dark:text-[#3E3E3C] font-medium bg-gray-50 dark:bg-[#FDFBF7]">
                                                     {p.nickname} {p.id === playerId && '(You)'}
                                                 </div>
                                             ))}
@@ -161,19 +161,19 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
 
                 {/* Footer Logos */}
                 <div className="absolute bottom-6 right-6 flex items-center gap-6 opacity-80 pointer-events-none hidden md:flex">
-                    <span className="text-xs font-bold text-[#333] dark:text-[#FDFAE5]">Game PIN: {gameCode}</span>
-                    <div className="h-4 w-[1px] bg-[#333] dark:bg-[#FDFAE5]"></div>
+                    <span className="text-xs font-bold text-[#333] dark:text-[#FDFBF7]">Game PIN: {gameCode}</span>
+                    <div className="h-4 w-[1px] bg-[#333] dark:bg-[#FDFBF7]"></div>
 
                     <div className="flex flex-col items-center">
                         <div className="w-6 h-6 rotate-45 bg-[#EBA937] overflow-hidden grid grid-cols-2">
                             <div className="bg-[#EBA937]"></div>
                             <div className="bg-white/30 rounded-full scale-150 transform -translate-x-1 translate-y-1"></div>
                         </div>
-                        <span className="text-[8px] font-bold text-[#333] dark:text-[#FDFAE5] mt-1 leading-tight text-center">the<br />change<br />lab</span>
+                        <span className="text-[8px] font-bold text-[#333] dark:text-[#FDFBF7] mt-1 leading-tight text-center">the<br />change<br />lab</span>
                     </div>
-                    <div className="h-6 w-[1px] bg-[#333] dark:bg-[#FDFAE5]"></div>
+                    <div className="h-6 w-[1px] bg-[#333] dark:bg-[#FDFBF7]"></div>
                     <div className="flex flex-col items-center">
-                        <span className="text-sm font-serif italic font-bold text-[#333] dark:text-[#FDFAE5]">Cards of Crisis</span>
+                        <span className="text-sm font-serif italic font-bold text-[#333] dark:text-[#FDFBF7]">Cards of Crisis</span>
                         <div className="flex gap-0.5 mt-0.5">
                             <div className="w-1.5 h-1.5 bg-[#4CAF50] rounded-full"></div>
                             <div className="w-1.5 h-1.5 bg-[#EBA937] rounded-full"></div>

@@ -87,7 +87,7 @@ export const DecisionPhase: React.FC<DecisionPhaseProps> = ({
                 <div className="w-full max-w-4xl relative z-10">
                     {/* User Profile / Team Identity */}
                     <div className="flex flex-col items-center mb-10">
-                        <div className="flex items-center gap-3 bg-white dark:bg-[#FDFAE5] px-6 py-2.5 rounded-full border-[3px] border-[#333] dark:border-[#FDFAE5] shadow-xl transition-colors">
+                        <div className="flex items-center gap-3 bg-white dark:bg-[#FDFBF7] px-6 py-2.5 rounded-full border-[3px] border-[#333] dark:border-[#FDFBF7] shadow-xl transition-colors">
                             <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner border-2 border-black/10" style={{ backgroundColor: team?.color || '#808080' }}>
                                 {isLeader ? '👑' : <User className="text-white" size={20} />}
                             </div>
@@ -111,7 +111,7 @@ export const DecisionPhase: React.FC<DecisionPhaseProps> = ({
                                     style={{ backgroundColor: t.color }}>
                                     ${t.budget}
                                 </div>
-                                <span className="font-bold text-xs mt-2 tracking-widest uppercase text-[#333] dark:text-[#FDFAE5]" >
+                                <span className="font-bold text-xs mt-2 tracking-widest uppercase text-[#333] dark:text-[#FDFBF7]" >
                                     {t.name}
                                     {t.id === team?.id && <span className="ml-1 text-[9px] font-serif italic opacity-60">(YOURS)</span>}
                                 </span>
@@ -120,7 +120,7 @@ export const DecisionPhase: React.FC<DecisionPhaseProps> = ({
 
                         {/* Timer */}
                         <div className="flex flex-col items-center gap-2 mx-4">
-                            <div className={`flex items-center gap-2 px-6 py-3 rounded-2xl border-[3px] transition-all duration-300 ${timeLeft <= 10 ? 'bg-red-600 border-red-800 animate-pulse text-white' : 'bg-[#333] border-[#333] dark:bg-[#FDFAE5] dark:border-[#FDFAE5] text-white dark:text-[#333]'}`}>
+                            <div className={`flex items-center gap-2 px-6 py-3 rounded-2xl border-[3px] transition-all duration-300 ${timeLeft <= 10 ? 'bg-red-600 border-red-800 animate-pulse text-white' : 'bg-[#333] border-[#333] dark:bg-[#FDFBF7] dark:border-[#FDFBF7] text-white dark:text-[#333]'}`}>
                                 <Clock size={20} strokeWidth={2.5} />
                                 <span className="font-mono font-black text-2xl tabular-nums tracking-wider">{formatTime(timeLeft)}</span>
                             </div>

@@ -1,16 +1,92 @@
 import React from 'react';
 import Link from 'next/link';
+import { BackgroundCard } from '@/components/auth/BackgroundCard';
 
 export default function RegisterDisabled() {
     return (
-        <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-background">
+        <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#3E3E3C] flex items-center justify-center p-4 relative overflow-hidden font-sans transition-colors duration-300">
             {/* Background Grain */}
             <div className="absolute inset-0 bg-grain pointer-events-none opacity-40 mix-blend-overlay"></div>
 
-            {/* Gradient Blobs */}
-            <div className="absolute inset-0 pointer-events-none opacity-30 dark:opacity-20 blur-[100px]">
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-red-500 rounded-full mix-blend-screen dark:mix-blend-color-dodge animate-pulse"></div>
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-orange-500 rounded-full mix-blend-screen dark:mix-blend-color-dodge animate-pulse animation-delay-2000"></div>
+            {/* Decorative Elements - High Fidelity Background Cards */}
+            <div className="absolute top-[-108px] left-[137px] transform rotate-[35.44deg] opacity-90 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-700">
+                <BackgroundCard
+                    color="#399B2C"
+                    title="Toxic Waste Spill in River"
+                    description="Residents along the river fall ill after a factory leaks toxic chemicals, threatening crops and community health."
+                    mins="3 Mins"
+                    category="Environmental"
+                    options={[
+                        { letter: 'A', text: 'Deploy emergency cleanup crews with advanced equipment.', cost: -1000, stats: [-3, +3, +2, +1, 0] },
+                        { letter: 'B', text: 'Relocate communities & wait for natural recovery.', cost: -400, stats: [-2, -1, -1, -1, 0] },
+                        { letter: 'C', text: 'Ignore and let the factory keep operating.', cost: +200, stats: [+1, -3, -5, -2, 0] }
+                    ]}
+                    className="h-[259px] w-[185px]"
+                />
+            </div>
+
+            <div className="absolute top-[391px] left-[-46px] transform -rotate-[18.3deg] opacity-80 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-700">
+                <BackgroundCard
+                    color="#4190A9"
+                    title="Urban Decay"
+                    description="A once-prosperous neighborhood has fallen into disrepair, with abandoned buildings and rising crime."
+                    mins="5 Mins"
+                    category="Society"
+                    options={[
+                        { letter: 'A', text: 'Increase police patrols and fund a few small renovation projects.', cost: -300, stats: [-1, +2, 0, +1, +1] },
+                        { letter: 'B', text: 'Launch a community project to restore the area and provide tax breaks for new businesses.', cost: -600, stats: [+3, +5, +1, +4, +3] },
+                        { letter: 'C', text: 'Sell the land to a large developer for a single, massive project.', cost: +500, stats: [+2, -3, -1, -2, +2] }
+                    ]}
+                    className="h-[259px] w-[185px]"
+                />
+            </div>
+
+            <div className="absolute top-[50px] left-[1079px] transform -rotate-[55.79deg] opacity-80 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-700">
+                <BackgroundCard
+                    color="#D9AD1F"
+                    title="City Housing Crisis"
+                    description="A city's population is growing fast, leading to a shortage of housing and sky-high rents."
+                    mins="4 Mins"
+                    category="Economic"
+                    options={[
+                        { letter: 'A', text: 'Offer tax breaks to developers who build new housing.', cost: -600, stats: [+1, +1, 0, +1, 0] },
+                        { letter: 'B', text: 'Fund a massive public housing project and change zoning laws.', cost: -1500, stats: [+2, +5, +2, +3, +4] },
+                        { letter: 'C', text: 'Let the market decide and do not interfere', cost: 0, stats: [-2, -4, 0, -2, 0] }
+                    ]}
+                    className="h-[259px] w-[185px]"
+                />
+            </div>
+
+            <div className="absolute top-[485px] left-[1219px] transform -rotate-[127.88deg] opacity-80 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-700">
+                <BackgroundCard
+                    color="#CD302F"
+                    title="International Climate Summit"
+                    description="Your country is asked to raise its climate commitments at a global summit."
+                    mins="5 Mins"
+                    category="Political"
+                    options={[
+                        { letter: 'A', text: 'Commit to bold new targets and invest heavily in renewables.', cost: -1200, stats: [-1, +2, +5, +4, +3] },
+                        { letter: 'B', text: 'Pledge modest targets with limited sustainable projects.', cost: -600, stats: [+1, +1, +2, +1, 0] },
+                        { letter: 'C', text: 'Refuse new pledges and defend domestic industries.', cost: +400, stats: [+2, -2, -4, -3, 0] }
+                    ]}
+                    className="h-[259px] w-[185px]"
+                />
+            </div>
+
+            <div className="absolute top-[697px] left-[535px] transform rotate-[62.31deg] opacity-70 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-700 z-0">
+                <BackgroundCard
+                    color="#CA840C"
+                    title="Deteriorating Water Pipes"
+                    description="An old city water system has frequent pipe bursts, leading to widespread leaks and water waste."
+                    mins="3 Mins"
+                    category="Infrastructure"
+                    options={[
+                        { letter: 'A', text: 'Replace broken pipes with modern materials.', cost: -800, stats: [+2, +1, 0, 0, +3] },
+                        { letter: 'B', text: 'Fund a complete overhaul of the entire water grid.', cost: -2000, stats: [-2, +4, +1, +3, +5] },
+                        { letter: 'C', text: 'Use temporary patches and encourage water conservation.', cost: -100, stats: [-1, -2, -1, -2, -3] }
+                    ]}
+                    className="h-[259px] w-[185px]"
+                />
             </div>
 
             <div className="max-w-md w-full relative z-10 animate-in fade-in zoom-in duration-500">
