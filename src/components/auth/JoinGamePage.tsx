@@ -439,7 +439,7 @@ const JoinGamePage: React.FC = () => {
 
                 {step === 'code' && (
                     <div className="animate-in fade-in zoom-in duration-500 w-full">
-                        <h1 className="text-6xl md:text-7xl font-serif text-[#333] dark:text-[#FDFAE5] mb-4 tracking-tight">
+                        <h1 className="text-6xl md:text-7xl font-serif italic text-[#333] dark:text-[#FDFAE5] mb-4 tracking-tight">
                             Join The Game
                         </h1>
                         <p className="text-xl text-[#333] dark:text-[#FDFAE5] mb-10 font-medium font-sans">
@@ -457,7 +457,8 @@ const JoinGamePage: React.FC = () => {
                                     onChange={(e) => handleCodeInput(index, e.target.value)}
                                     onKeyDown={(e) => handleKeyDown(index, e)}
                                     onPaste={index === 0 ? handlePaste : undefined}
-                                    className="w-14 h-16 md:w-20 md:h-24 border-[3px] border-[#333] dark:border-[#FDFAE5] rounded-2xl text-center text-3xl md:text-5xl font-bold bg-[#FDFBF7] dark:bg-[#FDFAE5] dark:text-[#3E3E3C] text-[#333] shadow-sm focus:outline-none focus:ring-0 focus:border-black dark:focus:border-[#FDFAE5] transition-all uppercase placeholder-transparent transform hover:-translate-y-1 duration-200"
+
+                                    className="w-14 h-16 md:w-20 md:h-24 border-[3px] border-[#333] dark:border-[#3E3E3C] rounded-2xl text-center text-3xl md:text-5xl font-bold bg-[#FDFBF7] dark:bg-[#FDFAE5] dark:text-[#3E3E3C] text-[#333] shadow-sm focus:outline-none focus:ring-0 focus:border-black dark:focus:border-[#3E3E3C] transition-all uppercase placeholder-transparent transform hover:-translate-y-1 duration-200"
                                 />
                             ))}
                         </div>
@@ -472,7 +473,7 @@ const JoinGamePage: React.FC = () => {
                         <button
                             onClick={() => handleValidateCode()}
                             disabled={pending}
-                            className="bg-[#333] dark:bg-[#FDFAE5] text-[#FDFBF7] dark:text-[#3E3E3C] text-3xl md:text-4xl font-serif px-16 py-4 rounded-xl hover:bg-black dark:hover:bg-white transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed italic transform hover:scale-105 duration-300"
+                            className="bg-[#333] dark:bg-[#FDFAE5] text-[#FDFBF7] dark:text-[#3E3E3C] text-3xl md:text-4xl font-serif italic px-16 py-4 rounded-xl hover:bg-black dark:hover:bg-white transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 duration-300"
                         >
                             {pending ? <Loader2 className="animate-spin mx-auto w-8 h-8" /> : 'Enter'}
                         </button>

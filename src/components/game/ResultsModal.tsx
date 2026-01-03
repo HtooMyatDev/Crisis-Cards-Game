@@ -62,9 +62,9 @@ export const ResultsModal: React.FC<ResultsModalProps> = ({
         // We can use the team color for the border/bg tint
         // But for score changes, green/red is usually better to indicate positive/negative
         // Let's mix them or just use the standard green/red for the card background
-        if (change > 0) return 'bg-green-50 dark:bg-green-900/20 border-green-500';
-        if (change < 0) return 'bg-red-50 dark:bg-red-900/20 border-red-500';
-        return 'bg-gray-50 dark:bg-gray-800 border-gray-500';
+        if (change > 0) return 'bg-[#0f172a] border-2 border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.1)]';
+        if (change < 0) return 'bg-[#0f172a] border-2 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.1)]';
+        return 'bg-[#0f172a] border-2 border-gray-700';
     };
 
     return (
@@ -85,8 +85,10 @@ export const ResultsModal: React.FC<ResultsModalProps> = ({
                         initial={{ scale: 0.9, opacity: 0, y: 20 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="relative bg-white dark:bg-gray-900/90 dark:backdrop-blur-xl text-black dark:text-white border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl p-4 sm:p-8 max-w-2xl w-full text-center"
+                        className="relative bg-[#0B0F19] text-white border border-white/5 rounded-2xl shadow-2xl p-6 sm:p-10 max-w-2xl w-full text-center overflow-hidden"
                     >
+                        {/* Background Glow */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-blue-500/10 blur-[100px] rounded-full pointer-events-none" />
                         {/* Close Button implementation remains same... */}
                         <button
                             onClick={onClose}
@@ -98,40 +100,49 @@ export const ResultsModal: React.FC<ResultsModalProps> = ({
 
                         {/* Title */}
                         {/* Title */}
-                        <h2 className="text-2xl sm:text-4xl font-black text-center mb-6 sm:mb-8 uppercase text-gray-900 dark:text-white tracking-wider font-[family-name:var(--font-russo)] drop-shadow-md">
+                        {/* Title */}
+                        <h2 className="text-3xl sm:text-5xl font-black text-center mb-8 uppercase text-white tracking-widest font-russo drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
                             Round Results
                         </h2>
 
                         {/* Selected Response */}
                         {selectedResponse && (
-                            <div className="mb-8 p-6 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl relative overflow-hidden group">
-                                <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50"></div>
-                                <p className="text-sm font-bold text-blue-600 dark:text-blue-300 mb-2 uppercase tracking-wide">Decision Made</p>
-                                <p className="text-2xl text-gray-900 dark:text-white font-bold leading-tight mb-4">{selectedResponse}</p>
+                            <div className="mb-8 relative group">
+                                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+                                <div className="relative p-6 bg-[#0f172a] border border-blue-500/30 rounded-xl overflow-hidden">
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 h-16 w-1 bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
 
-                                {impactText && (
-                                    <div className="mb-4 p-4 bg-white/60 dark:bg-[#0B0F19]/40 rounded-lg italic text-gray-700 dark:text-gray-300 border-l-4 border-blue-500 text-sm md:text-base">
-                                        &quot;{impactText}&quot;
-                                    </div>
-                                )}
+                                    <div className="flex flex-col items-center">
+                                        <p className="text-xs font-bold text-blue-400 mb-2 uppercase tracking-widest">
+                                            Decision Made
+                                        </p>
+                                        <p className="text-3xl font-bold text-white mb-6 font-russo tracking-wide leading-tight">
+                                            {selectedResponse}
+                                        </p>
 
-                                {selectedResponseEffects && (
-                                    <div className="flex flex-wrap justify-center gap-3 mt-4 pt-4 border-t border-blue-100 dark:border-white/10">
-                                        {Object.entries(selectedResponseEffects).map(([key, value]) => {
-                                            if (value === 0 || typeof value !== 'number') return null;
-                                            const isPositive = value > 0;
-                                            return (
-                                                <span key={key} className={`text-xs font-black px-3 py-1.5 rounded-md border shadow-sm
-                                                    ${isPositive
-                                                        ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-500/30'
-                                                        : 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-500/30'
-                                                    }`}>
-                                                    {key.toUpperCase()}: {isPositive ? '+' : ''}{value}
-                                                </span>
-                                            );
-                                        })}
+                                        {impactText && (
+                                            <div className="mb-4 text-gray-400 italic text-sm md:text-base font-medium max-w-lg mx-auto">
+                                                &quot;{impactText}&quot;
+                                            </div>
+                                        )}
+
+                                        {selectedResponseEffects && (
+                                            <div className="flex flex-wrap justify-center gap-2 mt-2">
+                                                {Object.entries(selectedResponseEffects).map(([key, value]) => {
+                                                    if (value === 0 || typeof value !== 'number') return null;
+                                                    const isPositive = value > 0;
+                                                    return (
+                                                        <span key={key} className={`text-[10px] font-black px-2 py-1 rounded bg-black/40 border border-white/5 uppercase tracking-wider
+                                                             ${isPositive ? 'text-green-400' : 'text-red-400'}
+                                                         `}>
+                                                            {key}: {isPositive ? '+' : ''}{value}
+                                                        </span>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
+                                </div>
                             </div>
                         )}
 
@@ -153,15 +164,14 @@ export const ResultsModal: React.FC<ResultsModalProps> = ({
                                             {/* Score */}
                                             <div className="flex items-center gap-2">
                                                 {getScoreIcon(team.scoreChange)}
-                                                <p className={`text-5xl font-black ${getScoreColor(team.scoreChange)} font-[family-name:var(--font-russo)] drop-shadow-sm`}>
+                                                <p className={`text-6xl font-black ${getScoreColor(team.scoreChange)} font-russo drop-shadow-md tracking-tighter`}>
                                                     {team.scoreChange > 0 ? '+' : ''}{team.scoreChange}
                                                 </p>
                                             </div>
 
-                                            {/* Budget Change - NEW */}
                                             {team.budgetChange !== undefined && team.budgetChange !== 0 && (
-                                                <div className={`mt-2 font-mono font-bold px-3 py-1 rounded bg-black/5 dark:bg-white/10
-                                                    ${team.budgetChange > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}
+                                                <div className={`mt-3 font-bold px-3 py-1.5 rounded bg-[#1e293b] text-sm
+                                                    ${team.budgetChange > 0 ? 'text-green-400' : 'text-red-400'}
                                                 `}>
                                                     {team.budgetChange > 0 ? '+' : ''}{team.budgetChange} Funds
                                                 </div>
@@ -188,10 +198,9 @@ export const ResultsModal: React.FC<ResultsModalProps> = ({
                                 </div>
                             </div>
 
-                            {/* Manual Continue Button - Fixes the "stuck" issue */}
                             <button
                                 onClick={onClose}
-                                className="px-8 py-3 bg-white dark:bg-white/10 hover:bg-gray-50 dark:hover:bg-white/20 text-gray-900 dark:text-white text-sm font-black uppercase tracking-widest rounded-lg border border-gray-200 dark:border-white/20 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 active:translate-y-0"
+                                className="px-10 py-4 bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-black uppercase tracking-[0.25em] rounded-lg border border-white/20 shadow-xl transition-all transform hover:-translate-y-1 active:translate-y-0"
                             >
                                 Continue Immediately
                             </button>

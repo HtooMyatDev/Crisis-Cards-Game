@@ -40,8 +40,20 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
     votes = {},
     timeLeft,
     categoryName,
-    categoryColor = '#4ADE80', // Default to green if not provided, matching screenshot vibe
+    categoryColor, // We will override this with our strict palette based on categoryName
 }) => {
+    // defined palette based on screenshots
+    const getCategoryPalette = (cat?: string) => {
+        const c = cat?.toLowerCase() || '';
+        if (c.includes('political')) return { bg: '#C53030', text: '#FDFBF7' }; // Deep Red
+        if (c.includes('environment')) return { bg: '#48BB78', text: '#FDFBF7' }; // Lush Green
+        if (c.includes('economic')) return { bg: '#D69E2E', text: '#FDFBF7' }; // Gold
+        if (c.includes('society') || c.includes('social')) return { bg: '#4299E1', text: '#FDFBF7' }; // Blue
+        if (c.includes('infrastructure')) return { bg: '#DD6B20', text: '#FDFBF7' }; // Orange
+        return { bg: categoryColor || '#48BB78', text: '#FDFBF7' };
+    };
+
+    const palette = getCategoryPalette(categoryName);
     // Keyboard navigation handler
     const handleKeyDown = (e: React.KeyboardEvent, responseId: number) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -69,9 +81,7 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
 
     const isTimeCritical = timeLeft <= 10 && timeLeft > 0;
 
-    // Map category to specific colors if needed, or use the prop
-    // The screenshot is a specific lush green.
-    const cardBgColor = categoryName?.toLowerCase() === 'environmental' ? '#4ea342' : (categoryColor || '#4ea342');
+
 
     return (
         <div
@@ -80,14 +90,15 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
                 ${isTimeCritical ? 'animate-pulse ring-8 ring-red-500/50' : ''}
                 font-sans
             `}
-            style={{ backgroundColor: cardBgColor }}
+            style={{ backgroundColor: palette.bg }}
         >
             {/* Top Decoration: White pill with colored dots */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] px-6 py-3 rounded-b-[1.5rem] shadow-sm flex gap-2 z-20">
-                <div className="w-4 h-4 rounded-full bg-[#4CAF50]" />
-                <div className="w-4 h-4 rounded-full bg-[#2196F3]" />
-                <div className="w-4 h-4 rounded-full bg-[#FFC107]" />
-                <div className="w-4 h-4 rounded-full bg-[#F44336]" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] px-5 py-3 rounded-b-[1.25rem] shadow-sm flex items-center justify-center -space-x-1 z-20">
+                <div className="w-5 h-5 rounded-full bg-[#4CAF50] z-0" />
+                <div className="w-5 h-5 rounded-full bg-[#EBA937] z-10" />
+                <div className="w-5 h-5 rounded-full bg-[#2196F3] z-20" />
+                <div className="w-5 h-5 rounded-full bg-[#ED8936] z-30" />
+                <div className="w-5 h-5 rounded-full bg-[#F44336] z-40" />
             </div>
 
             {/* Content Container */}
@@ -132,10 +143,11 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
                         return (
                             <div key={response.id} className="relative group">
                                 {/* Cost Badge (Top Right of the card block) */}
+                                {/* Cost Badge (Top Right of the card block) */}
                                 {(response.cost !== undefined) && (
-                                    <div className="absolute -top-3 right-0 z-20">
-                                        <span className="font-serif italic font-bold text-sm text-[#1a1a1a] bg-[#FDFBF7]/90 px-3 py-0.5 rounded-lg shadow-sm border border-black/5">
-                                            {response.cost > 0 ? `-${response.cost}` : `+${Math.abs(response.cost)}`}
+                                    <div className="absolute -top-6 right-0 z-20">
+                                        <span className="font-sans font-black text-xs text-[#1a1a1a]/80 py-0.5 px-1">
+                                            {response.cost > 0 ? `+${response.cost}` : `${response.cost}`}
                                         </span>
                                     </div>
                                 )}
@@ -150,10 +162,12 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
                                     `}
                                 >
                                     {/* Letter Block - Lush Green */}
+                                    {/* Letter Block */}
                                     <div
-                                        className="w-16 flex flex-col items-center justify-center bg-[#4ea342] border-r border-black/5"
+                                        className="w-14 flex flex-col items-center justify-center border-r-[3px] border-white/20"
+                                        style={{ backgroundColor: palette.bg }}
                                     >
-                                        <span className="font-serif italic text-3xl text-white font-bold drop-shadow-md">
+                                        <span className="font-serif italic text-2xl text-white font-bold drop-shadow-sm">
                                             {letter}
                                         </span>
                                     </div>
@@ -191,7 +205,7 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
 
                 {/* Category Footer */}
                 <div className="mt-10 mb-2">
-                    <h3 className="font-serif italic text-[#1a1a1a]/60 text-xl tracking-wide capitalize mix-blend-multiply">
+                    <h3 className="font-serif text-[#1a1a1a]/40 text-lg tracking-widest uppercase text-center font-bold">
                         {categoryName || 'Crisis Event'}
                     </h3>
                 </div>
