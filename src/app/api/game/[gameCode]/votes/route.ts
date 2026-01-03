@@ -42,7 +42,7 @@ export async function GET(
                 cardId: cId,
                 player: {
                     gameSessionId: player.gameSessionId,
-                    team: player.team
+                    teamId: player.team.id
                 }
             },
             _count: {

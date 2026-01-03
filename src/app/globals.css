@@ -6,7 +6,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-nohemi), var(--font-geist-sans), sans-serif;
+  --font-serif: var(--font-perfectly-nostalgic), serif;
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -150,6 +151,7 @@
     transition-duration: 300ms !important;
   }
 
+
   /* Faster transitions for interactive elements (not during theme change) */
   button,
   a,
@@ -159,5 +161,24 @@
     transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
+  }
+}
+
+@layer utilities {
+  .bg-grain {
+    position: relative;
+    overflow: hidden;
+  }
+  .bg-grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E");
+    opacity: 0.15;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+    z-index: 10;
   }
 }

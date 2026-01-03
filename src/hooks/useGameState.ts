@@ -12,6 +12,8 @@ interface Team {
     name: string;
     color: string;
     budget: number;
+    electionStatus?: 'OPEN' | 'RUNOFF' | 'COMPLETED';
+    runoffCandidates?: number[];
 }
 
 interface Player {
@@ -84,6 +86,7 @@ export interface GameState {
     lastCardStartedAt?: string | null;
     roundStatus?: 'LEADER_ELECTION' | 'DECISION_PHASE' | 'RESULTS_PHASE';
     lastTurnResult?: LastTurnResult;
+    leaderElectionTimer?: number;
 }
 
 export const useGameState = (gameCode: string, playerId: number | null) => {

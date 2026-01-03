@@ -17,6 +17,8 @@ export interface Team {
     baseValue: number;
     order: number;
     lastLeaderElectionRound: number;
+    electionStatus?: 'OPEN' | 'RUNOFF' | 'COMPLETED';
+    runoffCandidates?: number[];
 }
 
 export interface Category {
@@ -58,8 +60,10 @@ export interface GameSession {
     players?: Player[];
     teams?: Team[]; // New dynamic teams
     initialBudget: number;
+    initialBaseValue: number;
     leaderTermLength: number;
     gameDurationMinutes: number;
+    leaderElectionTimer: number;
 }
 
 // Game creation types

@@ -138,10 +138,19 @@ export async function PATCH(
 
         // Prepare update data
         const updateData: {
-            status: 'WAITING' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED';
+            status?: 'WAITING' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED';
             startedAt?: Date;
             endedAt?: Date;
-        } = { status };
+            leaderElectionTimer?: number;
+        } = {};
+
+        if (status) {
+             updateData.status = status;
+        }
+
+        if (body.leaderElectionTimer) {
+            updateData.leaderElectionTimer = body.leaderElectionTimer;
+        }
 
         // Set timestamps based on status transition
         if (status === 'IN_PROGRESS') {

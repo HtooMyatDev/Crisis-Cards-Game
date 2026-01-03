@@ -140,7 +140,12 @@ const GameLobbyPage = () => {
             const currentLeader = teamPlayers.find(p => p.isLeader);
 
             return (
-                <ViewWrapper gameCode={gameCode} roundStatus="LEADER_ELECTION" currentCardIndex={gameState.currentCardIndex}>
+                <ViewWrapper
+                    gameCode={gameCode}
+                    roundStatus="LEADER_ELECTION"
+                    currentCardIndex={gameState.currentCardIndex}
+                    currentGameStatus={team.electionStatus}
+                >
                     {({ hasVoted, setHasVoted }) => (
                         <LeaderElectionView
                             teamPlayers={teamPlayers.map(p => ({
@@ -151,11 +156,21 @@ const GameLobbyPage = () => {
                             currentPlayerId={playerId || 0}
                             teamColor={team.color}
                             teamName={team.name}
+                            electionStatus={team.electionStatus}
+                            runoffCandidates={team.runoffCandidates}
+                            timerDuration={gameState.leaderElectionTimer || 60}
                             onVote={async (candidateId) => {
                                 try {
                                     await gameService.voteForLeader(gameCode, playerId || 0, candidateId);
                                     setHasVoted(true);
                                 } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+                                    // With runoff logic, we might need to handle specific errors better,
+                                    // but for now general error handling is fine.
+                                    // If re-vote is needed, the backend resets 'hasVoted' implicitly by clearing votes,
+                                    // but frontend state 'hasVoted' needs to be synced.
+                                    // This is handled by 'ViewWrapper' resetting on round change,
+                                    // BUT for runoff, round doesn't change.
+                                    // We need to check if 'hasVoted' should be reset based on electionStatus change.
                                     if (err.message?.includes('already voted')) {
                                         setHasVoted(true);
                                     } else {
@@ -164,6 +179,8 @@ const GameLobbyPage = () => {
                                 }
                             }}
                             hasVoted={hasVoted}
+                            // We need to allow resetting hasVoted if we enter Runoff state
+                            // This will be handled inside LeaderElectionView or by a key change
                             currentLeader={currentLeader ? {
                                 id: currentLeader.id,
                                 nickname: currentLeader.nickname,
@@ -203,18 +220,20 @@ const ViewWrapper = ({
     children,
     gameCode,
     roundStatus,
-    currentCardIndex
+    currentCardIndex,
+    currentGameStatus
 }: {
     children: (props: { hasVoted: boolean, setHasVoted: (v: boolean) => void }) => React.ReactNode,
     gameCode: string,
     roundStatus: string,
-    currentCardIndex: number
+    currentCardIndex: number,
+    currentGameStatus?: string
 }) => {
     const [hasVoted, setHasVoted] = React.useState(false);
 
     React.useEffect(() => {
         setHasVoted(false);
-    }, [roundStatus, currentCardIndex, gameCode]);
+    }, [roundStatus, currentCardIndex, gameCode, currentGameStatus]);
 
     return <>{children({ hasVoted, setHasVoted })}</>;
 };

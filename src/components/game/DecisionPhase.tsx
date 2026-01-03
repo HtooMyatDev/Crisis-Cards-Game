@@ -97,7 +97,6 @@ export const DecisionPhase: React.FC<DecisionPhaseProps> = ({
                             </div>
                             <div className="h-8 w-[2px] bg-gray-300 dark:bg-white/20 mx-2" />
                             <div className="flex flex-col items-end">
-                                <span className="text-gray-500 dark:text-white/60 text-[10px] font-black uppercase tracking-widest">In Team</span>
                                 <span className="font-black text-xl leading-none" style={{ color: team?.color || 'gray' }}>{team?.name || 'Unassigned'}</span>
                             </div>
                         </div>

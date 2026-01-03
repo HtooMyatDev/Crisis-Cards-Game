@@ -13,6 +13,9 @@ interface Team {
     order: number;
     createdAt: Date;
     updatedAt: Date;
+    electionStatus: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    runoffCandidates: any;
 }
 
 // Define manual type to bypass Prisma inference issues
@@ -178,6 +181,7 @@ export async function GET(
                     currentCardIndex: gameSession.currentCardIndex,
                     lastCardStartedAt: gameSession.lastCardStartedAt,
                     totalCards: totalCards,
+                    leaderElectionTimer: gameSession.leaderElectionTimer,
                     teams: gameSession.teams
                 },
                 currentCard: {

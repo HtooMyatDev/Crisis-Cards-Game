@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useActionState, useEffect, startTransition } from 'react'
-import { Mail, Lock, LogIn, Loader2, UserPlus, Shield, Eye, EyeOff, AlertTriangle } from 'lucide-react'
+import { Mail, Lock, LogIn, Loader2, UserPlus, Eye, EyeOff, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { loginAction } from '@/app/actions/auth'
 import { useRouter } from 'next/navigation'
@@ -52,80 +52,156 @@ const LoginPage: React.FC = () => {
         })
     }
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4 relative overflow-hidden">
-            <div className="absolute inset-0 opacity-8 pointer-events-none">
-                <div className="absolute top-10 left-10 w-20 h-20 border-4 border-yellow-400 transform rotate-45"></div>
-                <div className="absolute top-32 right-16 w-16 h-16 border-4 border-green-500 transform rotate-12"></div>
-                <div className="absolute bottom-20 left-20 w-24 h-24 border-4 border-blue-400 rounded-full"></div>
-                <div className="absolute bottom-32 right-12 w-18 h-18 border-4 border-red-500 transform -rotate-45"></div>
-                <div className="absolute top-1/2 left-8 w-12 h-12 bg-purple-500 transform rotate-45 opacity-30"></div>
-                <div className="absolute top-1/4 right-8 w-14 h-14 bg-orange-500 rounded-full opacity-30"></div>
-                <div className="absolute top-2/3 right-1/4 w-16 h-16 border-4 border-yellow-400 rounded-full"></div>
-                <div className="absolute bottom-1/3 left-1/3 w-10 h-10 bg-green-500 transform rotate-12 opacity-30"></div>
-                <div className="absolute top-1/3 left-2/3 w-18 h-18 border-4 border-blue-400 transform rotate-45"></div>
+        <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#3E3E3C] flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans transition-colors duration-300">
+
+            {/* Decorative Elements - Floating Cards matching /play */}
+            <div className="absolute top-[10%] left-[10%] transform -rotate-12 opacity-80 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-500">
+                {/* Green Card - Toxic Waste */}
+                <div className="w-56 h-80 bg-[#4ea342] rounded-[2rem] shadow-2xl flex flex-col items-center relative overflow-hidden ring-4 ring-black/5">
+                    {/* Top Pill */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] px-4 py-2 rounded-b-[1.2rem] shadow-sm flex gap-1.5 z-20">
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#4CAF50]" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#EBA937]" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#2196F3]" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#ED8936]" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#F44336]" />
+                    </div>
+                    <div className="mt-12 text-center px-4 w-full">
+                        <h3 className="font-serif italic text-3xl text-[#1a1a1a]/90 leading-[1.1] drop-shadow-sm">Toxic Waste</h3>
+                        <div className="mt-4 space-y-2 opacity-50">
+                            <div className="h-2 w-3/4 mx-auto bg-black/10 rounded-full"></div>
+                            <div className="h-2 w-1/2 mx-auto bg-black/10 rounded-full"></div>
+                        </div>
+                        {/* Mock Options */}
+                        <div className="mt-8 space-y-2 px-2 opacity-60">
+                            <div className="flex items-center gap-2 bg-[#FDFBF7]/90 p-1.5 rounded-lg">
+                                <div className="w-6 h-6 bg-[#4ea342] rounded flex items-center justify-center text-white font-serif font-bold text-xs">A</div>
+                                <div className="h-1.5 w-16 bg-black/20 rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            {/* Subtle Grid Pattern */}
-            <div
-                className="absolute inset-0 opacity-3 pointer-events-none"
-                style={{
-                    backgroundImage: `linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-                    backgroundSize: '40px 40px'
-                }}
-            />
-
-            <div className="w-full max-w-md relative z-10">
-                {/* Header */}
-                <div className="text-center mb-8">
-                    <div className="inline-block p-6 bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-700 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] mb-6 relative">
-                        <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-500 transform rotate-45"></div>
-                        <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-400 rounded-full"></div>
-                        <Shield size={48} className="mx-auto text-green-600" />
+            <div className="absolute bottom-[10%] left-[5%] transform rotate-6 opacity-60 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-500">
+                {/* Blue Card - Urban Decay */}
+                <div className="w-48 h-72 bg-[#4A7C8C] rounded-[2rem] shadow-2xl flex flex-col items-center relative overflow-hidden ring-4 ring-black/5">
+                    {/* Top Pill */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] px-3 py-1.5 rounded-b-[1rem] shadow-sm flex gap-1 z-20">
+                        <div className="w-2 h-2 rounded-full bg-[#4CAF50]" />
+                        <div className="w-2 h-2 rounded-full bg-[#EBA937]" />
+                        <div className="w-2 h-2 rounded-full bg-[#2196F3]" />
+                        <div className="w-2 h-2 rounded-full bg-[#ED8936]" />
+                        <div className="w-2 h-2 rounded-full bg-[#F44336]" />
                     </div>
-                    <h1 className="text-4xl font-black text-gray-800 dark:text-white mb-2 transform -rotate-1 relative">
-                        <span className="absolute -inset-1 bg-white dark:bg-gray-800 transform -skew-x-12 -z-10 border-4 border-black dark:border-gray-700"></span>
-                        <span className="relative text-black dark:text-white px-4">Eco Command</span>
-                    </h1>
-                    <p className="text-xl font-bold text-gray-600 dark:text-gray-400">
-                        Ready to save the planet?
-                    </p>
+                    <div className="mt-10 text-center px-4 w-full">
+                        <h3 className="font-serif italic text-2xl text-[#1a1a1a]/90 leading-[1.1]">Urban Decay</h3>
+                        <div className="mt-3 space-y-1.5 opacity-40">
+                            <div className="h-1.5 w-2/3 mx-auto bg-black/10 rounded-full"></div>
+                        </div>
+                    </div>
                 </div>
+            </div>
 
-                {/* Form Container */}
-                <div className="bg-white dark:bg-gray-800 border-4 border-black dark:border-gray-700 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] p-8 relative">
-                    {/* Decorative Elements */}
-                    <div className="absolute -top-3 -left-3 w-6 h-6 bg-green-500 transform rotate-45"></div>
-                    <div className="absolute -top-3 -right-3 w-6 h-6 bg-blue-400 rounded-full"></div>
-                    <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-yellow-400 rounded-full"></div>
-                    <div className="absolute -bottom-3 -right-3 w-6 h-6 bg-purple-500 transform rotate-45"></div>
-                    {/* Success Message */}
-                    {state.success && (
-                        <div className="mb-6 p-4 bg-green-100 border-4 border-green-500 rounded-lg relative">
-                            <div className="flex items-center gap-3">
-                                <Shield size={20} className="text-green-500 flex-shrink-0" />
-                                <p className="text-green-800 font-bold">{state.message}</p>
-                            </div>
-                            <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-500 transform rotate-45"></div>
+            <div className="absolute top-[15%] right-[8%] transform rotate-[15deg] opacity-80 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-500">
+                {/* Yellow Card - Housing Crisis */}
+                <div className="w-52 h-72 bg-[#D69E2E] rounded-[2rem] shadow-2xl flex flex-col items-center relative overflow-hidden ring-4 ring-black/5">
+                    {/* Top Pill */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] px-4 py-2 rounded-b-[1.2rem] shadow-sm flex gap-1.5 z-20">
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#4CAF50]" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#EBA937]" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#2196F3]" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#ED8936]" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#F44336]" />
+                    </div>
+                    <div className="mt-10 text-center px-4 w-full">
+                        <h3 className="font-serif italic text-2xl text-[#1a1a1a]/90 leading-[1.1]">Housing Crisis</h3>
+                        <div className="mt-3 space-y-1.5 opacity-40">
+                            <div className="h-1.5 w-3/4 mx-auto bg-black/10 rounded-full"></div>
                         </div>
-                    )}
-
-                    {/* General Error Message */}
-                    {!state.success && state.message && Object.keys(state.errors).length === 0 && (
-                        <div className="mb-6 p-4 bg-red-100 border-4 border-red-500 rounded-lg relative">
-                            <div className="flex items-center gap-3">
-                                <AlertTriangle size={20} className="text-red-500 flex-shrink-0" />
-                                <p className="text-red-800 font-bold">{state.message}</p>
+                        {/* Mock Options */}
+                        <div className="mt-6 space-y-1.5 px-3 opacity-50">
+                            <div className="flex items-center gap-2 bg-[#FDFBF7]/90 p-1 rounded">
+                                <div className="w-4 h-4 bg-[#D69E2E] rounded text-[8px] flex items-center justify-center text-white font-serif font-bold">A</div>
+                                <div className="h-1 w-12 bg-black/20 rounded-full"></div>
                             </div>
-                            <div className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 transform rotate-45"></div>
                         </div>
-                    )}
+                    </div>
+                </div>
+            </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
-                        {/* Email Input */}
-                        <div className="relative transition-all duration-200
-                            focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
-                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400 z-10">
-                                <Mail size={20} />
+            <div className="absolute bottom-[18%] right-[5%] transform -rotate-12 opacity-70 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-500">
+                {/* Red Card - Climate Summit */}
+                <div className="w-48 h-64 bg-[#E53E3E] rounded-[2rem] shadow-2xl flex flex-col items-center relative overflow-hidden ring-4 ring-black/5">
+                    {/* Top Pill */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] px-3 py-1.5 rounded-b-[1rem] shadow-sm flex gap-1 z-20">
+                        <div className="w-2 h-2 rounded-full bg-[#4CAF50]" />
+                        <div className="w-2 h-2 rounded-full bg-[#EBA937]" />
+                        <div className="w-2 h-2 rounded-full bg-[#2196F3]" />
+                        <div className="w-2 h-2 rounded-full bg-[#ED8936]" />
+                        <div className="w-2 h-2 rounded-full bg-[#F44336]" />
+                    </div>
+                    <div className="mt-8 text-center px-4 w-full">
+                        <h3 className="font-serif italic text-xl text-[#1a1a1a]/90 leading-[1.1]">Climate Summit</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div className="absolute bottom-[5%] right-[25%] transform -rotate-6 opacity-60 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-500">
+                {/* Orange Card - Water Pipes */}
+                <div className="w-44 h-60 bg-[#ED8936] rounded-[2rem] shadow-2xl flex flex-col items-center relative overflow-hidden ring-4 ring-black/5">
+                    {/* Top Pill */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] px-3 py-1.5 rounded-b-[1rem] shadow-sm flex gap-1 z-20">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#4CAF50]" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#EBA937]" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#2196F3]" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#ED8936]" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#F44336]" />
+                    </div>
+                    <div className="mt-8 text-center px-3 w-full">
+                        <h3 className="font-serif italic text-lg text-[#1a1a1a]/90 leading-[1.1]">Water Pipes</h3>
+                    </div>
+                </div>
+            </div>
+
+            {/* Top Logo */}
+            <div className="absolute top-10 flex flex-col items-center gap-1">
+                <h2 className="text-4xl font-serif italic text-black/80 dark:text-[#FDFAE5]">Cards of Crisis</h2>
+                <div className="flex -space-x-1 border-[3px] border-[#333] dark:border-[#FDFAE5] px-3 py-1.5 rounded-full bg-transparent items-center">
+                    <div className="w-4 h-4 rounded-full bg-[#4CAF50] z-0"></div>
+                    <div className="w-4 h-4 rounded-full bg-[#EBA937] z-10"></div>
+                    <div className="w-4 h-4 rounded-full bg-[#2196F3] z-20"></div>
+                    <div className="w-4 h-4 rounded-full bg-[#ED8936] z-30"></div>
+                    <div className="w-4 h-4 rounded-full bg-[#F44336] z-40"></div>
+                </div>
+            </div>
+
+            <div className="w-full max-w-md relative z-10 animate-in fade-in zoom-in duration-500 mt-12 bg-white/80 dark:bg-[#FDFAE5] backdrop-blur-sm p-8 rounded-2xl border-[3px] border-[#333] shadow-xl transition-colors duration-300">
+                <h1 className="text-5xl font-serif text-[#333] mb-2 text-center">Login</h1>
+                <p className="text-[#666] font-bold text-center mb-8 uppercase tracking-widest text-sm">Welcome Back</p>
+
+                {/* Success Message */}
+                {state.success && (
+                    <div className="mb-6 p-4 bg-green-50 rounded-xl border-2 border-green-500 text-green-700 font-bold flex items-center gap-2">
+                        <UserPlus size={20} />
+                        {state.message}
+                    </div>
+                )}
+
+                {/* General Error Message */}
+                {!state.success && state.message && Object.keys(state.errors).length === 0 && (
+                    <div className="mb-6 p-4 bg-red-50 rounded-xl border-2 border-red-500 text-red-700 font-bold flex items-center gap-2">
+                        <AlertTriangle size={20} />
+                        {state.message}
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Email Input */}
+                    <div className="space-y-1">
+                        <div className="relative group">
+                            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-black transition-colors duration-300 z-10">
+                                <Mail size={24} strokeWidth={2.5} />
                             </div>
                             <input
                                 required
@@ -133,123 +209,132 @@ const LoginPage: React.FC = () => {
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
-                                placeholder="Email Address"
-                                className={`w-full pl-12 pr-4 py-4 border-4 rounded-lg font-semibold text-lg
-                            bg-white dark:bg-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] text-black dark:text-white
-                            focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]
-                            transition-all duration-200 focus:outline-none placeholder-gray-500 dark:placeholder-gray-400
-                            ${(state.errors as Record<string, string>).email ? 'border-red-500 dark:border-red-600' : 'border-black dark:border-gray-700'}`}
+                                placeholder="EMAIL ADDRESS"
+                                className={`w-full pl-12 pr-4 py-4 border-[3px] border-[#333] rounded-xl font-bold text-base bg-white focus:outline-none focus:ring-4 focus:ring-black/10 transition-all uppercase placeholder-gray-400 text-[#333] ${(state.errors as Record<string, string>).email ? 'border-red-500' : ''}`}
                             />
-                            {(state.errors as Record<string, string>).email && (
-                                <div className="mt-2 flex items-center gap-2">
-                                    <AlertTriangle size={16} className="text-red-500" />
-                                    <p className="text-red-600 font-bold text-sm">{(state.errors as Record<string, string>).email}</p>
-                                </div>
-                            )}
                         </div>
+                        {(state.errors as Record<string, string>).email && (
+                            <div className="flex items-center gap-2 pl-2 mt-1">
+                                <AlertTriangle size={14} className="text-red-500" />
+                                <p className="text-red-500 font-bold text-sm">{(state.errors as Record<string, string>).email}</p>
+                            </div>
+                        )}
+                    </div>
 
-                        {/* Password Input */}
-                        <div className="relative transition-all duration-200
-                            focus-within:translate-x-[2px] focus-within:translate-y-[2px]">
-                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400 z-10">
-                                <Lock size={20} />
+                    {/* Password Input */}
+                    <div className="space-y-1">
+                        <div className="relative group">
+                            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-black transition-colors duration-300 z-10">
+                                <Lock size={24} strokeWidth={2.5} />
                             </div>
                             <input
                                 required
                                 type={showPassword ? "text" : "password"}
                                 name="password"
-                                placeholder="Enter your password"
+                                placeholder="PASSWORD"
                                 value={formData.password}
                                 onChange={handleChange}
-                                className={`w-full pl-12 pr-4 py-4 border-4 rounded-lg font-semibold text-lg
-                            bg-white dark:bg-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] text-black dark:text-white
-                            focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]
-                            transition-all duration-200 focus:outline-none placeholder-gray-500 dark:placeholder-gray-400
-                            ${(state.errors as Record<string, string>).password ? 'border-red-500 dark:border-red-600' : 'border-black dark:border-gray-700'}`}
+                                className={`w-full pl-12 pr-12 py-4 border-[3px] border-[#333] rounded-xl font-bold text-base bg-white focus:outline-none focus:ring-4 focus:ring-black/10 transition-all uppercase placeholder-gray-400 text-[#333] ${(state.errors as Record<string, string>).password ? 'border-red-500' : ''}`}
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300 transition-colors z-10"
+                                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-black transition-colors z-10 focus:outline-none"
                             >
-                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                {showPassword ? <EyeOff size={24} /> : <Eye size={24} />}
                             </button>
-
                         </div>
                         {(state.errors as Record<string, string>).password && (
-                            <p className="mt-1 text-red-600 text-sm font-bold flex items-center gap-1">
-                                <AlertTriangle size={14} />
-                                {(state.errors as Record<string, string>).password}
-                            </p>
+                            <div className="flex items-center gap-2 pl-2 mt-1">
+                                <AlertTriangle size={14} className="text-red-500" />
+                                <p className="text-red-500 font-bold text-sm">{(state.errors as Record<string, string>).password}</p>
+                            </div>
                         )}
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            disabled={pending || state.success}
-                            className="w-full px-6 py-4 border-4 border-black rounded-lg font-bold text-lg
-                            bg-green-600 text-white transition-all duration-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                            hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-green-700
-                            hover:translate-x-[2px] hover:translate-y-[2px]
-                            active:translate-x-[4px] active:translate-y-[4px] active:shadow-none
-                            flex items-center justify-center gap-2 relative overflow-hidden group
-                            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0"
-                        >
-                            <div className="absolute inset-0 bg-white transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-500 opacity-20"></div>
-                            {pending ? (
-                                <>
-                                    <Loader2 size={20} className="relative z-10 animate-spin" />
-                                    <span className="relative z-10">Logging in...</span>
-                                </>
-                            ) : state.success ? (
-                                <>
-                                    <Loader2 size={20} className="relative z-10 animate-spin" />
-                                    <span className="relative z-10">Redirecting...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <LogIn size={20} className="relative z-10" />
-                                    <span className="relative z-10">Login</span>
-                                </>
-                            )}
-                        </button>
-                    </form>
-
-                    {/* Forgot Password */}
-                    <div className="mt-6">
-                        <button className="w-full text-center text-black dark:text-white font-semibold hover:underline hover:bg-gray-100 dark:hover:bg-gray-700 py-2 px-4 rounded transition-colors duration-200">
-                            Forgot Password?
-                        </button>
                     </div>
 
-                    {/* Register Link */}
-                    <div className="mt-8 pt-6 border-t-4 border-black dark:border-gray-700">
-                        <p className="text-center text-gray-700 dark:text-gray-300 font-semibold mb-4">
-                            Don&apos;t have an account?{' '}
-                        </p>
-                        <Link
-                            href="/auth/register"
-                            className="w-full px-6 py-4 border-4 border-black rounded-lg font-bold text-lg
-                                bg-blue-500 text-white transition-all duration-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                                hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-blue-600
-                                hover:translate-x-[2px] hover:translate-y-[2px]
-                                active:translate-x-[4px] active:translate-y-[4px] active:shadow-none
-                                flex items-center justify-center gap-2 relative overflow-hidden group"
-                        >
-                            <div className="absolute inset-0 bg-white transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-500 opacity-20"></div>
-                            <UserPlus size={20} className="relative z-10" />
-                            <span className="relative z-10">Register</span>
-                        </Link>
-                    </div>
+                    {/* Submit Button */}
+                    <button
+                        type="submit"
+                        disabled={pending || state.success}
+                        className="w-full bg-[#333] text-white text-xl font-serif italic py-4 rounded-xl hover:bg-black transition-colors shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                        {pending ? (
+                            <>
+                                <Loader2 size={24} className="animate-spin" />
+                                <span>Logging in...</span>
+                            </>
+                        ) : state.success ? (
+                            <>
+                                <Loader2 size={24} className="animate-spin" />
+                                <span>Redirecting...</span>
+                            </>
+                        ) : (
+                            <>
+                                <span>Enter</span>
+                            </>
+                        )}
+                    </button>
+                </form>
+
+                {/* Forgot Password */}
+                <div className="mt-4 text-center">
+                    <button className="text-sm font-bold text-[#666] hover:text-black hover:underline transition-colors duration-200">
+                        FORGOT PASSWORD?
+                    </button>
                 </div>
 
-                {/* Footer */}
-                {/* <div className="text-center mt-8">
-                    <div className="inline-block bg-white dark:bg-gray-800 px-6 py-2 border-4 border-black dark:border-gray-700 transform -skew-x-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)]">
-                        <p className="text-black dark:text-white font-bold transform skew-x-12">
-                            Ready to make an impact? 🌍
-                        </p>
+                {/* Register Link */}
+                <div className="mt-8 pt-6 border-t-2 border-[#333]/10">
+                    <p className="text-center text-sm font-bold text-[#666] mb-4 uppercase tracking-wider">
+                        Don&apos;t have an account?
+                    </p>
+                    <Link
+                        href="/auth/register"
+                        className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-xl font-bold text-base border-[3px] border-[#333] text-[#333] hover:bg-[#333] hover:text-white transition-all duration-300 font-serif italic"
+                    >
+                        <UserPlus size={20} strokeWidth={2.5} />
+                        Sign Up
+                    </Link>
+                </div>
+            </div>
+
+            {/* Bottom Footer Logos */}
+            <div className="absolute bottom-6 right-6 flex items-center gap-6 opacity-80 pointer-events-none hidden md:flex">
+                <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 rotate-45 bg-[#EBA937] overflow-hidden grid grid-cols-2">
+                        <div className="bg-[#EBA937]"></div>
+                        <div className="bg-white/30 rounded-full scale-150 transform -translate-x-1 translate-y-1"></div>
                     </div>
-                </div> */}
+                    <span className="text-[10px] font-bold text-[#333] dark:text-[#FDFAE5] mt-1 leading-tight text-center">the<br />change<br />lab</span>
+                </div>
+                <div className="h-8 w-[1px] bg-[#333] dark:bg-[#FDFAE5]"></div>
+                <div className="flex flex-col items-center">
+                    <span className="text-lg font-serif italic font-bold text-[#333] dark:text-[#FDFAE5]">Cards of Crisis</span>
+                    <div className="flex gap-1 mt-0.5 border-[2px] border-[#333] dark:border-[#FDFAE5] px-1.5 py-0.5 rounded-full">
+                        <div className="w-2.5 h-2.5 bg-[#4CAF50] rounded-full"></div>
+                        <div className="w-2.5 h-2.5 bg-[#EBA937] rounded-full"></div>
+                        <div className="w-2.5 h-2.5 bg-[#2196F3] rounded-full"></div>
+                        <div className="w-2.5 h-2.5 bg-[#ED8936] rounded-full"></div>
+                        <div className="w-2.5 h-2.5 bg-[#F44336] rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+            <div className="absolute bottom-6 left-6 opacity-80 pointer-events-none hidden md:block">
+                <div className="flex items-center gap-1">
+                    {/* Left Triangle - Points Left */}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="transform rotate-90 text-[#333] dark:text-[#FDFAE5]">
+                        <path d="M20.5 14.5L13.5 21.5C12.7 22.3 11.3 22.3 10.5 21.5L3.5 14.5C2 13 3 10.5 5 10.5H19C21 10.5 22 13 20.5 14.5Z" />
+                    </svg>
+                    <div className="font-black text-[#333] dark:text-[#FDFAE5] text-[0.65rem] leading-[0.85] flex flex-col tracking-tighter uppercase font-sans">
+                        <span className="self-start">Doing</span>
+                        <span className="self-end">More With</span>
+                        <span className="self-end">Less</span>
+                    </div>
+                    {/* Right Triangle - Points Right */}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="transform -rotate-90 text-[#333] dark:text-[#FDFAE5]">
+                        <path d="M20.5 14.5L13.5 21.5C12.7 22.3 11.3 22.3 10.5 21.5L3.5 14.5C2 13 3 10.5 5 10.5H19C21 10.5 22 13 20.5 14.5Z" />
+                    </svg>
+                </div>
             </div>
         </div>
     )

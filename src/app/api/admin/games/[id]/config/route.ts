@@ -9,11 +9,12 @@ export async function POST(
         const { id } = await params;
         const gameId = id;
         const body = await request.json();
-        const { initialBudget, leaderTermLength, gameDurationMinutes } = body;
+        const { initialBudget, initialBaseValue, leaderTermLength, gameDurationMinutes } = body;
 
         // Validate types
         if (
             (initialBudget !== undefined && typeof initialBudget !== 'number') ||
+            (initialBaseValue !== undefined && typeof initialBaseValue !== 'number') ||
             (leaderTermLength !== undefined && typeof leaderTermLength !== 'number') ||
             (gameDurationMinutes !== undefined && typeof gameDurationMinutes !== 'number')
         ) {
@@ -27,18 +28,25 @@ export async function POST(
             where: { id: gameId },
             data: {
                 ...(initialBudget !== undefined && { initialBudget }),
+                ...(initialBaseValue !== undefined && { initialBaseValue }),
                 ...(leaderTermLength !== undefined && { leaderTermLength }),
                 ...(gameDurationMinutes !== undefined && { gameDurationMinutes })
             }
         });
 
         // If budget changed, update all teams that are still at initial budget state
-        // (This is a choice - we could alternatively only apply to NEW teams,
-        // but the user said "starting game with equal budget")
         if (initialBudget !== undefined) {
             await prisma.team.updateMany({
                 where: { gameSessionId: gameId },
-                data: { budget: initialBudget, baseValue: initialBudget }
+                data: { budget: initialBudget }
+            });
+        }
+
+        // If base value changed, update all teams
+        if (initialBaseValue !== undefined) {
+            await prisma.team.updateMany({
+                where: { gameSessionId: gameId },
+                data: { baseValue: initialBaseValue }
             });
         }
 

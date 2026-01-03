@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 // Added Archive icon
-import { Edit, Plus, Search, Filter, Clock, Tag, Zap, Shield, TrendingUp, Building2, Users, Leaf, Archive, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Edit, Plus, Search, Filter, Clock, Tag, Zap, Shield, TrendingUp, Building2, Users, Leaf, Archive, ChevronLeft, ChevronRight, Heart, DollarSign, Settings, Landmark } from 'lucide-react';
 import SkeletonCardGrid from '@/components/skeletons/CardSkeletonGrid';
 import { useRouter } from 'next/navigation';
 
@@ -359,153 +359,136 @@ export default function CrisisCardList() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredCards.map((card) => {
-                        const styles = getCategoryStyles(card.category || { name: 'Unknown' });
                         const responses = card.cardResponses || [];
+                        const cardBgColor = card.category?.name?.toLowerCase() === 'environmental' ? '#4ea342' : (card.category?.color || '#4ea342');
 
                         return (
                             <div
                                 key={card.id}
-                                className="bg-white dark:bg-gray-800 border-2 border-black dark:border-gray-700 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] p-6 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-200 relative"
+                                className="relative w-full rounded-[2.5rem] p-6 shadow-xl transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl overflow-hidden font-sans text-[#1a1a1a]"
+                                style={{ backgroundColor: cardBgColor }}
                             >
-                                <div
-                                    className="absolute top-0 left-0 w-full h-1 rounded-t-md"
-                                    style={styles.accentStyle}
-                                ></div>
-
-                                <div className="flex justify-between items-start mb-3">
-                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2">
-                                        {card.title}
-                                    </h3>
-                                    <span className={`px-2 py-1 text-xs font-semibold rounded border-2 ${card.status === 'Active'
-                                        ? 'bg-green-100 text-green-800 border-green-800 dark:bg-green-900/30 dark:text-green-400 dark:border-green-500'
-                                        : 'bg-red-100 text-red-800 border-red-800 dark:bg-red-900/30 dark:text-red-400 dark:border-red-500'
-                                        }`}>
-                                        {card.status}
-                                    </span>
+                                {/* Top Decoration: White pill with colored dots (Scaled down slightly) */}
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] px-4 py-2 rounded-b-[1.2rem] shadow-sm flex gap-1.5 z-20">
+                                    <div className="w-3 h-3 rounded-full bg-[#4CAF50]" />
+                                    <div className="w-3 h-3 rounded-full bg-[#2196F3]" />
+                                    <div className="w-3 h-3 rounded-full bg-[#FFC107]" />
+                                    <div className="w-3 h-3 rounded-full bg-[#F44336]" />
                                 </div>
 
-                                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
-                                    {card.description}
-                                </p>
+                                {/* Content Container */}
+                                <div className="relative z-10 flex flex-col items-center mt-6">
 
-                                <div className="space-y-2 mb-4">
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <Tag size={16} className="text-gray-500 dark:text-gray-400" />
-                                        <span
-                                            className="font-medium px-2 py-1 border-2 rounded-full text-xs text-gray-700 dark:text-gray-300"
-                                            style={{
-                                                ...styles.bgStyle,
-                                                ...styles.borderStyle
-                                            }}
-                                        >
-                                            {card.category?.name || 'Unknown'}
+                                    {/* Edit/Archive/Status Controls (Absolute positioned for admin access) */}
+                                    <div className="absolute top-0 right-0 flex gap-1">
+                                        <span className={`px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-md border border-black/10 ${card.status === 'Active'
+                                            ? 'bg-white/80 text-green-800'
+                                            : 'bg-white/80 text-red-800'
+                                            }`}>
+                                            {card.status}
                                         </span>
-                                        {card.category?.color && (
-                                            <span className="text-xs text-gray-400 font-mono">
-                                                {card.category.color}
-                                            </span>
-                                        )}
                                     </div>
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <Clock size={16} className="text-gray-500 dark:text-gray-400" />
-                                        <span className="text-gray-700 dark:text-gray-300">{card.timeLimit} minutes</span>
-                                    </div>
-                                </div>
 
-                                <div className="mb-4">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Zap size={16} className="text-gray-500 dark:text-gray-400" />
-                                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Card Values:</p>
+                                    {/* Title & Description */}
+                                    <div className="text-center mb-6 px-1 space-y-2 w-full">
+                                        <h3 className="font-serif italic text-2xl text-[#1a1a1a]/90 tracking-tight leading-[1.1] drop-shadow-sm min-h-[3rem] flex items-center justify-center">
+                                            {card.title}
+                                        </h3>
+                                        <p className="font-sans text-[#1a1a1a]/70 text-sm font-medium leading-relaxed line-clamp-3 max-w-[90%] mx-auto">
+                                            {card.description}
+                                        </p>
                                     </div>
-                                    <div className="grid grid-cols-5 gap-2">
-                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-300 dark:border-gray-600">
-                                            <Shield size={16} className="text-blue-500" />
-                                            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{card.political || 0}</span>
-                                        </div>
-                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-300 dark:border-gray-600">
-                                            <TrendingUp size={16} className="text-green-500" />
-                                            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{card.economic || 0}</span>
-                                        </div>
-                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-300 dark:border-gray-600">
-                                            <Building2 size={16} className="text-gray-500 dark:text-gray-400" />
-                                            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{card.infrastructure || 0}</span>
-                                        </div>
-                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-300 dark:border-gray-600">
-                                            <Users size={16} className="text-purple-500" />
-                                            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{card.society || 0}</span>
-                                        </div>
-                                        <div className="flex items-center justify-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-300 dark:border-gray-600">
-                                            <Leaf size={16} className="text-emerald-500" />
-                                            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{card.environment || 0}</span>
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <div className="mb-4">
-                                    <p className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Response Options:</p>
-                                    <div className="space-y-2">
-                                        {responses.length > 0 ? (
-                                            responses.slice(0, 2).map((response) => (
-                                                <div key={response.id} className="text-xs bg-gray-100 dark:bg-gray-700/50 p-2 rounded border border-gray-300 dark:border-gray-600">
-                                                    <div className="text-gray-700 dark:text-gray-200 mb-1">{response.text}</div>
-                                                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
-                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.politicalEffect)}`}>
-                                                            <Shield size={12} />
-                                                            <span>POL: {formatEffect(response.politicalEffect)}</span>
-                                                        </span>
-                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.economicEffect)}`}>
-                                                            <TrendingUp size={12} />
-                                                            <span>ECO: {formatEffect(response.economicEffect)}</span>
-                                                        </span>
-                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.infrastructureEffect)}`}>
-                                                            <Building2 size={12} />
-                                                            <span>INF: {formatEffect(response.infrastructureEffect)}</span>
-                                                        </span>
-                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.societyEffect)}`}>
-                                                            <Users size={12} />
-                                                            <span>SOC: {formatEffect(response.societyEffect)}</span>
-                                                        </span>
-                                                        <span className={`flex items-center gap-1 font-medium ${getEffectColor(response.environmentEffect)}`}>
-                                                            <Leaf size={12} />
-                                                            <span>ENV: {formatEffect(response.environmentEffect)}</span>
+                                    {/* Stats Grid (Replacing the old grid with a compact row or grid) */}
+                                    <div className="flex flex-wrap justify-center gap-1.5 mb-4 opacity-80">
+                                        <div className="flex items-center gap-1 bg-black/5 px-2 py-1 rounded-full text-xs font-bold text-[#1a1a1a]">
+                                            <Shield size={12} strokeWidth={3} /> {card.political || 0}
+                                        </div>
+                                        <div className="flex items-center gap-1 bg-black/5 px-2 py-1 rounded-full text-xs font-bold text-[#1a1a1a]">
+                                            <DollarSign size={12} strokeWidth={3} /> {card.economic || 0}
+                                        </div>
+                                        <div className="flex items-center gap-1 bg-black/5 px-2 py-1 rounded-full text-xs font-bold text-[#1a1a1a]">
+                                            <Landmark size={12} strokeWidth={3} /> {card.infrastructure || 0}
+                                        </div>
+                                        <div className="flex items-center gap-1 bg-black/5 px-2 py-1 rounded-full text-xs font-bold text-[#1a1a1a]">
+                                            <Heart size={12} strokeWidth={3} /> {card.society || 0}
+                                        </div>
+                                        <div className="flex items-center gap-1 bg-black/5 px-2 py-1 rounded-full text-xs font-bold text-[#1a1a1a]">
+                                            <Settings size={12} strokeWidth={3} /> {card.environment || 0}
+                                        </div>
+                                        <div className="flex items-center gap-1 bg-black/5 px-2 py-1 rounded-full text-xs font-bold text-[#1a1a1a]">
+                                            <Clock size={12} strokeWidth={3} /> {card.timeLimit}m
+                                        </div>
+                                    </div>
+
+                                    {/* Response Options */}
+                                    <div className="w-full space-y-2 mb-4">
+                                        {responses.slice(0, 2).map((response, idx) => {
+                                            const letter = String.fromCharCode(65 + idx);
+                                            return (
+                                                <div key={response.id} className="w-full flex items-stretch bg-[#FDFBF7] rounded-lg overflow-hidden shadow-sm h-12">
+                                                    {/* Letter Block */}
+                                                    <div
+                                                        className="w-10 flex items-center justify-center bg-black/10 border-r border-black/5"
+                                                        style={{ backgroundColor: cardBgColor, filter: 'brightness(0.9)' }}
+                                                    >
+                                                        <span className="font-serif italic text-xl text-white font-bold">
+                                                            {letter}
                                                         </span>
                                                     </div>
+                                                    {/* Text */}
+                                                    <div className="flex-1 p-2 flex items-center">
+                                                        <p className="text-[#1a1a1a] text-xs font-medium text-left leading-tight line-clamp-2">
+                                                            {response.text}
+                                                        </p>
+                                                    </div>
+                                                    {/* Cost */}
+                                                    {/* <div className="pr-2 flex items-center">
+                                                         // We could show cost here if available in the view model, but the interface says CardResponse has specific fields.
+                                                         // The interface in this file: politicalEffect etc. No cost?
+                                                         // Checking interface... interface CardResponse has id, text, order, and effects. No explicit 'cost' field shown in the types in this file (lines 8-19).
+                                                         // It seems 'cost' might be missing in this specific page's type def or just not used. I'll skip it for now.
+                                                    </div> */}
                                                 </div>
-                                            ))
-                                        ) : (
-                                            <div className="text-xs text-gray-500 dark:text-yellow-200/70 bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded border border-yellow-200 dark:border-yellow-700/50">
-                                                No response options found for this card
-                                            </div>
-                                        )}
-
+                                            );
+                                        })}
                                         {responses.length > 2 && (
-                                            <div className="text-xs text-gray-500">
+                                            <div className="text-center text-xs font-serif italic text-[#1a1a1a]/60">
                                                 +{responses.length - 2} more options
                                             </div>
                                         )}
+                                        {responses.length === 0 && (
+                                            <div className="text-center text-xs font-serif italic text-[#1a1a1a]/40 py-2">
+                                                No options defined
+                                            </div>
+                                        )}
                                     </div>
-                                </div>
 
-                                <div className="flex gap-2 pt-4 border-t border-gray-200">
-                                    <button
-                                        onClick={() => handleEdit(card.id)}
-                                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border-2 border-blue-600 text-blue-600 dark:text-blue-400 rounded-lg font-semibold shadow-[2px_2px_0px_0px_rgba(37,99,235,1)] hover:shadow-[1px_1px_0px_0px_rgba(37,99,235,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/30"
-                                    >
-                                        <Edit size={16} />
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => openArchiveModal(card.id, card.title)}
-                                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border-2 border-orange-600 text-orange-600 dark:text-orange-400 rounded-lg font-semibold shadow-[2px_2px_0px_0px_rgba(234,88,12,1)] hover:shadow-[1px_1px_0px_0px_rgba(234,88,12,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-200 bg-white dark:bg-gray-800 hover:bg-orange-50 dark:hover:bg-orange-900/30"
-                                    >
-                                        <Archive size={16} />
-                                        Archive
-                                    </button>
-                                </div>
+                                    {/* Action Buttons */}
+                                    <div className="flex gap-2 w-full mt-auto">
+                                        <button
+                                            onClick={() => handleEdit(card.id)}
+                                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/90 hover:bg-white text-blue-600 rounded-lg text-sm font-bold shadow-sm transition-all hover:scale-105"
+                                        >
+                                            <Edit size={14} />
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => openArchiveModal(card.id, card.title)}
+                                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/90 hover:bg-white text-orange-600 rounded-lg text-sm font-bold shadow-sm transition-all hover:scale-105"
+                                        >
+                                            <Archive size={14} />
+                                            Archive
+                                        </button>
+                                    </div>
 
-                                <div className="text-xs text-gray-400 mt-3 pt-2 border-t border-gray-100">
-                                    <div>Created: {new Date(card.createdAt).toLocaleDateString()}</div>
-                                    <div>Updated: {new Date(card.updatedAt).toLocaleDateString()}</div>
+                                    {/* Footer Category */}
+                                    <div className="mt-4">
+                                        <h3 className="font-serif italic text-[#1a1a1a]/40 text-sm tracking-wide capitalize mix-blend-multiply">
+                                            {card.category?.name || 'Event'}
+                                        </h3>
+                                    </div>
+
                                 </div>
                             </div>
                         );

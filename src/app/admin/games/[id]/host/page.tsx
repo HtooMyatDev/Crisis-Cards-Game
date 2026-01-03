@@ -470,6 +470,17 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
                         <span className="text-[10px] font-bold text-gray-400 uppercase">Time Left</span>
                     </div>
 
+                    <div className="mr-4 pr-4 border-r-2 border-gray-100 dark:border-gray-800">
+                        <button
+                            onClick={() => window.open(`/admin/games/${hostData.game.id}/spectator`, '_blank')}
+                            className="p-3 bg-fuchsia-100 hover:bg-fuchsia-200 text-fuchsia-700 rounded-lg transition-colors border-2 border-transparent flex flex-col items-center gap-1 group"
+                            title="Launch Projector View"
+                        >
+                            <Eye size={20} className="group-hover:scale-110 transition-transform" />
+                            <span className="text-[10px] font-black uppercase">Projector</span>
+                        </button>
+                    </div>
+
 
                     {hostData.game.status === 'IN_PROGRESS' && (
                         <button onClick={() => handleGameAction('pause')} className="p-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors border-2 border-transparent">

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { NextResponse, NextRequest } from "next/server";
 
 /**
@@ -113,54 +114,88 @@ export async function POST(
                 id => voteCounts[parseInt(id)] === maxVotes
             ).map(id => parseInt(id));
 
-            // Random selection if tie
-            const leaderId = winners[Math.floor(Math.random() * winners.length)];
-
-            // Clear all leaders for this team
-            await prisma.player.updateMany({
-                where: {
-                    teamId: voter.teamId,
-                    gameSessionId: gameSession.id
-                },
-                data: { isLeader: false }
-            });
-
-            // Set new leader
-            leader = await prisma.player.update({
-                where: { id: leaderId },
-                data: { isLeader: true }
-            });
-
-            // Record the round when this leader was elected (for term limits)
-            // Record the round when this leader was elected (for term limits)
-            await prisma.team.update({
-                where: { id: voter.teamId },
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                data: { lastLeaderElectionRound: gameSession.currentRound } as any
-            });
-
-            leaderElected = true;
-
-            // Check if ALL teams in this session now have a leader
-            const allTeams = await prisma.team.findMany({
-                where: { gameSessionId: gameSession.id },
-                include: { players: true }
-            });
-
-            const allTeamsHaveLeaders = allTeams.every(t =>
-                t.players.some(p => p.isLeader)
-            );
-
-            if (allTeamsHaveLeaders) {
-                await prisma.gameSession.update({
-                    where: { id: gameSession.id },
+            if (winners.length > 1) {
+                // TIE detected - Trigger Runoff
+                await prisma.team.update({
+                    where: { id: voter.teamId },
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     data: {
-                        roundStatus: 'DECISION_PHASE',
-                        lastCardStartedAt: new Date() // Start timer now
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        electionStatus: 'RUNOFF',
+                        runoffCandidates: winners
                     } as any
                 });
+
+                // Clear votes for this round to allow re-voting
+                await prisma.leaderVote.deleteMany({
+                    where: {
+                        gameSessionId: gameSession.id,
+                        teamId: voter.teamId,
+                        round: gameSession.currentRound
+                    }
+                });
+
+                return NextResponse.json({
+                    success: true,
+                    voted: true,
+                    leaderElected: false,
+                    runoff: true,
+                    candidates: winners,
+                    message: 'Tie detected. Runoff election started.'
+                }, { status: 200 });
+
+            } else {
+                // Winner elected
+                const leaderId = winners[0];
+
+                // Clear all leaders for this team
+                await prisma.player.updateMany({
+                    where: {
+                        teamId: voter.teamId,
+                        gameSessionId: gameSession.id
+                    },
+                    data: { isLeader: false }
+                });
+
+                // Set new leader
+                leader = await prisma.player.update({
+                    where: { id: leaderId },
+                    data: { isLeader: true }
+                });
+
+                // Update team election status
+                await prisma.team.update({
+                    where: { id: voter.teamId },
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    data: {
+                        lastLeaderElectionRound: gameSession.currentRound,
+                        electionStatus: 'COMPLETED',
+                        runoffCandidates: Prisma.JsonNull
+                    } as any
+                });
+
+                leaderElected = true;
+
+                // Check if ALL teams in this session now have a leader
+                // We only care about teams that matter (have players)
+                const allTeams = await prisma.team.findMany({
+                    where: { gameSessionId: gameSession.id },
+                    include: { players: true }
+                });
+
+                const allTeamsHaveLeaders = allTeams.every(t =>
+                    t.players.length === 0 || t.players.some(p => p.isLeader)
+                );
+
+                if (allTeamsHaveLeaders) {
+                    await prisma.gameSession.update({
+                        where: { id: gameSession.id },
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        data: {
+                            roundStatus: 'DECISION_PHASE',
+                            lastCardStartedAt: new Date() // Start timer now
+                        } as any
+                    });
+                }
             }
         }
 

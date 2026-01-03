@@ -98,12 +98,14 @@ model GameSession {
   cardsPerRound     Int                   @default(3)
   currentRound      Int                   @default(1)
   initialBudget     Int                   @default(5000)
+  initialBaseValue  Int                   @default(5)
   lastCardStartedAt DateTime?
   numberOfTeams     Int                   @default(2)
   shuffledCardIds   Int[]                 @default([])
   totalRounds       Int?
   leaderTermLength  Int                   @default(4)
   gameDurationMinutes Int                 @default(60)
+  leaderElectionTimer Int                 @default(60)
   roundStatus       String                @default("LEADER_ELECTION") // LEADER_ELECTION, DECISION_PHASE, RESULTS_PHASE
   lastTurnResult    Json?                 // Stores the results of the last turn (score/budget changes) for display
   categories        GameSessionCategory[]
@@ -345,6 +347,8 @@ model Team {
   color         String       @default("#3B82F6")
   order         Int          @default(0)
   lastLeaderElectionRound Int @default(0)
+  electionStatus String      @default("OPEN") // OPEN, RUNOFF, COMPLETED
+  runoffCandidates Json?     // Array of player IDs involved in tie
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   leaderVotes   LeaderVote[]

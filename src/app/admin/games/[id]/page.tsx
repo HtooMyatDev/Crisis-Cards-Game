@@ -164,6 +164,7 @@ const GameDetailsPage = () => {
                 if (data.game) {
                     setConfigForm({
                         initialBudget: data.game.initialBudget || 5000,
+                        initialBaseValue: data.game.initialBaseValue || 5,
                         leaderTermLength: data.game.leaderTermLength || 4,
                         gameDurationMinutes: data.game.gameDurationMinutes || 60
                     });
@@ -224,6 +225,7 @@ const GameDetailsPage = () => {
     const [isEditingConfig, setIsEditingConfig] = useState(false);
     const [configForm, setConfigForm] = useState({
         initialBudget: 5000,
+        initialBaseValue: 5,
         leaderTermLength: 4,
         gameDurationMinutes: 60
     });
@@ -629,7 +631,7 @@ const GameDetailsPage = () => {
                         color: color,
                         order: currentCount + i,
                         budget: game.initialBudget || 5000,
-                        baseValue: 5
+                        baseValue: game.initialBaseValue || 5
                     })
                 });
             }
@@ -985,6 +987,15 @@ const GameDetailsPage = () => {
                                             </div>
                                         </div>
                                         <div>
+                                            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Initial Base Value</label>
+                                            <input
+                                                type="number"
+                                                value={configForm.initialBaseValue}
+                                                onChange={(e) => setConfigForm({ ...configForm, initialBaseValue: parseInt(e.target.value) || 0 })}
+                                                className="w-full px-2 py-1 text-xs border-2 border-gray-200 rounded focus:border-blue-500 outline-none"
+                                            />
+                                        </div>
+                                        <div>
                                             <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Game Duration (Mins)</label>
                                             <input
                                                 type="number"
@@ -1021,8 +1032,11 @@ const GameDetailsPage = () => {
                                             <span className="font-bold">{game.gameDurationMinutes || 60} Mins</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-gray-500">Leader Term</span>
                                             <span className="font-bold">{game.leaderTermLength || 4} Rounds</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">Initial Base Value</span>
+                                            <span className="font-bold">{game.initialBaseValue || 5}</span>
                                         </div>
                                     </div>
                                 )}
