@@ -42,7 +42,8 @@ export async function GET(
                 cardId: cId,
                 player: {
                     gameSessionId: player.gameSessionId,
-                    teamId: player.team.id
+                    teamId: player.team.id,
+                    isLeader: false // EXCLUDE leader's own vote/decision from the "suggestion" counts
                 }
             },
             _count: {

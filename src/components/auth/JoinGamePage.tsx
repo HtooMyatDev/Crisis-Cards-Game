@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect, useRef } from 'react'
-import { Loader2, DollarSign, Heart, Clock, Home, Settings } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { NicknameTakenModal } from '@/components/game/NicknameTakenModal'
@@ -227,7 +227,7 @@ const JoinGamePage: React.FC = () => {
             localStorage.setItem('currentPlayerId', data.playerId.toString())
             localStorage.setItem('currentNickname', data.nickname)
 
-            router.push(`/play/${data.gameCode}`)
+            router.push(`/live/${data.gameCode}`)
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {

@@ -65,7 +65,7 @@ const UserHomePage = () => {
 
             sessionStorage.setItem('currentPlayerId', data.playerId.toString());
             sessionStorage.setItem('currentNickname', data.nickname);
-            router.push(`/play/${data.gameCode}`);
+            router.push(`/live/${data.gameCode}`);
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Failed to join game');
             setJoining(false);

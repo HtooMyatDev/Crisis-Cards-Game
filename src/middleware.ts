@@ -5,6 +5,11 @@ export function middleware(request: NextRequest) {
     const userRole = request.cookies.get("role");
     const currentPath = request.nextUrl.pathname;
 
+    // Direct Access for 'Live' Mode deployments (Environment-Based Routing)
+    if (process.env.NEXT_PUBLIC_APP_MODE === 'live' && currentPath === '/') {
+        return NextResponse.rewrite(new URL('/live', request.url));
+    }
+
 
     if (!isAuthenticated && (request.nextUrl.pathname.startsWith("/admin") || request.nextUrl.pathname.startsWith("/user"))) {
         return NextResponse.redirect(new URL("/auth/login", request.url));
@@ -17,7 +22,7 @@ export function middleware(request: NextRequest) {
     // }
 
     // Prevent authenticated users from accessing /play page
-    if (isAuthenticated && currentPath.startsWith('/play')) {
+    if (isAuthenticated && (currentPath.startsWith('/live') || currentPath.startsWith('/auth'))) {
         const redirectPath = userRole?.value === 'ADMIN' ? '/admin/dashboard' : '/user/home';
         return NextResponse.redirect(new URL(redirectPath, request.url));
     }
@@ -36,5 +41,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/admin/:path*', '/auth/:path*', '/user/:path*', '/play']
+    matcher: ['/admin/:path*', '/auth/:path*', '/user/:path*', '/live', '/']
 }

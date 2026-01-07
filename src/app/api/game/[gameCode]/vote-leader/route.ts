@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { NextResponse, NextRequest } from "next/server";
+import { redis } from "@/lib/redis";
 
 /**
  * POST /api/game/[gameCode]/vote-leader
@@ -116,12 +117,14 @@ export async function POST(
 
             if (winners.length > 1) {
                 // TIE detected - Trigger Runoff
+                // Update Team: Set Status = RUNOFF, Update Candidates, Increment Count
                 await prisma.team.update({
                     where: { id: voter.teamId },
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     data: {
                         electionStatus: 'RUNOFF',
-                        runoffCandidates: winners
+                        runoffCandidates: winners,
+                        runoffCount: { increment: 1 }
                     } as any
                 });
 
@@ -133,6 +136,17 @@ export async function POST(
                         round: gameSession.currentRound
                     }
                 });
+
+                // RESET TIMER so players have time to vote again
+                await prisma.gameSession.update({
+                    where: { id: gameSession.id },
+                    data: { lastCardStartedAt: new Date() }
+                });
+
+                // INVALIDATE CACHE so frontend sees runoff immediately
+                if (redis) {
+                    await redis.del(`game_player_view:${gameCode}`);
+                }
 
                 return NextResponse.json({
                     success: true,
@@ -169,7 +183,8 @@ export async function POST(
                     data: {
                         lastLeaderElectionRound: gameSession.currentRound,
                         electionStatus: 'COMPLETED',
-                        runoffCandidates: Prisma.JsonNull
+                        runoffCandidates: Prisma.JsonNull,
+                        runoffCount: 0 // Reset count for next time
                     } as any
                 });
 
@@ -195,6 +210,11 @@ export async function POST(
                             lastCardStartedAt: new Date() // Start timer now
                         } as any
                     });
+                }
+
+                // INVALIDATE CACHE so frontend sees leader elected
+                if (redis) {
+                    await redis.del(`game_player_view:${gameCode}`);
                 }
             }
         }

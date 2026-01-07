@@ -15,7 +15,7 @@ export const useGameSession = (gameCode: string) => {
             const storedPlayerId = localStorage.getItem('currentPlayerId');
 
             if (!storedNickname || !storedPlayerId) {
-                router.push('/play');
+                router.push('/live');
                 return;
             }
 
@@ -25,7 +25,7 @@ export const useGameSession = (gameCode: string) => {
             if (!result.valid) {
                 localStorage.removeItem('currentPlayerId');
                 localStorage.removeItem('currentNickname');
-                router.push(`/play?code=${gameCode}&error=session_expired`);
+                router.push(`/live?code=${gameCode}&error=session_expired`);
                 return;
             }
 
@@ -51,7 +51,7 @@ export const useGameSession = (gameCode: string) => {
         }
         localStorage.removeItem('currentPlayerId');
         localStorage.removeItem('currentNickname');
-        router.push('/play');
+        router.push('/live');
     };
 
     return {

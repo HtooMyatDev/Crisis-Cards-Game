@@ -19,6 +19,7 @@ interface LeaderElectionViewProps {
     currentLeader?: Player | null
     electionStatus?: 'OPEN' | 'RUNOFF' | 'COMPLETED'
     runoffCandidates?: number[]
+    runoffCount?: number
     timerDuration?: number
 }
 
@@ -32,6 +33,7 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
     currentLeader,
     electionStatus = 'OPEN',
     runoffCandidates = [],
+    runoffCount = 0,
     timerDuration = 60
 }) => {
     const [selectedCandidate, setSelectedCandidate] = useState<number | null>(null)
@@ -169,7 +171,7 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
                     {/* Title */}
                     <div className="mb-12">
                         <h1 className="text-6xl md:text-8xl font-serif italic text-[#333] dark:text-[#FDFBF7] mb-4 tracking-tight leading-none">
-                            {electionStatus === 'RUNOFF' ? 'Tie Breaker' : 'Cast Your Vote'}
+                            {electionStatus === 'RUNOFF' ? `Tie Breaker ${runoffCount > 0 ? `#${runoffCount}` : ''}` : 'Cast Your Vote'}
                         </h1>
                         <p className="text-lg md:text-2xl text-[#555] dark:text-[#FDFBF7]/80 font-medium font-sans">
                             {electionStatus === 'RUNOFF'

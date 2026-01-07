@@ -14,6 +14,7 @@ interface Team {
     budget: number;
     electionStatus?: 'OPEN' | 'RUNOFF' | 'COMPLETED';
     runoffCandidates?: number[];
+    runoffCount?: number;
 }
 
 interface Player {
@@ -118,8 +119,8 @@ export const useGameState = (gameCode: string, playerId: number | null) => {
                         setTeam(null);
                     }
 
-                    // Poll votes if leader in decision phase
-                    if (currentPlayer.isLeader && data.roundStatus === 'DECISION_PHASE' && data.cards && data.cards.length > 0) {
+                    // Poll votes if in decision phase and we have a team (Leader OR Member)
+                    if (currentPlayer.teamId && data.roundStatus === 'DECISION_PHASE' && data.cards && data.cards.length > 0) {
                         const currentCard = data.cards[data.currentCardIndex % data.cards.length];
                          // Fetch votes separately to avoid massive payload in main poll if needed
                          // but for now keeping it here
@@ -144,7 +145,7 @@ export const useGameState = (gameCode: string, playerId: number | null) => {
     }, [gameCode, playerId]);
 
     useGamePolling({
-        interval: 3000,
+        interval: 1000,
         enabled: true,
         gameCode,
         onPoll: fetchGameData

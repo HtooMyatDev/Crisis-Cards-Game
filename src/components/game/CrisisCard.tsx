@@ -192,8 +192,8 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
                                     ))}
                                 </div>
 
-                                {/* Leader Vote Count Overlay */}
-                                {isLeader && voteCount > 0 && (
+                                {/* Vote Count Overlay (Visible to everyone) */}
+                                {voteCount > 0 && (
                                     <div className="absolute -left-3 top-1/2 -translate-y-1/2 bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold border-2 border-white shadow-lg z-30 animate-in zoom-in">
                                         {voteCount}
                                     </div>

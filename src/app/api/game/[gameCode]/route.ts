@@ -50,7 +50,10 @@ export async function GET(
                                     id: true,
                                     name: true,
                                     color: true,
-                                    budget: true
+                                    budget: true,
+                                    electionStatus: true,
+                                    runoffCandidates: true,
+                                    runoffCount: true
                                 }
                             },
                             isLeader: true,
@@ -64,7 +67,10 @@ export async function GET(
                             color: true,
                             budget: true,
                             baseValue: true,
-                            order: true
+                            order: true,
+                            electionStatus: true,
+                            runoffCandidates: true,
+                            runoffCount: true
                         },
                         orderBy: {
                             order: 'asc'
@@ -133,7 +139,7 @@ export async function GET(
                                         nickname: true,
                                         score: true,
                                         teamId: true,
-                                        team: { select: { id: true, name: true, color: true, budget: true } },
+                                        team: { select: { id: true, name: true, color: true, budget: true, electionStatus: true, runoffCandidates: true, runoffCount: true } },
                                         isLeader: true,
                                         isConnected: true
                                     }
@@ -145,7 +151,10 @@ export async function GET(
                                         color: true,
                                         budget: true,
                                         baseValue: true,
-                                        order: true
+                                        order: true,
+                                        electionStatus: true,
+                                        runoffCandidates: true,
+                                        runoffCount: true
                                     },
                                     orderBy: { order: 'asc' }
                                 },
@@ -378,10 +387,37 @@ async function resolveElectionTimeout(gameSessionId: string, leaderElectionTimer
                 updated = true;
             }
         } else if (team.electionStatus === 'RUNOFF') {
-            // In runoff, any tie is broken randomly
-            const finalWinnerId = winners[Math.floor(Math.random() * winners.length)];
-            await applyLeaderSelection(team.id, gameSessionId, finalWinnerId, currentRound);
-            updated = true;
+            // Updated Logic: If tie in runoff, CONTINUE runoff (don't pick random)
+            if (winners.length > 1) {
+                // TIE -> REPEAT RUNOFF
+                await prisma.team.update({
+                    where: { id: team.id },
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    data: {
+                        electionStatus: 'RUNOFF',
+                        runoffCandidates: winners, // Narrow down if possible
+                        runoffCount: { increment: 1 }
+                    } as any
+                });
+
+                // Clear votes for NEXT runoff attempt
+                await prisma.leaderVote.deleteMany({
+                    where: {
+                        gameSessionId: gameSessionId,
+                        teamId: team.id,
+                        round: currentRound
+                    }
+                });
+
+                updated = true;
+                timerResetNeeded = true; // Reset timer for new attempt
+            } else {
+                // WINNER FOUND IN RUNOFF
+                const finalWinnerId = winners[0];
+                await applyLeaderSelection(team.id, gameSessionId, finalWinnerId, currentRound);
+                updated = true;
+                // No timer reset needed if we found a winner, logic below handles it
+            }
         }
     }
 
@@ -443,7 +479,8 @@ async function applyLeaderSelection(teamId: string, gameSessionId: string, leade
         data: {
             lastLeaderElectionRound: currentRound,
             electionStatus: 'COMPLETED',
-            runoffCandidates: [] // Clear runoff candidates using empty array instead of JsonNull to avoid type issues if mapped
+            runoffCandidates: [], // Clear runoff candidates using empty array instead of JsonNull to avoid type issues if mapped
+            runoffCount: 0
         } as any
     });
 }

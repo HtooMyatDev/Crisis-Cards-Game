@@ -11,7 +11,7 @@ import { GameResults } from '@/components/game/GameResults';
 import { LeaveGameModal } from '@/components/game/LeaveGameModal';
 import { ResultsModal } from '@/components/game/ResultsModal'; // Added import
 import { gameService } from '@/services/gameService';
-import PageTransition from '@/components/ui/PageTransition';
+
 
 const GameLobbyPage = () => {
     const params = useParams();
@@ -145,9 +145,11 @@ const GameLobbyPage = () => {
                     roundStatus="LEADER_ELECTION"
                     currentCardIndex={gameState.currentCardIndex}
                     currentGameStatus={team.electionStatus}
+                    lastCardStartedAt={gameState.lastCardStartedAt ? new Date(gameState.lastCardStartedAt).getTime() : 0}
                 >
                     {({ hasVoted, setHasVoted }) => (
                         <LeaderElectionView
+                            key={`${gameCode}-${team.electionStatus}-${gameState.lastCardStartedAt ? new Date(gameState.lastCardStartedAt).getTime() : 'initial'}`}
                             teamPlayers={teamPlayers.map(p => ({
                                 id: p.id,
                                 nickname: p.nickname,
@@ -158,11 +160,13 @@ const GameLobbyPage = () => {
                             teamName={team.name}
                             electionStatus={team.electionStatus}
                             runoffCandidates={team.runoffCandidates}
+                            runoffCount={team.runoffCount || 0}
                             timerDuration={gameState.leaderElectionTimer || 60}
                             onVote={async (candidateId) => {
                                 try {
                                     await gameService.voteForLeader(gameCode, playerId || 0, candidateId);
                                     setHasVoted(true);
+                                    mutate(); // Refresh game state immediately to see if election completed
                                 } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
                                     // With runoff logic, we might need to handle specific errors better,
                                     // but for now general error handling is fine.
@@ -221,19 +225,21 @@ const ViewWrapper = ({
     gameCode,
     roundStatus,
     currentCardIndex,
-    currentGameStatus
+    currentGameStatus,
+    lastCardStartedAt
 }: {
     children: (props: { hasVoted: boolean, setHasVoted: (v: boolean) => void }) => React.ReactNode,
     gameCode: string,
     roundStatus: string,
     currentCardIndex: number,
-    currentGameStatus?: string
+    currentGameStatus?: string,
+    lastCardStartedAt?: number
 }) => {
     const [hasVoted, setHasVoted] = React.useState(false);
 
     React.useEffect(() => {
         setHasVoted(false);
-    }, [roundStatus, currentCardIndex, gameCode, currentGameStatus]);
+    }, [roundStatus, currentCardIndex, gameCode, currentGameStatus, lastCardStartedAt]);
 
     return <>{children({ hasVoted, setHasVoted })}</>;
 };

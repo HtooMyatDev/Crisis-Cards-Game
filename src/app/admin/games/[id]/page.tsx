@@ -8,11 +8,8 @@ import {
     Clock,
     Gamepad2,
     CheckCircle,
-    Wifi,
-    WifiOff,
     AlertCircle,
     Hash,
-    Calendar,
     Activity,
     Shuffle,
     QrCode,
@@ -302,7 +299,7 @@ const GameDetailsPage = () => {
 
         try {
             // Generate join URL
-            const joinUrl = `${window.location.origin}/play?code=${game.gameCode}`;
+            const joinUrl = `${window.location.origin}/live?code=${game.gameCode}`;
             const qrDataUrl = await QRCode.toDataURL(joinUrl, {
                 width: 300,
                 margin: 2,

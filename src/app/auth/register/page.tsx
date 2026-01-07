@@ -89,6 +89,18 @@ export default function RegisterDisabled() {
                 />
             </div>
 
+            {/* Top Logo */}
+            <div className="absolute top-10 flex flex-col items-center gap-1">
+                <h2 className="text-4xl font-serif italic text-black/80 dark:text-[#FDFBF7]">Cards of Crisis</h2>
+                <div className="flex -space-x-1.5 border-[3px] border-[#333] dark:border-[#FDFBF7] px-3 py-1.5 rounded-full bg-transparent items-center">
+                    <div className="w-4 h-4 rounded-full bg-[#399B2C] z-0"></div>
+                    <div className="w-4 h-4 rounded-full bg-[#D9AD1F] z-10"></div>
+                    <div className="w-4 h-4 rounded-full bg-[#4190A9] z-20"></div>
+                    <div className="w-4 h-4 rounded-full bg-[#CA840C] z-30"></div>
+                    <div className="w-4 h-4 rounded-full bg-[#CD302F] z-40"></div>
+                </div>
+            </div>
+
             <div className="max-w-md w-full relative z-10 animate-in fade-in zoom-in duration-500">
                 <div className="bg-white/80 dark:bg-black/60 backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] p-8 text-center relative overflow-hidden">
                     {/* Glass Reflection */}
@@ -112,6 +124,49 @@ export default function RegisterDisabled() {
                             Go to Login
                         </Link>
                     </div>
+                </div>
+            </div>
+
+            {/* Bottom Footer Logos */}
+            <div className="absolute bottom-6 right-6 flex items-center gap-6 opacity-80 pointer-events-none hidden md:flex">
+                <div className="flex flex-col items-center">
+                    <div className="relative w-8 h-8 flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8 text-[#FCD34D] drop-shadow-sm">
+                            <path d="M12 2C13.1 2 14 2.9 14 4V10H20C21.1 10 22 10.9 22 12C22 13.1 21.1 14 20 14H14V20C14 21.1 13.1 22 12 22C10.9 22 10 21.1 10 20V14H4C2.9 14 2 13.1 2 12C2 10.9 2.9 10 4 10H10V4C10 2.9 10.9 2 12 2Z" fill="currentColor" />
+                            <circle cx="12" cy="12" r="2" className="fill-[#FDFBF7] dark:fill-[#3E3E3C]" />
+                        </svg>
+                    </div>
+                    <div className="text-[10px] font-bold text-[#333] dark:text-[#FDFBF7] mt-1 leading-[0.9] text-left font-[family-name:var(--font-pixel)] tracking-wide">
+                        the<br />change<br />lab
+                    </div>
+                </div>
+                <div className="h-8 w-[1px] bg-[#333] dark:bg-[#FDFBF7]"></div>
+                <div className="flex flex-col items-center">
+                    <span className="text-lg font-serif italic font-bold text-[#333] dark:text-[#FDFBF7]">Cards of Crisis</span>
+                    <div className="flex -space-x-1 mt-0.5 border-[2px] border-[#333] dark:border-[#FDFBF7] px-1.5 py-0.5 rounded-full">
+                        <div className="w-2.5 h-2.5 bg-[#399B2C] rounded-full"></div>
+                        <div className="w-2.5 h-2.5 bg-[#D9AD1F] rounded-full"></div>
+                        <div className="w-2.5 h-2.5 bg-[#4190A9] rounded-full"></div>
+                        <div className="w-2.5 h-2.5 bg-[#CA840C] rounded-full"></div>
+                        <div className="w-2.5 h-2.5 bg-[#CD302F] rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+            <div className="absolute bottom-6 left-6 opacity-80 pointer-events-none hidden md:block">
+                <div className="flex items-center gap-1">
+                    {/* Left Triangle - Points Left */}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="transform rotate-90 text-[#333] dark:text-[#FDFBF7]">
+                        <path d="M20.5 14.5L13.5 21.5C12.7 22.3 11.3 22.3 10.5 21.5L3.5 14.5C2 13 3 10.5 5 10.5H19C21 10.5 22 13 20.5 14.5Z" />
+                    </svg>
+                    <div className="font-black text-[#333] dark:text-[#FDFBF7] text-[0.65rem] leading-[0.85] flex flex-col tracking-tighter uppercase font-sans">
+                        <span className="self-start">Doing</span>
+                        <span className="self-end">More With</span>
+                        <span className="self-end">Less</span>
+                    </div>
+                    {/* Right Triangle - Points Right */}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="transform -rotate-90 text-[#333] dark:text-[#FDFBF7]">
+                        <path d="M20.5 14.5L13.5 21.5C12.7 22.3 11.3 22.3 10.5 21.5L3.5 14.5C2 13 3 10.5 5 10.5H19C21 10.5 22 13 20.5 14.5Z" />
+                    </svg>
                 </div>
             </div>
         </div>
