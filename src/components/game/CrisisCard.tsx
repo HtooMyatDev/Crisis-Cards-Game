@@ -40,20 +40,33 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
     votes = {},
     timeLeft,
     categoryName,
-    categoryColor, // We will override this with our strict palette based on categoryName
+    categoryColor,
 }) => {
-    // defined palette based on screenshots
+    // Exact palette extraction with Darker Accents for tabs/letters
     const getCategoryPalette = (cat?: string) => {
         const c = cat?.toLowerCase() || '';
-        if (c.includes('political')) return { bg: '#C53030', text: '#FDFBF7' }; // Deep Red
-        if (c.includes('environment')) return { bg: '#48BB78', text: '#FDFBF7' }; // Lush Green
-        if (c.includes('economic')) return { bg: '#D69E2E', text: '#FDFBF7' }; // Gold
-        if (c.includes('society') || c.includes('social')) return { bg: '#4299E1', text: '#FDFBF7' }; // Blue
-        if (c.includes('infrastructure')) return { bg: '#DD6B20', text: '#FDFBF7' }; // Orange
-        return { bg: categoryColor || '#48BB78', text: '#FDFBF7' };
+
+        // Green #399B2C -> Darker #266E1E
+        if (c.includes('environment')) return { bg: '#399B2C', accent: '#266E1E', text: '#FDFBF7' };
+
+        // Yellow #D9AD1F -> Darker #AB8818
+        if (c.includes('economic')) return { bg: '#D9AD1F', accent: '#AB8818', text: '#FDFBF7' };
+
+        // Orange #BE8111 -> Darker #8C5E0C
+        if (c.includes('infrastructure')) return { bg: '#BE8111', accent: '#8C5E0C', text: '#FDFBF7' };
+
+        // Blue #4190A9 -> Darker #306B7D
+        if (c.includes('society') || c.includes('social')) return { bg: '#4190A9', accent: '#306B7D', text: '#FDFBF7' };
+
+        // Red #CD302F -> Darker #942221
+        if (c.includes('political')) return { bg: '#CD302F', accent: '#942221', text: '#FDFBF7' };
+
+        // Default to Green
+        return { bg: categoryColor || '#399B2C', accent: '#266E1E', text: '#FDFBF7' };
     };
 
     const palette = getCategoryPalette(categoryName);
+
     // Keyboard navigation handler
     const handleKeyDown = (e: React.KeyboardEvent, responseId: number) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -81,8 +94,6 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
 
     const isTimeCritical = timeLeft <= 10 && timeLeft > 0;
 
-
-
     return (
         <div
             className={`
@@ -92,30 +103,30 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
             `}
             style={{ backgroundColor: palette.bg }}
         >
-            {/* Top Decoration: White pill with colored dots */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] px-5 py-3 rounded-b-[1.25rem] shadow-sm flex items-center justify-center -space-x-1 z-20">
-                <div className="w-5 h-5 rounded-full bg-[#4CAF50] z-0" />
-                <div className="w-5 h-5 rounded-full bg-[#EBA937] z-10" />
-                <div className="w-5 h-5 rounded-full bg-[#2196F3] z-20" />
-                <div className="w-5 h-5 rounded-full bg-[#ED8936] z-30" />
-                <div className="w-5 h-5 rounded-full bg-[#F44336] z-40" />
+            {/* Top Decoration: Larger Tab with Overlapping Dots */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] px-8 py-5 rounded-b-[2rem] shadow-sm flex items-center justify-center -space-x-3 z-20">
+                <div className="w-6 h-6 rounded-full bg-[#399B2C] border-2 border-[#FDFBF7]" />
+                <div className="w-6 h-6 rounded-full bg-[#D9AD1F] border-2 border-[#FDFBF7]" />
+                <div className="w-6 h-6 rounded-full bg-[#4190A9] border-2 border-[#FDFBF7]" />
+                <div className="w-6 h-6 rounded-full bg-[#BE8111] border-2 border-[#FDFBF7]" />
+                <div className="w-6 h-6 rounded-full bg-[#CD302F] border-2 border-[#FDFBF7]" />
             </div>
 
             {/* Content Container */}
-            <div className="relative z-10 flex flex-col items-center mt-8">
+            <div className="relative z-10 flex flex-col items-center mt-12">
 
                 {/* Title & Description */}
-                <div className="text-center mb-10 px-2 space-y-4">
-                    <h2 className="font-serif italic text-4xl sm:text-5xl text-[#1a1a1a]/90 tracking-tight leading-[1.1] drop-shadow-sm">
+                <div className="text-center mb-8 px-4 space-y-2">
+                    <h2 className="font-serif italic text-4xl sm:text-[3.5rem] text-[#1a1a1a]/90 leading-[1] drop-shadow-sm tracking-tight scale-y-90">
                         {title}
                     </h2>
-                    <p className="font-sans text-[#1a1a1a]/70 text-base sm:text-lg font-medium leading-relaxed max-w-md mx-auto">
+                    <p className="font-sans text-[#1a1a1a]/80 text-sm sm:text-base font-medium leading-relaxed max-w-sm mx-auto">
                         {description}
                     </p>
                 </div>
 
                 {/* Headers: Response Options & Timer */}
-                <div className="w-full flex justify-between items-end px-1 mb-3">
+                <div className="w-full flex justify-between items-end px-2 mb-2">
                     <h3 className="font-serif italic text-2xl text-[#1a1a1a]/80">
                         Response Options
                     </h3>
@@ -125,7 +136,7 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
                 </div>
 
                 {/* Responses List */}
-                <div className="w-full space-y-4" role="radiogroup">
+                <div className="w-full space-y-9 mt-4" role="radiogroup">
                     {responses.map((response, idx) => {
                         const isSelected = selectedResponseId === response.id;
                         const letter = String.fromCharCode(65 + idx);
@@ -142,13 +153,13 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
 
                         return (
                             <div key={response.id} className="relative group">
-                                {/* Cost Badge (Top Right of the card block) */}
-                                {/* Cost Badge (Top Right of the card block) */}
+                                {/* Cost Badge - Tab Style Above Button */}
                                 {(response.cost !== undefined) && (
-                                    <div className="absolute -top-6 right-0 z-20">
-                                        <span className="font-sans font-black text-xs text-[#1a1a1a]/80 py-0.5 px-1">
-                                            {response.cost > 0 ? `+${response.cost}` : `${response.cost}`}
-                                        </span>
+                                    <div
+                                        className="absolute -top-7 right-0 h-8 px-5 flex items-center justify-center rounded-t-xl font-black text-sm text-white z-0"
+                                        style={{ backgroundColor: palette.accent }}
+                                    >
+                                        {response.cost > 0 ? `+${response.cost}` : `${response.cost}`}
                                     </div>
                                 )}
 
@@ -156,45 +167,42 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
                                     onClick={() => !disabled && onSelectResponse(response.id)}
                                     disabled={disabled}
                                     className={`
-                                        w-full flex items-stretch bg-[#FDFBF7] rounded-xl overflow-hidden transition-all duration-200 shadow-md
-                                        ${isSelected ? 'ring-4 ring-white scale-[1.02] shadow-xl' : 'hover:scale-[1.01] hover:shadow-lg'}
+                                        w-full flex items-stretch bg-[#FDFBF7] rounded-xl overflow-hidden transition-all duration-200 shadow-sm relative z-10
+                                        ${isSelected ? 'ring-4 ring-white scale-[1.01] shadow-xl' : 'hover:scale-[1.005] hover:shadow-md'}
                                         ${disabled && !isSelected ? 'opacity-60' : 'cursor-pointer'}
                                     `}
                                 >
-                                    {/* Letter Block - Lush Green */}
-                                    {/* Letter Block */}
+                                    {/* Letter Block - Full Height Left Panel */}
                                     <div
-                                        className="w-14 flex flex-col items-center justify-center border-r-[3px] border-white/20"
-                                        style={{ backgroundColor: palette.bg }}
+                                        className="w-16 flex flex-col items-center justify-center shrink-0"
+                                        style={{ backgroundColor: palette.accent }}
                                     >
-                                        <span className="font-serif italic text-2xl text-white font-bold drop-shadow-sm">
+                                        <span className="font-serif italic text-4xl text-white font-bold drop-shadow-sm">
                                             {letter}
                                         </span>
                                     </div>
 
                                     {/* Text Content */}
-                                    <div className="flex-1 p-4 flex items-center min-h-[4.5rem]">
+                                    <div className="flex-1 py-4 px-6 flex items-center min-h-[5.5rem]">
                                         <p className="text-[#1a1a1a] text-sm sm:text-base font-medium text-left leading-tight">
                                             {response.text}
                                         </p>
                                     </div>
                                 </button>
 
-                                {/* Stats Row (Below Button) */}
-                                <div className="flex items-center gap-3 px-2 mt-1.5 ml-1">
+                                {/* Stats Row */}
+                                <div className="flex items-center gap-4 px-2 mt-2 ml-1">
                                     {stats.map((stat, i) => (
-                                        <div key={i} className="flex items-center text-[#1a1a1a] font-bold text-xs gap-1 opacity-80 backdrop-blur-sm bg-black/5 px-2 py-0.5 rounded-full">
-                                            <div className="text-[#1a1a1a]">
-                                                {stat.icon}
-                                            </div>
-                                            <span>{stat.val && stat.val > 0 ? '+' : ''}{stat.val}</span>
+                                        <div key={i} className="flex items-center justify-center text-[#1a1a1a]/80 font-black text-xs gap-1.5" title="Stat Impact">
+                                            <div className="opacity-75">{stat.icon}</div>
+                                            <span>{(stat.val ?? 0) > 0 ? '+' : ''}{stat.val}</span>
                                         </div>
                                     ))}
                                 </div>
 
-                                {/* Vote Count Overlay (Visible to everyone) */}
+                                {/* Vote Count Overlay */}
                                 {voteCount > 0 && (
-                                    <div className="absolute -left-3 top-1/2 -translate-y-1/2 bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold border-2 border-white shadow-lg z-30 animate-in zoom-in">
+                                    <div className="absolute -left-4 top-1/2 -translate-y-1/2 bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold border-4 border-white shadow-xl z-30 animate-in zoom-in">
                                         {voteCount}
                                     </div>
                                 )}
@@ -204,13 +212,12 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
                 </div>
 
                 {/* Category Footer */}
-                <div className="mt-10 mb-2">
-                    <h3 className="font-serif text-[#1a1a1a]/40 text-lg tracking-widest uppercase text-center font-bold">
-                        {categoryName || 'Crisis Event'}
+                <div className="mt-12 mb-2 opacity-60">
+                    <h3 className="font-serif text-[#1a1a1a] text-xl tracking-wider text-center italic capitalize">
+                        {categoryName?.toLowerCase() || 'Crisis Event'}
                     </h3>
                 </div>
             </div>
-
         </div>
     );
 };

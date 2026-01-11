@@ -18,9 +18,6 @@ interface GameData {
 
 import { BackgroundCard } from '@/components/auth/BackgroundCard'
 
-// Removed local BackgroundCard definition
-
-
 const JoinGamePage: React.FC = () => {
     const router = useRouter()
     const searchParams = useSearchParams()

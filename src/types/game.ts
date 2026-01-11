@@ -64,6 +64,8 @@ export interface GameSession {
     leaderTermLength: number;
     gameDurationMinutes: number;
     leaderElectionTimer: number;
+    totalRounds?: number;
+    cardsPerRound?: number;
 }
 
 // Game creation types

@@ -35,14 +35,16 @@ export async function GET(
         // Calculate team results
         const teamResults = gameSession.teams.map(team => {
             const teamPlayers = gameSession.players.filter(p => p.teamId === team.id);
-            const score = teamPlayers.reduce((sum, p) => sum + (p.score || 0), 0);
+            // Score formula: Budget * Base Value
+            const score = BigInt(team.budget) * BigInt(team.baseValue);
 
             return {
                 id: team.id,
                 name: team.name,
                 color: team.color,
-                score,
+                score: Number(score), // Convert back to number for JSON (careful with large numbers, but budget shouldn't be huge)
                 budget: team.budget,
+                baseValue: team.baseValue,
                 players: teamPlayers.map(p => ({
                     id: p.id,
                     nickname: p.nickname,

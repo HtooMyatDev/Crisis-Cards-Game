@@ -61,15 +61,19 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
     // Auto-vote on Timeout
     useEffect(() => {
         if (timeLeft === 0 && !hasVoted && !isSubmitting) {
-            // Auto-vote for self if possible, otherwise random
-            // If in runoff, vote for first candidate
+            // Auto-vote for self if possible (User preferred old behavior)
+            // If in runoff, likely forced to vote for first candidate or still valid logic needed?
+            // Reverting to simpler "vote for self" or "vote for first available" if self not found.
             let candidateId = currentPlayerId;
 
             if (electionStatus === 'RUNOFF' && runoffCandidates && runoffCandidates.length > 0) {
-                candidateId = runoffCandidates[0]; // Vote for first runoff candidate
-            } else if (!teamPlayers.some(p => p.id === candidateId)) {
-                // If current player isn't in lista (weird), pick first available
-                if (teamPlayers.length > 0) candidateId = teamPlayers[0].id;
+                // If in runoff and I'm not in it, arguably I should vote for someone else?
+                // But sticking to "old behavior" usually implies self-preservation or default.
+                // If default behavior was "vote for self", let's try that.
+                // If strictly "old behavior":
+                if (!runoffCandidates.includes(currentPlayerId)) {
+                    candidateId = runoffCandidates[0];
+                }
             }
 
             console.log("Timer expired, auto-voting for:", candidateId);
@@ -122,11 +126,11 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
                             <h2 className="text-3xl font-serif italic text-black/80 dark:text-[#FDFBF7]">Cards of Crisis</h2>
                             {/* 5 Color bar with border */}
                             <div className="flex -space-x-0.5 border-2 border-[#333] dark:border-[#FDFBF7] px-2 py-1 rounded-full bg-transparent items-center">
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#4CAF50] z-0"></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#EBA937] z-10"></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#2196F3] z-20"></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#ED8936] z-30"></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#F44336] z-40"></div>
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#399B2C] z-0"></div>
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#D9AD1F] z-10"></div>
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#4190A9] z-20"></div>
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#BE8111] z-30"></div>
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#CD302F] z-40"></div>
                             </div>
                         </div>
 

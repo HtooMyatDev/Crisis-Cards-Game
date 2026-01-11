@@ -9,14 +9,15 @@ export async function POST(
         const { id } = await params;
         const gameId = id;
         const body = await request.json();
-        const { initialBudget, initialBaseValue, leaderTermLength, gameDurationMinutes } = body;
+        const { initialBudget, initialBaseValue, leaderTermLength, gameDurationMinutes, totalRounds } = body;
 
         // Validate types
         if (
             (initialBudget !== undefined && typeof initialBudget !== 'number') ||
             (initialBaseValue !== undefined && typeof initialBaseValue !== 'number') ||
             (leaderTermLength !== undefined && typeof leaderTermLength !== 'number') ||
-            (gameDurationMinutes !== undefined && typeof gameDurationMinutes !== 'number')
+            (gameDurationMinutes !== undefined && typeof gameDurationMinutes !== 'number') ||
+            (totalRounds !== undefined && typeof totalRounds !== 'number')
         ) {
             return NextResponse.json(
                 { error: 'Invalid setting values. Must be numbers.' },
@@ -30,7 +31,8 @@ export async function POST(
                 ...(initialBudget !== undefined && { initialBudget }),
                 ...(initialBaseValue !== undefined && { initialBaseValue }),
                 ...(leaderTermLength !== undefined && { leaderTermLength }),
-                ...(gameDurationMinutes !== undefined && { gameDurationMinutes })
+                ...(gameDurationMinutes !== undefined && { gameDurationMinutes }),
+                ...(totalRounds !== undefined && { totalRounds })
             }
         });
 

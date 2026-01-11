@@ -93,8 +93,7 @@ export default async function LandingPage() {
                     <div className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto items-center justify-center p-4">
                         {userRole != "ADMIN" && (
                             <Link
-
-                                href="https://crisis-cards-game-live.vercel.app/"
+                                href={process.env.NODE_ENV === 'production' ? "https://crisis-cards-game-live.vercel.app/" : "/live"}
                                 className="group relative bg-[#333] dark:bg-[#FDFBF7] text-[#FDFBF7] dark:text-[#3E3E3C] text-2xl font-serif italic px-12 py-5 rounded-xl hover:bg-black dark:hover:bg-white transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)] active:translate-x-[0px] active:translate-y-[0px] active:shadow-none duration-200 w-full sm:w-auto text-center"
                             >
                                 <span className="flex items-center justify-center gap-3">

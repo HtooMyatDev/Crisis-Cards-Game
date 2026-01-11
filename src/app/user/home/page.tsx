@@ -13,6 +13,10 @@ interface UserStats {
 
 const UserHomePage = () => {
     const router = useRouter();
+    const [codeDigits, setCodeDigits] = useState(['', '', '', '', '', '']);
+    const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
+
+    // Restored missing state
     const [gameCode, setGameCode] = useState('');
     const [joining, setJoining] = useState(false);
     const [error, setError] = useState('');
@@ -37,9 +41,65 @@ const UserHomePage = () => {
         fetchUserStats();
     }, []);
 
+    useEffect(() => {
+        // Sync codeDigits to gameCode for submission
+        setGameCode(codeDigits.join(''));
+    }, [codeDigits]);
+
+    const handleDigitChange = (index: number, value: string) => {
+        if (value.length > 1) {
+            // Handle paste if somehow value is > 1 char (though max length is 1)
+            const chars = value.toUpperCase().split('').slice(0, 6);
+            const newDigits = [...codeDigits];
+            chars.forEach((char, i) => {
+                if (index + i < 6) newDigits[index + i] = char;
+            });
+            setCodeDigits(newDigits);
+            const nextIndex = Math.min(index + chars.length, 5);
+            inputRefs.current[nextIndex]?.focus();
+            return;
+        }
+
+        const newDigits = [...codeDigits];
+        newDigits[index] = value.toUpperCase();
+        setCodeDigits(newDigits);
+
+        // Auto-advance
+        if (value && index < 5) {
+            inputRefs.current[index + 1]?.focus();
+        }
+    };
+
+    const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Backspace' && !codeDigits[index] && index > 0) {
+            // Move back and delete if current is empty
+            const newDigits = [...codeDigits];
+            newDigits[index - 1] = '';
+            setCodeDigits(newDigits);
+            inputRefs.current[index - 1]?.focus();
+        }
+    };
+
+    const handlePaste = (e: React.ClipboardEvent) => {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData('text').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+
+        if (pastedData) {
+            const newDigits = [...codeDigits];
+            pastedData.split('').forEach((char, i) => {
+                newDigits[i] = char;
+            });
+            setCodeDigits(newDigits);
+            // Focus last filled or next empty
+            const nextIndex = Math.min(pastedData.length, 5);
+            inputRefs.current[nextIndex]?.focus();
+        }
+    };
+
     const handleJoinGame = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!gameCode.trim()) return;
+        const code = codeDigits.join('');
+        if (code.length !== 6) return;
 
         setJoining(true);
         setError('');
@@ -52,7 +112,7 @@ const UserHomePage = () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    gameCode,
+                    gameCode: code,
                     nickname
                 })
             });
@@ -102,18 +162,28 @@ const UserHomePage = () => {
                             Enter the secure access code to join an active crisis simulation.
                         </p>
 
-                        <form onSubmit={handleJoinGame} className="flex flex-col sm:flex-row gap-3 max-w-lg">
-                            <input
-                                type="text"
-                                value={gameCode}
-                                onChange={(e) => setGameCode(e.target.value.toUpperCase())}
-                                placeholder="GAME PIN"
-                                className="flex-1 bg-white text-black font-black text-xl px-6 py-4 rounded-lg border-4 border-black focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] placeholder:text-gray-300 uppercase tracking-widest"
-                                disabled={joining}
-                            />
+                        <form onSubmit={handleJoinGame} className="flex flex-col gap-4 max-w-lg">
+                            <div className="flex gap-2 sm:gap-4 justify-between">
+                                {codeDigits.map((digit, index) => (
+                                    <input
+                                        key={index}
+                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                        ref={(el: any) => (inputRefs.current[index] = el)}
+                                        type="text"
+                                        value={digit}
+                                        onChange={(e) => handleDigitChange(index, e.target.value)}
+                                        onKeyDown={(e) => handleKeyDown(index, e)}
+                                        onPaste={index === 0 ? handlePaste : undefined}
+                                        placeholder="-"
+                                        maxLength={1}
+                                        className="w-full aspect-square text-center bg-white text-black font-black text-2xl sm:text-3xl rounded-lg border-4 border-black focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:-translate-y-1 transition-all placeholder:text-gray-300 uppercase caret-transparent"
+                                        disabled={joining}
+                                    />
+                                ))}
+                            </div>
                             <button
                                 type="submit"
-                                disabled={joining || !gameCode.trim()}
+                                disabled={joining || codeDigits.some(d => !d)}
                                 className="bg-black text-white font-black text-xl px-8 py-4 rounded-lg border-4 border-black hover:bg-gray-900 active:translate-y-1 active:shadow-none shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {joining ? (

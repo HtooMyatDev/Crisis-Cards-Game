@@ -60,8 +60,17 @@ export const DecisionPhase: React.FC<DecisionPhaseProps> = ({
         }
     }, [gameCode, playerId, cardId]);
 
+    // OPTIONAL: Auto-select random option on timeout (if leader)
+    useEffect(() => {
+        if (timeLeft === 0 && isLeader && selectedResponse === null && currentCard && currentCard.responses.length > 0) {
+            const randomResponse = currentCard.responses[Math.floor(Math.random() * currentCard.responses.length)];
+            console.log("Time's up! Auto-selecting response:", randomResponse.id);
+            handleSelectResponse(randomResponse.id);
+        }
+    }, [timeLeft, isLeader, selectedResponse, currentCard]);
+
     const handleSelectResponse = async (responseId: number) => {
-        if (timeLeft === 0 || selectedResponse !== null || !currentCard) return;
+        if (selectedResponse !== null || !currentCard) return;
 
         // Optimistic update
         setSelectedResponse(responseId);
@@ -155,7 +164,7 @@ export const DecisionPhase: React.FC<DecisionPhaseProps> = ({
                             categoryColor={currentCard.category.color}
                             selectedResponseId={selectedResponse}
                             onSelectResponse={handleSelectResponse}
-                            disabled={timeLeft === 0 || selectedResponse !== null}
+                            disabled={selectedResponse !== null}
                             isLeader={isLeader}
                             votes={votes}
                             timeLeft={timeLeft}

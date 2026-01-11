@@ -163,7 +163,8 @@ const GameDetailsPage = () => {
                         initialBudget: data.game.initialBudget || 5000,
                         initialBaseValue: data.game.initialBaseValue || 5,
                         leaderTermLength: data.game.leaderTermLength || 4,
-                        gameDurationMinutes: data.game.gameDurationMinutes || 60
+                        gameDurationMinutes: data.game.gameDurationMinutes || 60,
+                        totalRounds: data.game.totalRounds || 3
                     });
                 }
             }
@@ -224,7 +225,8 @@ const GameDetailsPage = () => {
         initialBudget: 5000,
         initialBaseValue: 5,
         leaderTermLength: 4,
-        gameDurationMinutes: 60
+        gameDurationMinutes: 60,
+        totalRounds: 3
     });
     const [isSavingConfig, setIsSavingConfig] = useState(false);
 
@@ -967,20 +969,30 @@ const GameDetailsPage = () => {
                                 {isEditingConfig ? (
                                     <div className="space-y-3 bg-blue-50 dark:bg-blue-900/10 p-3 rounded border border-blue-100 dark:border-blue-900/30">
                                         <div>
-                                            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Initial Budget</label>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => setConfigForm({ ...configForm, initialBudget: 5000 })}
-                                                    className={`flex-1 py-1 text-xs font-bold border-2 rounded ${configForm.initialBudget === 5000 ? 'bg-blue-500 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200'}`}
-                                                >
-                                                    $5000
-                                                </button>
-                                                <button
-                                                    onClick={() => setConfigForm({ ...configForm, initialBudget: 10000 })}
-                                                    className={`flex-1 py-1 text-xs font-bold border-2 rounded ${configForm.initialBudget === 10000 ? 'bg-blue-500 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200'}`}
-                                                >
-                                                    $10000
-                                                </button>
+                                            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Initial Budget ($)</label>
+                                            <input
+                                                type="number"
+                                                value={configForm.initialBudget}
+                                                onChange={(e) => setConfigForm({ ...configForm, initialBudget: parseInt(e.target.value) || 0 })}
+                                                className="w-full px-2 py-1 text-xs border-2 border-gray-200 rounded focus:border-blue-500 outline-none font-bold"
+                                                placeholder="Enter budget..."
+                                                step={100}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Number of Rounds</label>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    value={configForm.totalRounds}
+                                                    onChange={(e) => setConfigForm({ ...configForm, totalRounds: parseInt(e.target.value) || 1 })}
+                                                    className="w-full px-2 py-1 text-xs border-2 border-gray-200 rounded focus:border-blue-500 outline-none font-bold"
+                                                    min={1}
+                                                    max={10}
+                                                />
+                                                <span className="text-[10px] text-gray-400 whitespace-nowrap">
+                                                    ({(configForm.totalRounds || 3) * 3} cards)
+                                                </span>
                                             </div>
                                         </div>
                                         <div>
@@ -1022,14 +1034,18 @@ const GameDetailsPage = () => {
                                     <div className="space-y-2 text-xs">
                                         <div className="flex justify-between">
                                             <span className="text-gray-500">Initial Budget</span>
-                                            <span className="font-bold">${game.initialBudget || 5000}</span>
+                                            <span className="font-bold">${(game.initialBudget || 0).toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">Rounds</span>
+                                            <span className="font-bold">{game.totalRounds || 3} ({((game.totalRounds || 3) * (game.cardsPerRound || 3))} cards)</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-gray-500">Game Duration</span>
                                             <span className="font-bold">{game.gameDurationMinutes || 60} Mins</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="font-bold">{game.leaderTermLength || 4} Rounds</span>
+                                            <span className="font-bold">{game.leaderTermLength || 4} Rounds Term</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-gray-500">Initial Base Value</span>
