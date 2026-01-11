@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, DollarSign, Heart, Settings, Landmark, Keyboard } from 'lucide-react';
+import { Clock, DollarSign, Heart, Landmark, Settings } from 'lucide-react';
 
 interface CardResponse {
     id: number;
@@ -66,16 +66,6 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
     };
 
     const palette = getCategoryPalette(categoryName);
-
-    // Keyboard navigation handler
-    const handleKeyDown = (e: React.KeyboardEvent, responseId: number) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            if (!disabled) {
-                onSelectResponse(responseId);
-            }
-        }
-    };
 
     // Add global keyboard shortcuts
     React.useEffect(() => {

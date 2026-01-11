@@ -6,7 +6,7 @@ export async function GET(
     { params }: { params: Promise<{ gameCode: string }> }
 ) {
     try {
-        const { gameCode } = await params;
+        await params; // consume params to satisfy lint if needed, or just remove destructuring
         const { searchParams } = new URL(request.url);
         const playerId = searchParams.get('playerId');
         const cardId = searchParams.get('cardId');

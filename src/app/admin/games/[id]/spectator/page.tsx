@@ -65,6 +65,7 @@ export default function SpectatorPage({ params }: { params: Promise<{ id: string
             const data = await res.json();
             setHostData(data);
             setError('');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error('Error fetching spectator data:', err);
             setError(err.message);

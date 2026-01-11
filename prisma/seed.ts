@@ -118,6 +118,7 @@ async function main() {
              const p = await prisma.colorPreset.create({
                  data: { ...preset, createdById: adminUser.id }
              });
+
              createdPresets.push(p);
         }
         console.log(`   ✅ Created ${createdPresets.length} color presets`);
@@ -277,6 +278,7 @@ async function main() {
                     status: 'Active', // CORRECTED STATUS
                     // Card base values removed - now on Team model
                     cardResponses: {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         create: cardData.responses.map((r: any) => ({
                             text: r.text,
                             politicalEffect: r.politicalEffect || 0,

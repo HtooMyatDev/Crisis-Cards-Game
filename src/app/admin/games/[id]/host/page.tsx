@@ -193,7 +193,6 @@ export default function HostControlPage({ params }: { params: Promise<{ id: stri
                 ...hostData,
                 game: {
                     ...hostData.game,
-                    // @ts-ignore - status string compatibility
                     status: statusMap[action]
                 }
             });

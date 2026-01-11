@@ -362,10 +362,10 @@ async function resolveElectionTimeout(gameSessionId: string, leaderElectionTimer
                 // TIE -> RUNOFF
                 await prisma.team.update({
                     where: { id: team.id },
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     data: {
                         electionStatus: 'RUNOFF',
                         runoffCandidates: winners
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     } as any
                 });
 
@@ -392,11 +392,11 @@ async function resolveElectionTimeout(gameSessionId: string, leaderElectionTimer
                 // TIE -> REPEAT RUNOFF
                 await prisma.team.update({
                     where: { id: team.id },
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     data: {
                         electionStatus: 'RUNOFF',
                         runoffCandidates: winners, // Narrow down if possible
                         runoffCount: { increment: 1 }
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     } as any
                 });
 
@@ -442,10 +442,10 @@ async function resolveElectionTimeout(gameSessionId: string, leaderElectionTimer
             if (allDone) {
                  await prisma.gameSession.update({
                     where: { id: gameSessionId },
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     data: {
                         roundStatus: 'DECISION_PHASE',
                         lastCardStartedAt: new Date()
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     } as any
                 });
             }
@@ -475,12 +475,12 @@ async function applyLeaderSelection(teamId: string, gameSessionId: string, leade
     // Update team status
     await prisma.team.update({
         where: { id: teamId },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data: {
             lastLeaderElectionRound: currentRound,
             electionStatus: 'COMPLETED',
             runoffCandidates: [], // Clear runoff candidates using empty array instead of JsonNull to avoid type issues if mapped
             runoffCount: 0
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any
     });
 }

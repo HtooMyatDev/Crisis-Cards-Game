@@ -126,7 +126,6 @@ export async function POST(
                 });
 
                 // Fetch latest game session for consistent lastTurnResult update
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const currentSession = await tx.gameSession.findUnique({
                     where: { id: gameSession.id },
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any

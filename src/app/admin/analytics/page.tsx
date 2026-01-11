@@ -3,7 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { Download, Calendar, Activity, TrendingUp, Users } from 'lucide-react';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const AnalyticsPage = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
@@ -29,9 +31,12 @@ const AnalyticsPage = () => {
 
         // Simple CSV Export for Weekly Activity
         const headers = ['Day', 'Users', 'Cards', 'Games'];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const rows = data.weeklyActivity.map((d: any) => [d.day, d.users, d.cards, d.games]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const csvContent = "data:text/csv;charset=utf-8,"
             + headers.join(",") + "\n"
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             + rows.map((e: any) => e.join(",")).join("\n");
 
         const encodedUri = encodeURI(csvContent);

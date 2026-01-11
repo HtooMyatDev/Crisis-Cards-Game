@@ -39,6 +39,7 @@ export const useGamePolling = ({
         console.log(`Subscribing to Pusher channel: game-${gameCode}`);
         const channel = pusherClient.subscribe(`game-${gameCode}`);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         channel.bind('game-update', (data: any) => {
             console.log('Real-time update received:', data);
             // Trigger the poll callback immediately

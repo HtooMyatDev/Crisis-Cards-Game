@@ -39,6 +39,7 @@ async function testConnection() {
         await prisma.$disconnect();
         console.log('✅ Connection test completed successfully');
         process.exit(0);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         console.error('❌ Connection failed!');
         console.error('Error code:', error.errorCode || 'Unknown');

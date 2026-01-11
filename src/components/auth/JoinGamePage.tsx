@@ -181,8 +181,8 @@ const JoinGamePage: React.FC = () => {
                 setStep('nickname')
             }, 3000)
 
-        } catch (err: any) {
-            setError(err.message)
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'An error occurred')
             // Shake effect could vary
         } finally {
             setPending(false)
@@ -226,9 +226,9 @@ const JoinGamePage: React.FC = () => {
 
             router.push(`/live/${data.gameCode}`)
 
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Failed to join game')
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (err: any) {
-            setError(err.message)
         } finally {
             setPending(false)
         }

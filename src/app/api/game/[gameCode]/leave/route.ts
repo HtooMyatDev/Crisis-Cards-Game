@@ -6,7 +6,7 @@ export async function POST(
     { params }: { params: Promise<{ gameCode: string }> }
 ) {
     try {
-        const { gameCode } = await params;
+        await params; // consume params for lint
         const { playerId } = await request.json();
 
         if (!playerId) {

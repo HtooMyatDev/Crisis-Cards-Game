@@ -120,11 +120,11 @@ export async function POST(
                 // Update Team: Set Status = RUNOFF, Update Candidates, Increment Count
                 await prisma.team.update({
                     where: { id: voter.teamId },
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     data: {
                         electionStatus: 'RUNOFF',
                         runoffCandidates: winners,
                         runoffCount: { increment: 1 }
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     } as any
                 });
 
@@ -179,12 +179,12 @@ export async function POST(
                 // Update team election status
                 await prisma.team.update({
                     where: { id: voter.teamId },
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     data: {
                         lastLeaderElectionRound: gameSession.currentRound,
                         electionStatus: 'COMPLETED',
                         runoffCandidates: Prisma.JsonNull,
                         runoffCount: 0 // Reset count for next time
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     } as any
                 });
 
@@ -204,10 +204,10 @@ export async function POST(
                 if (allTeamsHaveLeaders) {
                     await prisma.gameSession.update({
                         where: { id: gameSession.id },
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         data: {
                             roundStatus: 'DECISION_PHASE',
                             lastCardStartedAt: new Date() // Start timer now
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         } as any
                     });
                 }
