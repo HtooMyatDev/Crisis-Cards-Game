@@ -83,7 +83,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                 <div className="w-full max-w-lg relative z-10 mt-32">
 
                     {/* My Player Card */}
-                    <div className={`bg-white dark:bg-[#FDFBF7] border-[6px] rounded-2xl p-8 mb-12 text-center shadow-lg transition-colors ${team ? '' : 'border-[#333] dark:border-[#FDFBF7]'}`}
+                    <div className={`bg-[#FDFBF7] dark:bg-[#333] border-[4px] rounded-2xl p-8 mb-12 text-center shadow-lg transition-colors ${team ? '' : 'border-[#333] dark:border-[#FDFBF7]'}`}
                         style={{ borderColor: team?.color }}>
 
                         {/* Team Color Strip at top (optional based on design, but good for feedback) */}
@@ -91,10 +91,10 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                             <div className="absolute top-0 left-0 w-full h-4 rounded-t-lg" style={{ backgroundColor: team.color }}></div>
                         )}
 
-                        <h1 className="text-6xl font-serif italic text-[#333] dark:text-[#3E3E3C] mb-2 tracking-tight">
+                        <h1 className="text-6xl font-serif italic text-[#333] dark:text-[#FDFBF7] mb-2 tracking-tight">
                             {nickname}
                         </h1>
-                        <p className="text-xl text-[#666] dark:text-[#3E3E3C]/70 font-medium">
+                        <p className="text-xl text-[#666] dark:text-[#bbb] font-medium">
                             {team ? team.name : 'Waiting for team...'}
                         </p>
                     </div>
@@ -112,20 +112,30 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                                 if (teamPlayers.length === 0) return null;
 
                                 return (
-                                    <div key={t.id} className="bg-white dark:bg-[#FDFBF7] border-[4px] rounded-xl overflow-hidden shadow-sm"
+                                    <div key={t.id} className="bg-[#FDFBF7] dark:bg-[#333] border-[3px] rounded-xl overflow-hidden shadow-md transition-colors"
                                         style={{ borderColor: t.color }}>
-                                        {/* Team Header */}
-                                        <div className="px-4 py-2 bg-gray-50 dark:bg-[#FDFBF7] border-b-2" style={{ borderColor: `${t.color}33`, color: t.color }}>
-                                            <span className="text-sm font-bold uppercase tracking-wider text-[#333] dark:text-[#3E3E3C]">{t.name}</span>
-                                        </div>
+                                        {/* Team Header - Colored Strip */}
+                                        <div className="h-3 w-full" style={{ backgroundColor: t.color }}></div>
 
-                                        {/* Player Chips */}
-                                        <div className="p-4 flex flex-wrap gap-2">
-                                            {teamPlayers.map(p => (
-                                                <div key={p.id} className="border-[3px] border-[#333] dark:border-[#3E3E3C] rounded-lg px-3 py-1 font-serif italic font-bold text-lg bg-white dark:bg-[#FDFBF7] text-[#333] dark:text-[#3E3E3C] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(62,62,60,1)]">
-                                                    {p.nickname} {p.id === playerId && '(You)'}
-                                                </div>
-                                            ))}
+                                        <div className="p-4">
+                                            <h4 className="text-lg font-bold text-[#333] dark:text-[#FDFBF7] mb-3">{t.name}</h4>
+
+                                            {/* Player Chips */}
+                                            <div className="flex flex-wrap gap-3">
+                                                {teamPlayers.map(p => (
+                                                    <div key={p.id}
+                                                        className={`
+                                                            border-[2px] rounded-lg px-3 py-1.5 font-serif italic font-bold text-lg
+                                                            transition-all
+                                                            ${p.id === playerId
+                                                                ? 'bg-white dark:bg-[#333] text-[#333] dark:text-[#FDFBF7] border-[#333] dark:border-[#FDFBF7] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.8)]'
+                                                                : 'bg-transparent text-[#333] dark:text-[#FDFBF7] border-[#333] dark:border-[#FDFBF7]'
+                                                            }
+                                                        `}>
+                                                        {p.nickname} {p.id === playerId && '(You)'}
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 );
@@ -136,13 +146,13 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                                 const unassigned = allPlayers.filter(p => !p.teamId);
                                 if (unassigned.length === 0) return null;
                                 return (
-                                    <div className="bg-white dark:bg-[#FDFBF7] border-[4px] border-[#666] dark:border-[#FDFBF7] rounded-xl overflow-hidden shadow-sm border-dashed">
-                                        <div className="px-4 py-2 bg-gray-50 dark:bg-[#FDFBF7] border-b-2 border-[#666] dark:border-[#3E3E3C]/20">
-                                            <span className="text-sm font-bold uppercase tracking-wider text-[#666] dark:text-[#3E3E3C]">Unassigned</span>
+                                    <div className="bg-[#FDFBF7] dark:bg-[#333] border-[3px] border-[#666] dark:border-[#666] rounded-xl overflow-hidden shadow-sm border-dashed">
+                                        <div className="px-4 py-2 border-b-2 border-[#666] dark:border-[#666]/50 bg-gray-100 dark:bg-[#333]">
+                                            <span className="text-sm font-bold uppercase tracking-wider text-[#666] dark:text-[#999]">Unassigned</span>
                                         </div>
                                         <div className="p-4 flex flex-wrap gap-2">
                                             {unassigned.map(p => (
-                                                <div key={p.id} className="border-[2px] border-[#666] dark:border-[#3E3E3C] rounded-lg px-3 py-1 text-gray-500 dark:text-[#3E3E3C] font-medium bg-gray-50 dark:bg-[#FDFBF7]">
+                                                <div key={p.id} className="border-[2px] border-[#666] dark:border-[#666] rounded-lg px-3 py-1 text-gray-500 dark:text-[#bbb] font-medium bg-transparent">
                                                     {p.nickname} {p.id === playerId && '(You)'}
                                                 </div>
                                             ))}

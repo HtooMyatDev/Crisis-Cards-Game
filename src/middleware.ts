@@ -15,14 +15,14 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 
-    // Prevent redirect loop if verification fails on server side but cookie exists
-    // if (isAuthenticated && request.nextUrl.pathname.startsWith("/auth")) {
-    //     const redirectPath = userRole?.value === 'ADMIN' ? '/admin/dashboard' : '/user/home';
-    //     return NextResponse.redirect(new URL(redirectPath, request.url));
-    // }
+    // Prevent authenticated users from accessing /auth pages (Login/Register)
+    if (isAuthenticated && request.nextUrl.pathname.startsWith("/auth")) {
+        const redirectPath = userRole?.value === 'ADMIN' ? '/admin/dashboard' : '/user/home';
+        return NextResponse.redirect(new URL(redirectPath, request.url));
+    }
 
-    // Prevent authenticated users from accessing /play page
-    if (isAuthenticated && (currentPath.startsWith('/live') || currentPath.startsWith('/auth'))) {
+    // Prevent authenticated users from accessing /live page
+    if (isAuthenticated && currentPath.startsWith('/live')) {
         const redirectPath = userRole?.value === 'ADMIN' ? '/admin/dashboard' : '/user/home';
         return NextResponse.redirect(new URL(redirectPath, request.url));
     }

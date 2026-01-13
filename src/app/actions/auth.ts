@@ -267,8 +267,12 @@ export async function getCurrentUser() {
         }
 
         // Fetch user from database to get latest info
+        // ensure userId is handled correctly whether string or number
+        const userIdInt = typeof decoded.userId === 'string' ? parseInt(decoded.userId) : decoded.userId;
+
         const user = await prisma.user.findUnique({
-            where: { id: parseInt(decoded.userId) },
+            where: { id: userIdInt },
+
             select: {
                 id: true,
                 name: true,
@@ -279,7 +283,7 @@ export async function getCurrentUser() {
             }
         });
 
-        return user;
+    return user;
     } catch (error) {
         console.error('Error getting current user:', error);
         return null;

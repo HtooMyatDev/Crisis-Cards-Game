@@ -2,6 +2,7 @@ import React from 'react';
 import AdminLayoutShell from '@/components/admin/AdminLayoutShell';
 import { getCurrentUser } from '@/app/actions/auth';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +15,7 @@ export default async function AdminLayout({
 
     // Optional: Redirect if not logged in (though middleware usually handles this)
     if (!user) {
-        redirect('/auth/login');
+        redirect('/api/auth/logout');
     }
 
     return (
