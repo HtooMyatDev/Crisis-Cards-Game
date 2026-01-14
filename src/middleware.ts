@@ -11,12 +11,12 @@ export function middleware(request: NextRequest) {
     }
 
 
-    if (!isAuthenticated && (request.nextUrl.pathname.startsWith("/admin") || request.nextUrl.pathname.startsWith("/user"))) {
+    if (!isAuthenticated && (currentPath.startsWith("/admin") || currentPath.startsWith("/user"))) {
         return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 
     // Prevent authenticated users from accessing /auth pages (Login/Register)
-    if (isAuthenticated && request.nextUrl.pathname.startsWith("/auth")) {
+    if (isAuthenticated && currentPath.startsWith("/auth")) {
         const redirectPath = userRole?.value === 'ADMIN' ? '/admin/dashboard' : '/user/home';
         return NextResponse.redirect(new URL(redirectPath, request.url));
     }
