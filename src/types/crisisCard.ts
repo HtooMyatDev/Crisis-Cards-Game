@@ -16,6 +16,7 @@ export type ResponseOption = {
     societyEffect: number;
     environmentEffect: number;
     score: number; // Score field for tracking points
+    cost: number; // Cost (budget impact)
     impactDescription?: string; // Narrative consequence of this choice
 };
 
@@ -26,11 +27,6 @@ export type FormState = {
     categoryName: string;
     status: 'Active' | 'Inactive';
     timeLimit: number;
-    political: number;
-    economic: number;
-    infrastructure: number;
-    society: number;
-    environment: number;
     responseOptions: ResponseOption[];
 };
 
@@ -50,10 +46,5 @@ export type FormErrors = Partial<{
     description: string;
     categoryId: string;
     timeLimit: string;
-    political: string;
-    economic: string;
-    infrastructure: string;
-    society: string;
-    environment: string;
     responseOptions: ResponseOptionErrors[];
 }>;

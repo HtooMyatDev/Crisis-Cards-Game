@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { Crown, CheckCircle, Loader2 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import PageTransition from '@/components/ui/PageTransition'
 
 interface Player {
@@ -21,6 +21,7 @@ interface LeaderElectionViewProps {
     runoffCandidates?: number[]
     runoffCount?: number
     timerDuration?: number
+    currentCardIndex?: number
 }
 
 export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
@@ -34,12 +35,26 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
     electionStatus = 'OPEN',
     runoffCandidates = [],
     runoffCount = 0,
-    timerDuration = 60
+    timerDuration = 60,
+    currentCardIndex = 0
 }) => {
     const [selectedCandidate, setSelectedCandidate] = useState<number | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [timeLeft, setTimeLeft] = useState(timerDuration)
+    const [showTransition, setShowTransition] = useState(true)
     const autoVoteAttempted = React.useRef(false);
+
+    // Transition Logic
+    useEffect(() => {
+        // Only show "Term Ended" transition if it's an OPEN election AND not the very first one (currentCardIndex > 0)
+        if (electionStatus === 'OPEN' && currentCardIndex > 0) {
+            setShowTransition(true);
+            const timer = setTimeout(() => setShowTransition(false), 2000);
+            return () => clearTimeout(timer);
+        } else {
+            setShowTransition(false);
+        }
+    }, [electionStatus, currentCardIndex]);
 
     // Timer Logic
     useEffect(() => {
@@ -183,6 +198,27 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
                                 : 'Elect your leader for 3 rounds (1 term)'}
                         </p>
                     </div>
+
+                    <AnimatePresence>
+                        {showTransition && electionStatus === 'OPEN' && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm pointer-events-none"
+                            >
+                                <motion.div
+                                    initial={{ scale: 0.8, y: 20 }}
+                                    animate={{ scale: 1, y: 0 }}
+                                    exit={{ scale: 1.1, opacity: 0 }}
+                                    className="text-center"
+                                >
+                                    <h2 className="text-6xl font-serif italic text-[#FDFBF7] mb-2">Term Ended</h2>
+                                    <p className="text-2xl text-[#FDFBF7]/80 font-sans uppercase tracking-widest">Election Time</p>
+                                </motion.div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     {/* Timer */}
                     {/* Show a subtle timer - maybe top right or just numbers? */}

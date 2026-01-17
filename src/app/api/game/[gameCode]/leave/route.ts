@@ -7,7 +7,16 @@ export async function POST(
 ) {
     try {
         await params; // consume params for lint
-        const { playerId } = await request.json();
+        let playerId: string | undefined;
+
+        try {
+            const body = await request.json();
+            playerId = body.playerId;
+        } catch (e) {
+            // Body might be empty, check query params as fallback
+            const { searchParams } = new URL(request.url);
+            playerId = searchParams.get('playerId') || undefined;
+        }
 
         if (!playerId) {
             return NextResponse.json(
@@ -27,7 +36,7 @@ export async function POST(
         if (!player) {
             return NextResponse.json(
                 { error: 'Player not found' },
-                { status: 404 }
+                { status: 200 }
             );
         }
 

@@ -88,18 +88,20 @@ export async function POST(
 
         // Calculate impacts
         const cost = responseOption.cost || 0;
-        const economicEffect = responseOption.economicEffect || 0;
-        const baseValue = player.team.baseValue || 5;
 
-        // Sum of all effect values associated with the response
-        const effectsSum = (responseOption.politicalEffect || 0) +
+        // Sum of all effect values determines the change in Team Base Value
+        const baseValueChange = (responseOption.politicalEffect || 0) +
                          (responseOption.economicEffect || 0) +
                          (responseOption.infrastructureEffect || 0) +
                          (responseOption.societyEffect || 0) +
                          (responseOption.environmentEffect || 0);
 
-        const scoreChange = baseValue + effectsSum;
-        const budgetChange = economicEffect - cost;
+        // Player's score contribution (based on CURRENT base value + value of their choice)
+        // Note: Using current baseValue before update for this turn's score calculation
+        const playerTurnScore = (player.team.baseValue || 0) + baseValueChange;
+
+        // Budget only changes by cost
+        const budgetChange = -cost;
 
         await prisma.$transaction(async (tx) => {
             // 1. Record the response
@@ -113,16 +115,19 @@ export async function POST(
 
             // 2. If Leader, apply effects and check for phase transition
             if (player.isLeader) {
-                // Update scores for all team members
+                // Update scores for all team members (using the calculated turn score)
                 await tx.player.updateMany({
                     where: { teamId: player.teamId },
-                    data: { score: { increment: scoreChange } }
+                    data: { score: { increment: playerTurnScore } }
                 });
 
-                // Update team budget
+                // Update team stats: Budget AND Base Value
                 await tx.team.update({
                     where: { id: player.teamId! },
-                    data: { budget: { increment: budgetChange } }
+                    data: {
+                        budget: { increment: budgetChange },
+                        baseValue: { increment: baseValueChange }
+                    }
                 });
 
                 // Fetch latest game session for consistent lastTurnResult update
@@ -140,7 +145,8 @@ export async function POST(
                     teamId: player.teamId,
                     teamName: player.team!.name,
                     teamColor: player.team!.color,
-                    scoreChange: scoreChange,
+                    scoreChange: playerTurnScore,
+                    baseValueChange: baseValueChange,
                     budgetChange: budgetChange,
                     selectedResponse: responseOption.text,
                     impactDescription: responseOption.impactDescription,

@@ -62,8 +62,8 @@ export const CardPreview: React.FC<CardPreviewProps> = ({ formData, categories }
                             {formData.title || 'Card Title'}
                         </h3>
                         <span className={`px-2 py-1 text-xs font-semibold rounded border-2 ${formData.status === 'Active'
-                                ? 'bg-green-100 text-green-800 border-green-800'
-                                : 'bg-red-100 text-red-800 border-red-800'
+                            ? 'bg-green-100 text-green-800 border-green-800'
+                            : 'bg-red-100 text-red-800 border-red-800'
                             }`}>
                             {formData.status}
                         </span>
@@ -92,26 +92,7 @@ export const CardPreview: React.FC<CardPreviewProps> = ({ formData, categories }
                         </div>
                     </div>
 
-                    <div className="mb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Zap size={16} className="text-gray-500" />
-                            <p className="text-sm font-semibold text-gray-700">Card Values:</p>
-                        </div>
-                        <div className="grid grid-cols-5 gap-2">
-                            {[
-                                { value: formData.political, icon: Shield, color: 'text-blue-500' },
-                                { value: formData.economic, icon: TrendingUp, color: 'text-green-500' },
-                                { value: formData.infrastructure, icon: Building2, color: 'text-gray-500' },
-                                { value: formData.society, icon: Users, color: 'text-yellow-500' },
-                                { value: formData.environment, icon: Leaf, color: 'text-emerald-500' },
-                            ].map(({ value, icon: Icon, color }, index) => (
-                                <div key={index} className="flex items-center justify-center gap-2 p-2 bg-gray-50 rounded border">
-                                    <Icon size={14} className={color} />
-                                    <span className="text-sm font-bold text-gray-800">{value || 0}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+
 
                     <div className="mb-4">
                         <p className="text-sm font-semibold mb-2 text-gray-700">Response Options:</p>

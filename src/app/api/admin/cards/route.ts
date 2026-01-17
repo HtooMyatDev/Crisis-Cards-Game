@@ -46,7 +46,6 @@ export async function POST(request: NextRequest) {
             status,
             responseOptions,
             categoryId,
-
         } = body;
 
         // Validate required fields

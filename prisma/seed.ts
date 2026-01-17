@@ -34,7 +34,7 @@ async function main() {
                 isActive: true,
             }
         });
-        console.log(`   ✅ Admin user ready: ${adminUser.email}`);
+        console.log(`✅ Admin user ready: ${adminUser.email}`);
 
         // 2. Color Presets
         console.log('🎨 Seeding Color Presets...');
@@ -136,8 +136,16 @@ async function main() {
         const createdCategories = [];
         for (const cat of categoriesData) {
             const preset = createdPresets.find(p => p.name === cat.presetName);
-            const category = await prisma.category.create({
-                data: {
+            const category = await prisma.category.upsert({
+                where: { name: cat.name },
+                update: {
+                    description: `Category for ${cat.name.toLowerCase()}`,
+                    color: cat.color,
+                    colorPresetId: preset?.id,
+                    createdBy: adminUser.id,
+                    status: 'ACTIVE'
+                },
+                create: {
                     name: cat.name,
                     description: `Category for ${cat.name.toLowerCase()}`,
                     color: cat.color,
@@ -157,7 +165,6 @@ async function main() {
                 title: 'Diplomatic Scandal',
                 categoryName: 'Political Instability',
                 description: 'A high-ranking official has been caught in a compromising situation.',
-                political: -10, society: -5,
                 responses: [
                     { text: 'Deny everything', impact: 'Public trust hits an all-time low as evidence surfaces, causing widespread cynicism.', politicalEffect: -5, societyEffect: -10, score: 10, cost: 50 },
                     { text: 'Public apology', impact: 'The apology is received with mixed feelings, but stabilize the immediate political fallout.', politicalEffect: 5, societyEffect: 5, score: 20, cost: 100 },
@@ -168,7 +175,6 @@ async function main() {
                 title: 'Election Fraud Allegations',
                 categoryName: 'Political Instability',
                 description: 'Opposition party claims voting irregularities in key districts.',
-                political: -15, society: -10,
                 responses: [
                     { text: 'Recount votes', impact: 'The recount confirms the results but delays governance for weeks, increasing anxiety.', politicalEffect: 5, societyEffect: 5, score: 15, cost: 500 },
                     { text: 'Dismiss claims', impact: 'Dismissal fuels violent protests and deepens the divide between political factions.', politicalEffect: -10, societyEffect: -15, score: 5, cost: 0 },
@@ -179,7 +185,6 @@ async function main() {
                 title: 'Market Crash',
                 categoryName: 'Economic Crisis',
                 description: 'Stock markets are plummeting due to global uncertainty.',
-                economic: -20, society: -10,
                 responses: [
                     { text: 'Bailout banks', impact: 'Banks are saved, preventing total collapse, but the public is furious at the use of tax funds.', economicEffect: 10, societyEffect: -5, score: 15, cost: 5000 },
                     { text: 'Austerity measures', impact: 'Spending cuts stabilize the budget but strangle growth and hurt the most vulnerable.', economicEffect: 5, societyEffect: -15, score: 10, cost: 0 },
@@ -190,7 +195,6 @@ async function main() {
                 title: 'Currency Devaluation',
                 categoryName: 'Economic Crisis',
                 description: 'National currency loses 20% value overnight due to speculation.',
-                economic: -15, political: -5,
                 responses: [
                     { text: 'Raise interest rates', impact: 'Higher rates stabilize the currency but crush small businesses and slow housing.', economicEffect: 10, societyEffect: -5, score: 15, cost: 0 },
                     { text: 'Peg currency', impact: 'Pegging the currency costs a fortune in reserves, offering only temporary relief.', economicEffect: 5, politicalEffect: 5, score: 10, cost: 3000 },
@@ -201,7 +205,6 @@ async function main() {
                 title: 'Protests Erupt',
                 categoryName: 'Social Unrest',
                 description: 'Citizens are protesting against rising living costs.',
-                society: -15, political: -5,
                 responses: [
                     { text: 'Police crackdown', impact: 'The crackdown restores order temporarily but radicalizes the movement against the state.', societyEffect: -20, politicalEffect: -10, score: 5, cost: 1000 },
                     { text: 'Negotiate with leaders', impact: 'Negotiations de-escalate tension, leading to a peaceful, albeit expensive, resolution.', societyEffect: 10, politicalEffect: 5, score: 20, cost: 100 },
@@ -212,7 +215,6 @@ async function main() {
                 title: 'Pandemic Outbreak',
                 categoryName: 'Social Unrest',
                 description: 'A new contagious virus is spreading rapidly in urban areas.',
-                society: -20, economic: -10,
                 responses: [
                     { text: 'Strict lockdown', impact: 'The lockdown effectively curbs the spread but devastates the local economy and morale.', societyEffect: 10, economicEffect: -15, score: 15, cost: 5000 },
                     { text: 'Mask mandate only', impact: 'Masks slow the spread slightly without harming the economy, but cases still rise.', societyEffect: 5, economicEffect: -5, score: 10, cost: 500 },
@@ -223,7 +225,6 @@ async function main() {
                 title: 'Oil Spill',
                 categoryName: 'Environmental Disaster',
                 description: 'A tanker has capsized, leaking oil into the ocean.',
-                environment: -20, economic: -5,
                 responses: [
                     { text: 'Chemical dispersants', impact: 'Dispersants break up the oil visually but introduce new toxins into the ecosystem.', environmentEffect: -5, economicEffect: -5, score: 10, cost: 1000 },
                     { text: 'Manual cleanup', impact: 'Manual cleanup is slow and expensive, but the most environmentally responsible choice.', environmentEffect: 10, economicEffect: -10, score: 20, cost: 3000 },
@@ -234,7 +235,6 @@ async function main() {
                 title: 'Wildfire Spreading',
                 categoryName: 'Environmental Disaster',
                 description: 'Uncontrolled wildfires threaten national parks and nearby towns.',
-                environment: -15, society: -10,
                 responses: [
                     { text: 'Evacuate towns', impact: 'Evacuations save lives but leave homes and history to be consumed by the flames.', societyEffect: 10, economicEffect: -5, score: 20, cost: 2000 },
                     { text: 'Deploy military', impact: 'Military support helps contain the fire efficiently, boosting government approval.', environmentEffect: 5, politicalEffect: 5, score: 15, cost: 1500 },
@@ -245,7 +245,6 @@ async function main() {
                 title: 'Power Grid Failure',
                 categoryName: 'Infrastructure Failure',
                 description: 'Major blackout affecting half the country.',
-                infrastructure: -20, economic: -10,
                 responses: [
                     { text: 'Rolling blackouts', impact: 'Blackouts manage the load but disrupt life and business, angering the population.', infrastructureEffect: 5, economicEffect: -5, score: 15, cost: 0 },
                     { text: 'Emergency repairs', impact: 'Rapid, expensive repairs restore power quickly, averting a larger crisis.', infrastructureEffect: 15, economicEffect: -15, score: 20, cost: 4000 },
@@ -256,7 +255,6 @@ async function main() {
                 title: 'Bridge Collapse',
                 categoryName: 'Infrastructure Failure',
                 description: 'A major bridge has collapsed during rush hour traffic.',
-                infrastructure: -25, society: -10,
                 responses: [
                     { text: 'Emergency rescue', impact: 'Rescue efforts are heroic and save lives, uniting the city in grief and hope.', societyEffect: 10, economicEffect: -5, score: 20, cost: 2000 },
                     { text: 'Investigate corruption', impact: 'The investigation reveals rot at the core, purging bad actors but delaying rebuilding.', politicalEffect: -5, infrastructureEffect: 5, score: 15, cost: 500 },
@@ -276,6 +274,7 @@ async function main() {
                     categoryId: category.id,
                     createdBy: adminUser.id,
                     status: 'Active', // CORRECTED STATUS
+                    timeLimit: 3, // Added default time limit of 3 minutes
                     // Card base values removed - now on Team model
                     cardResponses: {
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -162,6 +162,7 @@ const GameLobbyPage = () => {
                             runoffCandidates={team.runoffCandidates}
                             runoffCount={team.runoffCount || 0}
                             timerDuration={gameState.leaderElectionTimer || 60}
+                            currentCardIndex={gameState.currentCardIndex}
                             onVote={async (candidateId) => {
                                 try {
                                     await gameService.voteForLeader(gameCode, playerId || 0, candidateId);

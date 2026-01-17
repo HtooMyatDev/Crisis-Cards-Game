@@ -44,5 +44,7 @@ export const gameSessionSchema = z.object({
     categoryIds: z.array(z.number().positive())
         .min(1, { message: "At least one category is required" })
         .max(10, { message: "Too many categories selected" }),
-    shuffledCardIds: z.array(z.number()).optional()
+    shuffledCardIds: z.array(z.number()).optional(),
+    initialBudget: z.number().min(0, { message: "Budget cannot be negative" }).default(5000),
+    initialBaseValue: z.number().min(0, { message: "Base value cannot be negative" }).default(5)
 });

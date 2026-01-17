@@ -10,11 +10,13 @@ interface CardResponse {
     id: number;
     text: string;
     order: number;
-    politicalEffect: number;
-    economicEffect: number;
-    infrastructureEffect: number;
-    societyEffect: number;
-    environmentEffect: number;
+    politicalEffect?: number;
+    economicEffect?: number;
+    infrastructureEffect?: number;
+    societyEffect?: number;
+    environmentEffect?: number;
+    cost?: number; // Added cost
+    score?: number; // Added score
     cardId?: string;
 }
 
@@ -365,19 +367,20 @@ export default function CrisisCardList() {
                         return (
                             <div
                                 key={card.id}
-                                className="relative w-full rounded-[2.5rem] p-6 shadow-xl transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl overflow-hidden font-sans text-[#1a1a1a]"
+                                className="relative w-full rounded-[2rem] p-6 shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.01] overflow-hidden font-sans text-[#1a1a1a]"
                                 style={{ backgroundColor: cardBgColor }}
                             >
-                                {/* Top Decoration: White pill with colored dots (Scaled down slightly) */}
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] px-4 py-2 rounded-b-[1.2rem] shadow-sm flex gap-1.5 z-20">
-                                    <div className="w-3 h-3 rounded-full bg-[#4CAF50]" />
-                                    <div className="w-3 h-3 rounded-full bg-[#2196F3]" />
-                                    <div className="w-3 h-3 rounded-full bg-[#FFC107]" />
-                                    <div className="w-3 h-3 rounded-full bg-[#F44336]" />
+                                {/* Top Decoration: White pill with 5 overlapping dots (Game Style) */}
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] px-5 py-2.5 rounded-b-[1.2rem] shadow-sm flex items-center justify-center -space-x-1.5 z-20">
+                                    <div className="w-4 h-4 rounded-full bg-[#399B2C] border-2 border-[#FDFBF7]" />
+                                    <div className="w-4 h-4 rounded-full bg-[#D9AD1F] border-2 border-[#FDFBF7]" />
+                                    <div className="w-4 h-4 rounded-full bg-[#4190A9] border-2 border-[#FDFBF7]" />
+                                    <div className="w-4 h-4 rounded-full bg-[#BE8111] border-2 border-[#FDFBF7]" />
+                                    <div className="w-4 h-4 rounded-full bg-[#CD302F] border-2 border-[#FDFBF7]" />
                                 </div>
 
                                 {/* Content Container */}
-                                <div className="relative z-10 flex flex-col items-center mt-6">
+                                <div className="relative z-10 flex flex-col items-center mt-5">
 
                                     {/* Edit/Archive/Status Controls (Absolute positioned for admin access) */}
                                     <div className="absolute top-0 right-0 flex gap-1">
@@ -399,67 +402,92 @@ export default function CrisisCardList() {
                                         </p>
                                     </div>
 
-                                    {/* Stats Grid (Replacing the old grid with a compact row or grid) */}
-                                    <div className="flex flex-wrap justify-center gap-1.5 mb-4 opacity-80">
-                                        <div className="flex items-center gap-1 bg-black/5 px-2 py-1 rounded-full text-xs font-bold text-[#1a1a1a]">
-                                            <Shield size={12} strokeWidth={3} /> {card.political || 0}
-                                        </div>
-                                        <div className="flex items-center gap-1 bg-black/5 px-2 py-1 rounded-full text-xs font-bold text-[#1a1a1a]">
-                                            <DollarSign size={12} strokeWidth={3} /> {card.economic || 0}
-                                        </div>
-                                        <div className="flex items-center gap-1 bg-black/5 px-2 py-1 rounded-full text-xs font-bold text-[#1a1a1a]">
-                                            <Landmark size={12} strokeWidth={3} /> {card.infrastructure || 0}
-                                        </div>
-                                        <div className="flex items-center gap-1 bg-black/5 px-2 py-1 rounded-full text-xs font-bold text-[#1a1a1a]">
-                                            <Heart size={12} strokeWidth={3} /> {card.society || 0}
-                                        </div>
-                                        <div className="flex items-center gap-1 bg-black/5 px-2 py-1 rounded-full text-xs font-bold text-[#1a1a1a]">
-                                            <Settings size={12} strokeWidth={3} /> {card.environment || 0}
-                                        </div>
-                                        <div className="flex items-center gap-1 bg-black/5 px-2 py-1 rounded-full text-xs font-bold text-[#1a1a1a]">
-                                            <Clock size={12} strokeWidth={3} /> {card.timeLimit}m
+                                    {/* Timer Only */}
+                                    <div className="flex justify-center mb-5">
+                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-white/50 rounded-full border border-black/5 text-[#1a1a1a]/60">
+                                            <Clock size={12} strokeWidth={2.5} />
+                                            <span className="text-xs font-bold font-mono">
+                                                {card.timeLimit ? `${card.timeLimit}m` : '∞'}
+                                            </span>
                                         </div>
                                     </div>
 
-                                    {/* Response Options */}
-                                    <div className="w-full space-y-2 mb-4">
+                                    {/* Response Options - Enhanced Styling */}
+                                    <div className="w-full space-y-3 mb-4 px-1">
                                         {responses.slice(0, 2).map((response, idx) => {
                                             const letter = String.fromCharCode(65 + idx);
+
                                             return (
-                                                <div key={response.id} className="w-full flex items-stretch bg-[#FDFBF7] rounded-lg overflow-hidden shadow-sm h-12">
-                                                    {/* Letter Block */}
-                                                    <div
-                                                        className="w-10 flex items-center justify-center bg-black/10 border-r border-black/5"
-                                                        style={{ backgroundColor: cardBgColor, filter: 'brightness(0.9)' }}
-                                                    >
-                                                        <span className="font-serif italic text-xl text-white font-bold">
-                                                            {letter}
-                                                        </span>
+                                                <div key={response.id} className="group relative w-full flex flex-col bg-[#FDFBF7] rounded-xl overflow-hidden shadow-sm border border-black/5 hover:border-black/10 transition-colors">
+
+                                                    {/* Main Row: Letter + Text + Cost */}
+                                                    <div className="flex items-stretch min-h-[3rem]">
+                                                        {/* Letter Block */}
+                                                        <div
+                                                            className="w-10 flex flex-col items-center justify-center border-r border-black/5"
+                                                            style={{ backgroundColor: cardBgColor, filter: 'brightness(0.95)' }}
+                                                        >
+                                                            <span className="font-serif italic text-lg text-white font-black drop-shadow-sm">
+                                                                {letter}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Content */}
+                                                        <div className="flex-1 px-3 py-2 flex items-center justify-between gap-2">
+                                                            <p className="text-[#1a1a1a] text-xs font-medium leading-snug line-clamp-2">
+                                                                {response.text}
+                                                            </p>
+
+                                                            {/* Cost Badge */}
+                                                            {response.cost !== undefined && response.cost !== 0 && (
+                                                                <div className={`shrink-0 flex items-center px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wide ${response.cost > 0 ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
+                                                                    }`}>
+                                                                    {response.cost > 0 ? 'Cost' : 'Gain'}
+                                                                    <span className="ml-1 text-xs">
+                                                                        ${Math.abs(response.cost)}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    {/* Text */}
-                                                    <div className="flex-1 p-2 flex items-center">
-                                                        <p className="text-[#1a1a1a] text-xs font-medium text-left leading-tight line-clamp-2">
-                                                            {response.text}
-                                                        </p>
-                                                    </div>
-                                                    {/* Cost */}
-                                                    {/* <div className="pr-2 flex items-center">
-                                                         // We could show cost here if available in the view model, but the interface says CardResponse has specific fields.
-                                                         // The interface in this file: politicalEffect etc. No cost?
-                                                         // Checking interface... interface CardResponse has id, text, order, and effects. No explicit 'cost' field shown in the types in this file (lines 8-19).
-                                                         // It seems 'cost' might be missing in this specific page's type def or just not used. I'll skip it for now.
-                                                    </div> */}
+
+                                                    {/* Effects Footer (if any) */}
+                                                    {(() => {
+                                                        const effects = [
+                                                            { l: 'Pol', v: response.politicalEffect, c: 'text-red-700' },
+                                                            { l: 'Eco', v: response.economicEffect, c: 'text-amber-700' },
+                                                            { l: 'Inf', v: response.infrastructureEffect, c: 'text-blue-700' },
+                                                            { l: 'Soc', v: response.societyEffect, c: 'text-rose-700' },
+                                                            { l: 'Env', v: response.environmentEffect, c: 'text-emerald-700' },
+                                                        ].filter(e => e.v && e.v !== 0);
+
+                                                        if (effects.length === 0) return null;
+
+                                                        return (
+                                                            <div className="bg-black/[0.02] px-3 py-1.5 flex gap-2 border-t border-black/5 flex-wrap">
+                                                                {effects.map((e, i) => (
+                                                                    <span key={i} className={`text-[10px] font-bold ${e.c} flex items-center gap-0.5`}>
+                                                                        {e.l} {e.v! > 0 ? '+' : ''}{e.v}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        );
+                                                    })()}
                                                 </div>
                                             );
                                         })}
+
                                         {responses.length > 2 && (
-                                            <div className="text-center text-xs font-serif italic text-[#1a1a1a]/60">
-                                                +{responses.length - 2} more options
+                                            <div className="flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#1a1a1a]/40 pt-1">
+                                                <div className="w-1 h-1 rounded-full bg-current" />
+                                                {responses.length - 2} more options
+                                                <div className="w-1 h-1 rounded-full bg-current" />
                                             </div>
                                         )}
+
                                         {responses.length === 0 && (
-                                            <div className="text-center text-xs font-serif italic text-[#1a1a1a]/40 py-2">
-                                                No options defined
+                                            <div className="flex flex-col items-center justify-center py-4 text-center border-2 border-dashed border-black/5 rounded-xl">
+                                                <span className="text-xs font-serif italic text-[#1a1a1a]/40">No options configured</span>
                                             </div>
                                         )}
                                     </div>

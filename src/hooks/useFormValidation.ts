@@ -24,14 +24,6 @@ export const useFormValidation = () => {
             errors.timeLimit = 'Time limit must be between 1 and 120 minutes';
         }
 
-        // Base values validation
-        const inRange50 = (v: number) => v >= -50 && v <= 50;
-        if (!inRange50(formData.political)) errors.political = 'Political must be between -50 and 50';
-        if (!inRange50(formData.economic)) errors.economic = 'Economic must be between -50 and 50';
-        if (!inRange50(formData.infrastructure)) errors.infrastructure = 'Infrastructure must be between -50 and 50';
-        if (!inRange50(formData.society)) errors.society = 'Society must be between -50 and 50';
-        if (!inRange50(formData.environment)) errors.environment = 'Environment must be between -50 and 50';
-
         // Response options validation
         const optionErrors = validateResponseOptions(formData.responseOptions);
         if (optionErrors.length > 0) errors.responseOptions = optionErrors;

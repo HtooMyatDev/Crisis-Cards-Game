@@ -47,7 +47,9 @@ export async function POST(
                 // Shuffle all cards
                 const shuffled = allActiveCards.sort(() => Math.random() - 0.5);
 
+                // cardsPerRound is fixed to 3 (or session default) regardless of player count
                 const cardsPerRound = gameSession.cardsPerRound || 3;
+                console.log(`Game ${gameCode}: Setting cardsPerRound to ${cardsPerRound}`);
 
                 // Determine card count based on game duration (assume 5 mins per card if no timeLimit)
                 // Default to 9 cards (3 rounds of 3) if calculation yields less, as per fairness requirement

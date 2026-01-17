@@ -41,11 +41,6 @@ export const useCrisisCardData = (cardId: string) => {
         categoryName: card.category?.name || '',
         status: (card.status === 'OPEN' || card.status === 'IN_PROGRESS') ? 'Active' : 'Inactive',
         timeLimit: typeof card.timeLimit === 'number' ? card.timeLimit : 15,
-        political: typeof card.political === 'number' ? card.political : 0,
-        economic: typeof card.economic === 'number' ? card.economic : 0,
-        infrastructure: typeof card.infrastructure === 'number' ? card.infrastructure : 0,
-        society: typeof card.society === 'number' ? card.society : 0,
-        environment: typeof card.environment === 'number' ? card.environment : 0,
         responseOptions: Array.isArray(card.cardResponses) && card.cardResponses.length > 0
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ? card.cardResponses.map((r: any) => ({
@@ -56,8 +51,11 @@ export const useCrisisCardData = (cardId: string) => {
                 societyEffect: typeof r.societyEffect === 'number' ? r.societyEffect : 0,
                 environmentEffect: typeof r.environmentEffect === 'number' ? r.environmentEffect : 0,
                 score: typeof r.score === 'number' ? r.score : 0,
+                // Ensure cost is mapped if present in backend, defaulting to 0
+                cost: typeof r.cost === 'number' ? r.cost : 0,
+                impactDescription: typeof r.impactDescription === 'string' ? r.impactDescription : ''
             }))
-            : [{ text: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0 }]
+            : [{ text: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, cost: 0, impactDescription: '' }]
     });
 
     return { loading, error, categories, initialFormData };

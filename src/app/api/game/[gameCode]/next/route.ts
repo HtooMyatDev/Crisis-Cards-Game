@@ -116,6 +116,29 @@ export async function POST(
 
             // (Leader rotation handled by round logic or specific vote API, not auto-rotate here anymore)
 
+            if (isNewRound) {
+                await prisma.team.updateMany({
+                   where: {
+                       gameSessionId: gameSession.id
+                   },
+                   data: {
+                       electionStatus: 'OPEN',
+                       runoffCandidates: [], // Clear for new election
+                       runoffCount: 0
+                   }
+                });
+
+                // Clear leader status for ALL players for a fresh election
+                await prisma.player.updateMany({
+                    where: {
+                        gameSessionId: gameSession.id
+                    },
+                    data: {
+                        isLeader: false
+                    }
+                });
+            }
+
             // Trigger real-time update
             try {
                 // We use await here to ensure it attempts to send, but wrapped in try/catch to not block response on failure

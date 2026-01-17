@@ -45,6 +45,20 @@ export const useGameSession = (gameCode: string) => {
         initializeSession();
     }, [gameCode, router]);
 
+    useEffect(() => {
+        const handleUnload = () => {
+            if (playerId) {
+                gameService.leaveGame(gameCode, playerId.toString());
+            }
+        }
+
+        window.addEventListener('beforeunload', handleUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleUnload);
+        }
+    }, [playerId, gameCode]);
+    
     const leaveGame = async () => {
         if (playerId) {
             await gameService.leaveGame(gameCode, playerId.toString());

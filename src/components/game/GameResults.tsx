@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Gamepad2, User, Crown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { gameService } from '@/services/gameService';
 
 interface GameResultsData {
@@ -24,11 +25,22 @@ interface GameResultsProps {
 
 export const GameResults: React.FC<GameResultsProps> = ({ gameCode, onJoinAnother }) => {
     const [results, setResults] = useState<GameResultsData | null>(null);
+    const [showTransition, setShowTransition] = useState(true);
+
+    useEffect(() => {
+        // Only start transition timer once results are loaded
+        if (results) {
+            const timer = setTimeout(() => setShowTransition(false), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [results]);
 
     useEffect(() => {
         const loadResults = async () => {
             try {
                 const data = await gameService.fetchResults(gameCode);
+                // Introduce a small artificial delay so the intro has time to start smoothly if data loads too fast
+                // But mainly rely on the transition logic above
                 setResults(data);
             } catch (error) {
                 console.error('Error loading results:', error);
@@ -50,6 +62,41 @@ export const GameResults: React.FC<GameResultsProps> = ({ gameCode, onJoinAnothe
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#0B0F19] text-gray-900 dark:text-white p-4 md:p-8 font-[family-name:var(--font-roboto)] relative overflow-hidden transition-colors duration-500">
+            {/* Transition Overlay */}
+            <AnimatePresence>
+                {showTransition && (
+                    <motion.div
+                        initial={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 1 }}
+                        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-xl pointer-events-none"
+                    >
+                        <motion.h1
+                            initial={{ scale: 0.8, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
+                            className="text-5xl md:text-7xl font-[family-name:var(--font-russo)] uppercase tracking-wider text-white mb-4 text-center"
+                        >
+                            Mission Completed
+                        </motion.h1>
+                        <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: "200px" }}
+                            transition={{ delay: 0.8, duration: 0.8 }}
+                            className="h-1 bg-gradient-to-r from-transparent via-emerald-500 to-transparent"
+                        />
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 0.8 }}
+                            transition={{ delay: 1.2 }}
+                            className="text-white/60 mt-4 font-mono uppercase tracking-[0.3em] text-sm"
+                        >
+                            Generating Report...
+                        </motion.p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Background decorative elements */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-500/5 dark:bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
             <div className="absolute bottom-0 right-0 w-[800px] h-[400px] bg-purple-500/5 dark:bg-purple-500/10 blur-[100px] rounded-full pointer-events-none" />

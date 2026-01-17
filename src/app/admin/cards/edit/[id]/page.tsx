@@ -209,36 +209,7 @@ export default function EditCrisisCardDesign() {
                                     </FormInput>
                                 </div>
 
-                                {/* Card Base Values */}
-                                <div>
-                                    <label className="block text-sm font-bold text-black dark:text-white mb-3">Card Base Values</label>
-                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 border-2 border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
-                                        {[
-                                            { key: 'political' as const, label: 'Political', icon: Shield, color: 'text-blue-500', error: formErrors.political },
-                                            { key: 'economic' as const, label: 'Economic', icon: TrendingUp, color: 'text-green-500', error: formErrors.economic },
-                                            { key: 'infrastructure' as const, label: 'Infrastructure', icon: Building2, color: 'text-gray-500', error: formErrors.infrastructure },
-                                            { key: 'society' as const, label: 'Society', icon: Users, color: 'text-yellow-500', error: formErrors.society },
-                                            { key: 'environment' as const, label: 'Environment', icon: Leaf, color: 'text-emerald-500', error: formErrors.environment },
-                                        ].map(({ key, label, icon: Icon, color, error }) => (
-                                            <div key={key}>
-                                                <label className="flex items-center gap-2 text-xs font-medium mb-2 min-h-[24px] text-black dark:text-white">
-                                                    <Icon size={18} className={color} />
-                                                    <span>{label}</span>
-                                                </label>
-                                                <NumberInput
-                                                    value={formData[key]}
-                                                    onChange={(value: string) => updateNumberField(key, value)}
-                                                    min={-50}
-                                                    max={50}
-                                                    placeholder="0"
-                                                    className="p-2 text-sm"
-                                                />
-                                                {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">Set base values. Range: -50 to +50.</p>
-                                </div>
+
 
                                 <FormInput
                                     label="Response Time Limit"
@@ -295,7 +266,7 @@ export default function EditCrisisCardDesign() {
                                     {formData.responseOptions.length < 4 && (
                                         <button
                                             type="button"
-                                            onClick={() => updateResponseOptions(options => [...options, { text: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, impactDescription: '' }])}
+                                            onClick={() => updateResponseOptions(options => [...options, { text: '', politicalEffect: 0, economicEffect: 0, infrastructureEffect: 0, societyEffect: 0, environmentEffect: 0, score: 0, cost: 0, impactDescription: '' }])}
                                             className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-gray-500 dark:text-gray-400 hover:border-gray-400 dark:hover:border-gray-600 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center justify-center gap-2 font-medium"
                                         >
                                             <Plus size={20} />

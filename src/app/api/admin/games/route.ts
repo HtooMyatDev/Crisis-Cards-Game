@@ -65,7 +65,9 @@ export async function POST(request: NextRequest) {
             gameCode,
             gameMode,
             categoryIds,
-            shuffledCardIds
+            shuffledCardIds,
+            initialBudget,
+            initialBaseValue
         } = validatedFields.data;
 
         // Verify all selected categories exist in database
@@ -96,7 +98,9 @@ export async function POST(request: NextRequest) {
                     create: categoryIds.map((categoryId) => ({
                         categoryId: categoryId
                     }))
-                }
+                },
+                initialBudget,
+                initialBaseValue
             },
             // Include related data in response
             include: {
