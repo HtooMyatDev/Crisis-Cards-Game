@@ -178,6 +178,89 @@ export async function GET(
             }
             // ---------------------------
 
+            // --- LAZY DECISION TIMEOUT CHECK ---
+            // If we are in DECISION_PHASE and time has passed, force submission
+            if (gameSession.status === 'IN_PROGRESS'
+                && gameSession.roundStatus === 'DECISION_PHASE'
+                && gameSession.lastCardStartedAt) {
+
+                const elapsed = Date.now() - gameSession.lastCardStartedAt.getTime();
+
+                // Get current card's time limit
+                let timeLimit = 60; // Default
+                if (gameSession.shuffledCardIds && gameSession.shuffledCardIds.length > 0) {
+                     const currentCardId = gameSession.shuffledCardIds[gameSession.currentCardIndex % gameSession.shuffledCardIds.length];
+                     const card = await prisma.card.findUnique({ where: { id: currentCardId }, select: { timeLimit: true }});
+                     if (card?.timeLimit) {
+                         timeLimit = card.timeLimit;
+                     }
+                }
+
+                const limitMs = timeLimit * 1000;
+
+                 // Add 3s buffer
+                if (elapsed > limitMs + 3000) {
+                    const updated = await resolveDecisionTimeout(gameSession.id, gameSession.currentCardIndex, gameSession.shuffledCardIds);
+
+                    if (updated) {
+                         // Refetch to return fresh state (Results Phase)
+                         return await prisma.gameSession.findUnique({
+                             where: { id: gameSession.id },
+                             select: { // SAME SELECT AS ABOVE
+                                id: true,
+                                gameCode: true,
+                                status: true,
+                                gameMode: true,
+                                currentCardIndex: true,
+                                lastCardStartedAt: true,
+                                shuffledCardIds: true,
+                                roundStatus: true,
+                                lastTurnResult: true,
+                                players: {
+                                    select: {
+                                        id: true,
+                                        nickname: true,
+                                        score: true,
+                                        teamId: true,
+                                        team: { select: { id: true, name: true, color: true, budget: true, electionStatus: true, runoffCandidates: true, runoffCount: true } },
+                                        isLeader: true,
+                                        isConnected: true
+                                    }
+                                },
+                                teams: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        color: true,
+                                        budget: true,
+                                        baseValue: true,
+                                        order: true,
+                                        electionStatus: true,
+                                        runoffCandidates: true,
+                                        runoffCount: true
+                                    },
+                                    orderBy: { order: 'asc' }
+                                },
+                                categories: {
+                                    select: {
+                                        category: {
+                                            select: {
+                                                cards: {
+                                                    where: { status: 'Active', isArchived: false },
+                                                    select: { id: true },
+                                                    orderBy: { id: 'asc' }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                         });
+                    }
+                }
+            }
+            // ---------------------------
+
             // Prepare response based on game status
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const data: any = {
@@ -483,4 +566,153 @@ async function applyLeaderSelection(teamId: string, gameSessionId: string, leade
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any
     });
+}
+
+// Helper to resolve expired decision phases
+async function resolveDecisionTimeout(gameSessionId: string, currentCardIndex: number, shuffledCardIds: number[]) {
+    // 1. Identify current card
+    if (!shuffledCardIds || shuffledCardIds.length === 0) return false;
+    const cardId = shuffledCardIds[currentCardIndex % shuffledCardIds.length];
+
+    // 2. Identify teams that haven't responded
+    const teams = await prisma.team.findMany({
+        where: { gameSessionId: gameSessionId },
+        include: { players: { where: { isLeader: true } } }
+    });
+
+    if (teams.length === 0) return false;
+
+    let updated = false;
+
+    for (const team of teams) {
+        // Find leader (or any player if no leader? Logic assumes leader exists by this phase)
+        const leader = team.players[0]; // Should be isLeader=true
+        if (!leader) continue;
+
+        // Check if response exists
+        const response = await prisma.playerResponse.findUnique({
+            where: {
+                playerId_cardId: {
+                    playerId: leader.id,
+                    cardId: cardId
+                }
+            }
+        });
+
+        if (!response) {
+            console.log(`[Timeout] Auto-submitting for Team ${team.name} (Leader: ${leader.nickname})`);
+
+            // AUTO-SUBMIT RANDOM RESPONSE
+            // Fetch validation data
+            const card = await prisma.card.findUnique({
+                where: { id: cardId },
+                include: { cardResponses: true }
+            });
+
+            if (card && card.cardResponses.length > 0) {
+                // Pick random
+                const randomResponse = card.cardResponses[Math.floor(Math.random() * card.cardResponses.length)];
+
+                // Execute submission logic (replicated from submit/route.ts or could be factored out)
+                // For simplicity/safety, we'll do the core transactional update here
+
+                 const cost = randomResponse.cost || 0;
+                 const baseValueChange = (randomResponse.politicalEffect || 0) +
+                                  (randomResponse.economicEffect || 0) +
+                                  (randomResponse.infrastructureEffect || 0) +
+                                  (randomResponse.societyEffect || 0) +
+                                  (randomResponse.environmentEffect || 0);
+
+                const playerTurnScore = (team.baseValue || 0) + baseValueChange;
+                const budgetChange = -cost;
+
+                await prisma.$transaction(async (tx) => {
+                     // 1. Record response
+                     await tx.playerResponse.create({
+                        data: {
+                            playerId: leader.id,
+                            cardId: cardId,
+                            responseId: randomResponse.id
+                        }
+                    });
+
+                    // 2. Apply effects
+                    await tx.player.updateMany({
+                        where: { teamId: team.id },
+                        data: { score: { increment: playerTurnScore } }
+                    });
+
+                    await tx.team.update({
+                        where: { id: team.id },
+                        data: {
+                            budget: { increment: budgetChange },
+                            baseValue: { increment: baseValueChange }
+                        }
+                    });
+
+                    // 3. Update Result History
+                    const currentSession = await tx.gameSession.findUnique({
+                        where: { id: gameSessionId },
+                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        select: { lastTurnResult: true } as any
+                    });
+
+                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const currentResults = (currentSession?.lastTurnResult as any) || { teamScoreChanges: [] };
+
+                    const newTeamResult = {
+                        teamId: team.id,
+                        teamName: team.name,
+                        teamColor: team.color,
+                        scoreChange: playerTurnScore,
+                        baseValueChange: baseValueChange,
+                        budgetChange: budgetChange,
+                        selectedResponse: randomResponse.text + " (Auto-selected)",
+                        impactDescription: randomResponse.impactDescription,
+                        selectedResponseEffects: {
+                            political: randomResponse.politicalEffect,
+                            economic: randomResponse.economicEffect,
+                            infrastructure: randomResponse.infrastructureEffect,
+                            society: randomResponse.societyEffect,
+                            environment: randomResponse.environmentEffect
+                        }
+                    };
+
+                    const updatedResults = {
+                        ...currentResults,
+                        teamScoreChanges: [...(currentResults.teamScoreChanges || []), newTeamResult]
+                    };
+
+                    await tx.gameSession.update({
+                        where: { id: gameSessionId },
+                        data: {
+                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            lastTurnResult: updatedResults as any
+                        } as any
+                    });
+                });
+
+                updated = true;
+            }
+        }
+    }
+
+    if (updated) {
+        // Check if ALL teams have now responded
+        // Actually, since we loop through ALL teams above and ensure a response,
+        // after this loop, ALL teams MUST have a response (either existing or auto-submitted).
+        // So we can safely transition.
+
+        await prisma.gameSession.update({
+            where: { id: gameSessionId },
+            data: {
+                roundStatus: 'RESULTS_PHASE'
+            }
+        });
+
+        // Trigger generic update event if possible?
+        // The frontend polling will pick up the status change next tick.
+    }
+
+    return updated;
 }

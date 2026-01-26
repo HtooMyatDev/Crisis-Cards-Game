@@ -12,6 +12,7 @@ interface Team {
     name: string;
     color: string;
     budget: number;
+    baseValue?: number;
     electionStatus?: 'OPEN' | 'RUNOFF' | 'COMPLETED';
     runoffCandidates?: number[];
     runoffCount?: number;
