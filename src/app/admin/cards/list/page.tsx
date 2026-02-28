@@ -1,7 +1,15 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 // Added Archive icon
-import { Edit, Plus, Search, Filter, Clock, Tag, Zap, Shield, TrendingUp, Building2, Users, Leaf, Archive, ChevronLeft, ChevronRight, Heart, DollarSign, Settings, Landmark } from 'lucide-react';
+import { Edit, Plus, Search, Filter, Clock, Tag, Leaf, Archive, ChevronLeft, ChevronRight, Heart, DollarSign, Settings, Landmark } from 'lucide-react';
+import {
+    EnvironmentIcon,
+    FinancialIcon,
+    GovernmentIcon,
+    LifeIcon,
+    SettingsIcon,
+    TopLogo
+} from '@/components/game/CategoryIcons';
 import SkeletonCardGrid from '@/components/skeletons/CardSkeletonGrid';
 import { useRouter } from 'next/navigation';
 
@@ -87,12 +95,37 @@ export default function CrisisCardList() {
             };
         }
 
+        const c = category.name.toLowerCase();
+        let statPillBg = '#553C0E'; // Default
+        let statPillTextColor = '#FDFAE5';
+
+        if (c.includes('env')) {
+            statPillBg = '#195012';
+            statPillTextColor = '#399B2C';
+        } else if (c.includes('eco')) {
+            // Mapping Economic to Blue based on user screenshot parity
+            statPillBg = '#133F4D';
+            statPillTextColor = '#4190A9';
+        } else if (c.includes('soc')) {
+            // Mapping Social/Society to Yellow based on user screenshot parity
+            statPillBg = '#665315';
+            statPillTextColor = '#D9AD1F';
+        } else if (c.includes('infra')) {
+            statPillBg = '#665315';
+            statPillTextColor = '#CA840C';
+        } else if (c.includes('polit')) {
+            statPillBg = '#450F0F';
+            statPillTextColor = '#CD302F';
+        }
+
         return {
             accentStyle: { backgroundColor: normalizedHex },
             borderStyle: { borderColor: normalizedHex },
             bgStyle: { backgroundColor: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.1)` },
             textStyle: { color: normalizedHex },
-            shadowStyle: { boxShadow: `4px 4px 0px 0px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 1)` }
+            shadowStyle: { boxShadow: `4px 4px 0px 0px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 1)` },
+            statPillBg,
+            statPillTextColor
         };
     };
 
@@ -362,159 +395,177 @@ export default function CrisisCardList() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredCards.map((card) => {
                         const responses = card.cardResponses || [];
-                        const cardBgColor = card.category?.name?.toLowerCase() === 'environmental' ? '#4ea342' : (card.category?.color || '#4ea342');
+                        const styles = getCategoryStyles(card.category);
+                        const cardBgColor = styles.accentStyle.backgroundColor;
 
                         return (
                             <div
                                 key={card.id}
-                                className="relative w-full rounded-[2rem] p-6 shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.01] overflow-hidden font-sans text-[#1a1a1a]"
+                                className="relative w-full aspect-[5/7] rounded-[24px] p-4 shadow-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden font-sans text-white group"
                                 style={{ backgroundColor: cardBgColor }}
                             >
-                                {/* Top Decoration: White pill with 5 overlapping dots (Game Style) */}
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] px-5 py-2.5 rounded-b-[1.2rem] shadow-sm flex items-center justify-center -space-x-1.5 z-20">
-                                    <div className="w-4 h-4 rounded-full bg-[#399B2C] border-2 border-[#FDFBF7]" />
-                                    <div className="w-4 h-4 rounded-full bg-[#D9AD1F] border-2 border-[#FDFBF7]" />
-                                    <div className="w-4 h-4 rounded-full bg-[#4190A9] border-2 border-[#FDFBF7]" />
-                                    <div className="w-4 h-4 rounded-full bg-[#BE8111] border-2 border-[#FDFBF7]" />
-                                    <div className="w-4 h-4 rounded-full bg-[#CD302F] border-2 border-[#FDFBF7]" />
+                                {/* Inset Border mimicking the playing card look */}
+                                <div className="absolute inset-[10px] border border-[#FDFAE5]/40 rounded-[1.6rem] pointer-events-none z-10" />
+
+                                {/* Playing Card Header - Themed Pill Asset */}
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none">
+                                    <TopLogo className="w-24 h-auto drop-shadow-sm" />
                                 </div>
 
-                                {/* Content Container */}
-                                <div className="relative z-10 flex flex-col items-center mt-5">
-
-                                    {/* Edit/Archive/Status Controls (Absolute positioned for admin access) */}
-                                    <div className="absolute top-0 right-0 flex gap-1">
-                                        <span className={`px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-md border border-black/10 ${card.status === 'Active'
-                                            ? 'bg-white/80 text-green-800'
-                                            : 'bg-white/80 text-red-800'
+                                {/* Content Container - Fixed Height for Layout Control */}
+                                <div className="relative z-10 flex flex-col items-center h-full pt-14 pb-8">
+                                    {/* Status Controls */}
+                                    <div className="absolute top-10 right-2 flex gap-1 z-40">
+                                        <span className={`px-2 py-0.5 text-[8px] uppercase font-black tracking-widest rounded-md border border-white/20 backdrop-blur-md ${card.status === 'Active'
+                                            ? 'bg-green-500/30 text-green-100'
+                                            : 'bg-red-500/30 text-red-100'
                                             }`}>
                                             {card.status}
                                         </span>
                                     </div>
 
-                                    {/* Title & Description */}
-                                    <div className="text-center mb-6 px-1 space-y-2 w-full">
-                                        <h3 className="font-serif italic text-2xl text-[#1a1a1a]/90 tracking-tight leading-[1.1] drop-shadow-sm min-h-[3rem] flex items-center justify-center">
+                                    {/* Title & Description area - Top 16% */}
+                                    <div className="absolute top-[16%] left-0 w-full text-center px-6 space-y-1">
+                                        <h3
+                                            className="font-serif italic text-[16px] sm:text-[18px] tracking-tight leading-tight uppercase font-bold line-clamp-2 min-h-[2.4rem] flex items-center justify-center"
+                                            style={{ color: styles.statPillBg }}
+                                        >
                                             {card.title}
                                         </h3>
-                                        <p className="font-sans text-[#1a1a1a]/70 text-sm font-medium leading-relaxed line-clamp-3 max-w-[90%] mx-auto">
+                                        <p
+                                            className="font-sans text-[10px] font-medium leading-tight line-clamp-2 max-w-[92%] mx-auto"
+                                            style={{ color: styles.statPillBg, opacity: 0.8 }}
+                                        >
                                             {card.description}
                                         </p>
                                     </div>
 
-                                    {/* Timer Only */}
-                                    <div className="flex justify-center mb-5">
-                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-white/50 rounded-full border border-black/5 text-[#1a1a1a]/60">
-                                            <Clock size={12} strokeWidth={2.5} />
-                                            <span className="text-xs font-bold font-mono">
-                                                {card.timeLimit ? `${card.timeLimit}m` : '∞'}
+                                    {/* Response Headers - Top 32% */}
+                                    <div className="absolute top-[32%] w-full px-6 flex justify-between items-baseline">
+                                        <span
+                                            className="font-serif italic font-bold text-[11px]"
+                                            style={{ color: styles.statPillBg }}
+                                        >
+                                            Response Options
+                                        </span>
+                                        <div className="flex items-center gap-1.5 opacity-85">
+                                            <Clock size={10} style={{ color: styles.statPillBg }} />
+                                            <span
+                                                className="font-serif italic font-bold text-[10px]"
+                                                style={{ color: styles.statPillBg }}
+                                            >
+                                                {card.timeLimit ? `${card.timeLimit} Mins` : '∞'}
                                             </span>
                                         </div>
                                     </div>
 
-                                    {/* Response Options - Enhanced Styling */}
-                                    <div className="w-full space-y-3 mb-4 px-1">
-                                        {responses.slice(0, 2).map((response, idx) => {
-                                            const letter = String.fromCharCode(65 + idx);
+                                    {/* Response Options - Starting at 38% with fixed intervals */}
+                                    <div className="absolute top-[38%] w-full px-6">
+                                        <div className="flex flex-col gap-3">
+                                            {responses.slice(0, 3).map((response, idx) => {
+                                                const letter = String.fromCharCode(65 + idx);
 
-                                            return (
-                                                <div key={response.id} className="group relative w-full flex flex-col bg-[#FDFBF7] rounded-xl overflow-hidden shadow-sm border border-black/5 hover:border-black/10 transition-colors">
+                                                return (
+                                                    <div key={response.id} className="relative w-full flex flex-col gap-1">
+                                                        {/* Hovering Cost Pill */}
+                                                        {response.cost !== undefined && (
+                                                            <div className="absolute -top-3 right-3 z-40">
+                                                                <div
+                                                                    className="px-2 py-0.5 rounded shadow border border-white/10 text-[7.5px] font-black"
+                                                                    style={{ backgroundColor: styles.accentStyle.backgroundColor, color: '#FDFAE5' }}
+                                                                >
+                                                                    {(response.cost || 0) > 0 ? `-${response.cost}` : response.cost || '0'}
+                                                                </div>
+                                                            </div>
+                                                        )}
 
-                                                    {/* Main Row: Letter + Text + Cost */}
-                                                    <div className="flex items-stretch min-h-[3rem]">
-                                                        {/* Letter Block */}
-                                                        <div
-                                                            className="w-10 flex flex-col items-center justify-center border-r border-black/5"
-                                                            style={{ backgroundColor: cardBgColor, filter: 'brightness(0.95)' }}
-                                                        >
-                                                            <span className="font-serif italic text-lg text-white font-black drop-shadow-sm">
-                                                                {letter}
-                                                            </span>
+                                                        {/* Response Unit */}
+                                                        <div className="w-full flex items-stretch rounded-xl border-[2px] border-[#FDFAE5] overflow-hidden shadow-sm min-h-[2.4rem]">
+                                                            <div
+                                                                className="w-7 flex items-center justify-center shrink-0"
+                                                                style={{ backgroundColor: cardBgColor }}
+                                                            >
+                                                                <span className="font-serif italic text-[12px] text-[#FDFAE5] font-black">
+                                                                    {letter}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex-1 bg-[#FDFAE5] px-2 py-1 flex items-center">
+                                                                <p
+                                                                    className="text-[8.5px] font-bold leading-tight line-clamp-2"
+                                                                    style={{ color: styles.statPillTextColor }}
+                                                                >
+                                                                    {response.text}
+                                                                </p>
+                                                            </div>
                                                         </div>
 
-                                                        {/* Content */}
-                                                        <div className="flex-1 px-3 py-2 flex items-center justify-between gap-2">
-                                                            <p className="text-[#1a1a1a] text-xs font-medium leading-snug line-clamp-2">
-                                                                {response.text}
-                                                            </p>
-
-                                                            {/* Cost Badge */}
-                                                            {response.cost !== undefined && response.cost !== 0 && (
-                                                                <div className={`shrink-0 flex items-center px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wide ${response.cost > 0 ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
-                                                                    }`}>
-                                                                    {response.cost > 0 ? 'Cost' : 'Gain'}
-                                                                    <span className="ml-1 text-xs">
-                                                                        ${Math.abs(response.cost)}
-                                                                    </span>
-                                                                </div>
-                                                            )}
+                                                        {/* High Fidelity Stats Row - Left-aligned grid for perfect vertical parity */}
+                                                        <div className="grid grid-cols-5 gap-x-1 sm:gap-x-2 w-fit px-1 py-0.5">
+                                                            {[
+                                                                { id: 'eco', icon: FinancialIcon, val: response.economicEffect },
+                                                                { id: 'soc', icon: LifeIcon, val: response.societyEffect },
+                                                                { id: 'env', icon: EnvironmentIcon, val: response.environmentEffect },
+                                                                { id: 'pol', icon: GovernmentIcon, val: response.politicalEffect },
+                                                                { id: 'inf', icon: SettingsIcon, val: response.infrastructureEffect }
+                                                            ].map((stat) => {
+                                                                const Icon = stat.icon;
+                                                                return (
+                                                                    <div key={stat.id} className="flex items-center gap-1 min-w-[2.1rem] sm:min-w-[2.2rem] opacity-95">
+                                                                        <div
+                                                                            className="w-4 h-4 shrink-0 rounded-full flex items-center justify-center shadow-sm"
+                                                                            style={{ backgroundColor: styles.statPillBg }}
+                                                                        >
+                                                                            <Icon size={11} style={{ color: styles.statPillTextColor }} />
+                                                                        </div>
+                                                                        {/* Count matches pill background color as requested */}
+                                                                        <span
+                                                                            className="text-[0.5rem] sm:text-[0.55rem] font-black whitespace-nowrap"
+                                                                            style={{ color: styles.statPillBg }}
+                                                                        >
+                                                                            {stat.val && (stat.val > 0 ? `+${stat.val}` : stat.val)}
+                                                                        </span>
+                                                                    </div>
+                                                                );
+                                                            })}
                                                         </div>
                                                     </div>
+                                                );
+                                            })}
 
-                                                    {/* Effects Footer (if any) */}
-                                                    {(() => {
-                                                        const effects = [
-                                                            { l: 'Pol', v: response.politicalEffect, c: 'text-red-700' },
-                                                            { l: 'Eco', v: response.economicEffect, c: 'text-amber-700' },
-                                                            { l: 'Inf', v: response.infrastructureEffect, c: 'text-blue-700' },
-                                                            { l: 'Soc', v: response.societyEffect, c: 'text-rose-700' },
-                                                            { l: 'Env', v: response.environmentEffect, c: 'text-emerald-700' },
-                                                        ].filter(e => e.v && e.v !== 0);
-
-                                                        if (effects.length === 0) return null;
-
-                                                        return (
-                                                            <div className="bg-black/[0.02] px-3 py-1.5 flex gap-2 border-t border-black/5 flex-wrap">
-                                                                {effects.map((e, i) => (
-                                                                    <span key={i} className={`text-[10px] font-bold ${e.c} flex items-center gap-0.5`}>
-                                                                        {e.l} {e.v! > 0 ? '+' : ''}{e.v}
-                                                                    </span>
-                                                                ))}
-                                                            </div>
-                                                        );
-                                                    })()}
+                                            {responses.length > 3 && (
+                                                <div className="flex items-center justify-center gap-1 text-[7px] font-black uppercase tracking-widest text-[#FDFAE5]/30">
+                                                    <div className="w-1 h-1 rounded-full bg-current opacity-20" />
+                                                    {responses.length - 3} more
+                                                    <div className="w-1 h-1 rounded-full bg-current opacity-20" />
                                                 </div>
-                                            );
-                                        })}
-
-                                        {responses.length > 2 && (
-                                            <div className="flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#1a1a1a]/40 pt-1">
-                                                <div className="w-1 h-1 rounded-full bg-current" />
-                                                {responses.length - 2} more options
-                                                <div className="w-1 h-1 rounded-full bg-current" />
-                                            </div>
-                                        )}
-
-                                        {responses.length === 0 && (
-                                            <div className="flex flex-col items-center justify-center py-4 text-center border-2 border-dashed border-black/5 rounded-xl">
-                                                <span className="text-xs font-serif italic text-[#1a1a1a]/40">No options configured</span>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
 
-                                    {/* Action Buttons */}
-                                    <div className="flex gap-2 w-full mt-auto">
-                                        <button
-                                            onClick={() => handleEdit(card.id)}
-                                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/90 hover:bg-white text-blue-600 rounded-lg text-sm font-bold shadow-sm transition-all hover:scale-105"
-                                        >
-                                            <Edit size={14} />
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => openArchiveModal(card.id, card.title)}
-                                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/90 hover:bg-white text-orange-600 rounded-lg text-sm font-bold shadow-sm transition-all hover:scale-105"
-                                        >
-                                            <Archive size={14} />
-                                            Archive
-                                        </button>
-                                    </div>
+                                    {/* Action Buttons & Category Footer - Absolute Bottom */}
+                                    <div className="absolute bottom-4 left-0 w-full px-4 flex flex-col gap-3">
+                                        <div className="flex gap-1.5 w-full">
+                                            <button
+                                                onClick={() => handleEdit(card.id)}
+                                                className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-[#FDFAE5]/90 hover:bg-[#FDFAE5] text-blue-800 rounded-xl text-[9.5px] font-black shadow-md transition-all hover:scale-105 active:scale-95 min-w-0 overflow-hidden whitespace-nowrap"
+                                            >
+                                                <Edit size={10} strokeWidth={3} className="shrink-0" />
+                                                <span className="truncate">EDIT</span>
+                                            </button>
+                                            <button
+                                                onClick={() => openArchiveModal(card.id, card.title)}
+                                                className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-[#FDFAE5]/90 hover:bg-[#FDFAE5] text-orange-800 rounded-xl text-[9.5px] font-black shadow-md transition-all hover:scale-105 active:scale-95 min-w-0 overflow-hidden whitespace-nowrap"
+                                            >
+                                                <Archive size={10} strokeWidth={3} className="shrink-0" />
+                                                <span className="truncate">ARCHIVE</span>
+                                            </button>
+                                        </div>
 
-                                    {/* Footer Category */}
-                                    <div className="mt-4">
-                                        <h3 className="font-serif italic text-[#1a1a1a]/40 text-sm tracking-wide capitalize mix-blend-multiply">
-                                            {card.category?.name || 'Event'}
-                                        </h3>
+                                        <div className="text-center">
+                                            <span className="font-serif italic font-bold text-[#FDFAE5]/80 text-[10px] uppercase tracking-[0.2em] drop-shadow-sm">
+                                                {card.category?.name}
+                                            </span>
+                                        </div>
                                     </div>
 
                                 </div>

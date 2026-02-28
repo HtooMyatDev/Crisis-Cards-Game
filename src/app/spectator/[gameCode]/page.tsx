@@ -8,6 +8,7 @@ import { RoundIndicator } from '@/components/game/RoundIndicator';
 import PageTransition from '@/components/ui/PageTransition';
 import { useGameTimer } from '@/hooks/useGameTimer';
 import { ResultsModal } from '@/components/game/ResultsModal';
+import { TopLogo } from '@/components/game/CategoryIcons';
 
 const SpectatorPage = () => {
     const params = useParams();
@@ -86,8 +87,12 @@ const SpectatorPage = () => {
                             {gameState.teams?.map(t => (
                                 <div key={t.id} className="flex flex-col items-center group relative">
                                     <div className="absolute -inset-2 bg-white/50 dark:bg-black/20 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <div className="relative text-white font-black text-3xl px-8 py-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[4px_4px_0px_0px_rgba(253,250,229,0.2)] border-[3px] border-[#333] min-w-[120px] text-center"
+                                    <div className="relative text-white font-black text-3xl px-8 py-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[4px_4px_0px_0px_rgba(253,250,229,0.2)] border-[3px] border-[#333] min-w-[120px] text-center overflow-hidden"
                                         style={{ backgroundColor: t.color }}>
+                                        {/* Top Logo Asset - Mini */}
+                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
+                                            <TopLogo className="w-10 h-auto" />
+                                        </div>
                                         ${t.budget}
                                         <div className="absolute -top-3 -right-3 bg-white text-black text-xs font-bold w-8 h-8 flex items-center justify-center rounded-full border-2 border-black shadow-sm">
                                             {t.baseValue}

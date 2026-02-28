@@ -196,22 +196,22 @@ export default function ColorPresetsPage() {
 
     const quickPresets = [
         {
-            name: "Ocean Blue",
-            backgroundColor: "#EFF6FF",
-            textColor: "#1E40AF",
-            textBoxColor: "#FFFFFF"
+            name: "Economic Blue",
+            backgroundColor: "#4190A9",
+            textColor: "#FDFAE5",
+            textBoxColor: "#133F4D"
         },
         {
-            name: "Forest Green",
-            backgroundColor: "#ECFDF5",
-            textColor: "#047857",
-            textBoxColor: "#F0FDF4"
+            name: "Environmental Green",
+            backgroundColor: "#399B2C",
+            textColor: "#FDFAE5",
+            textBoxColor: "#195012"
         },
         {
-            name: "Sunset Orange",
-            backgroundColor: "#FFF7ED",
-            textColor: "#C2410C",
-            textBoxColor: "#FFFFFF"
+            name: "Social Yellow",
+            backgroundColor: "#D9AD1F",
+            textColor: "#FDFAE5",
+            textBoxColor: "#665315"
         }
     ];
 

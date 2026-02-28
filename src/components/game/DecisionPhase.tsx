@@ -108,19 +108,19 @@ export const DecisionPhase: React.FC<DecisionPhaseProps> = ({
                 <div className="w-full max-w-4xl relative z-10 px-2 sm:px-0">
                     {/* User Profile / Team Identity */}
                     <div className="flex flex-col items-center mb-6 sm:mb-10 w-full">
-                        <div className="flex items-center gap-2 sm:gap-3 bg-white dark:bg-[#FDFBF7] px-4 sm:px-6 py-2 sm:py-2.5 rounded-full border-[3px] border-[#333] dark:border-[#FDFBF7] shadow-[2px_2px_0_0_#333] sm:shadow-xl transition-colors max-w-full overflow-hidden">
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex shrink-0 items-center justify-center text-lg sm:text-xl shadow-inner border-2 border-black/10" style={{ backgroundColor: team?.color || '#808080' }}>
+                        <div className="flex items-center gap-2 sm:gap-3 bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-2.5 rounded-full border-[2px] border-black/10 shadow-lg transition-colors max-w-full overflow-hidden">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex shrink-0 items-center justify-center text-lg sm:text-xl shadow-md border-2 border-white/20" style={{ backgroundColor: team?.color || '#808080' }}>
                                 {isLeader ? '👑' : <User className="text-white w-4 h-4 sm:w-5 sm:h-5" />}
                             </div>
                             <div className="flex flex-col min-w-0">
-                                <span className="text-[#666] text-[8px] sm:text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+                                <span className="text-[#666] dark:text-stone-400 text-[8px] sm:text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
                                     {isLeader ? 'Leader' : 'Member'}
                                 </span>
-                                <span className="text-[#333] font-serif font-bold text-base sm:text-xl leading-none italic truncate max-w-[80px] sm:max-w-[150px]">
+                                <span className="text-[#333] dark:text-yellow-50 font-serif font-bold text-base sm:text-xl leading-none italic truncate max-w-[80px] sm:max-w-[150px]">
                                     {nickname}
                                 </span>
                             </div>
-                            <div className="h-6 sm:h-8 w-[2px] bg-[#333]/20 mx-1 sm:mx-2 shrink-0" />
+                            <div className="h-6 sm:h-8 w-[1px] bg-black/10 dark:bg-white/10 mx-1 sm:mx-2 shrink-0" />
                             <div className="flex flex-col items-end min-w-0 shrink">
                                 <span className="font-black text-sm sm:text-xl leading-none uppercase truncate max-w-[70px] sm:max-w-none" style={{ color: team?.color || 'gray' }}>
                                     {team?.name || 'Unassigned'}
@@ -132,11 +132,14 @@ export const DecisionPhase: React.FC<DecisionPhaseProps> = ({
                     {/* Game Header with Scores */}
                     <div className="flex justify-center gap-2 sm:gap-4 mb-6 sm:mb-8 flex-wrap">
                         {teams?.map(t => (
-                            <div key={t.id} className={`flex flex-col items-center p-1 sm:p-2 rounded-xl transition-all duration-300 ${t.id === team?.id ? 'scale-105 sm:scale-110 z-10' : 'opacity-70 scale-90 sm:scale-95'}`}>
-                                <div className={`text-white font-black text-lg sm:text-2xl px-4 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-2xl shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[4px_4px_0px_0px_rgba(253,250,229,0.2)] border-[2px] sm:border-[3px] border-[#333]
-                                     ${t.id === team?.id ? 'ring-2 sm:ring-4 ring-white/50 dark:ring-[#3E3E3C]/50' : ''}`}
+                            <div key={t.id} className={`flex flex-col items-center p-1 sm:p-2 rounded-xl transition-all duration-300 ${t.id === team?.id ? 'scale-105 sm:scale-110 z-10' : 'opacity-80 scale-90 sm:scale-95'}`}>
+                                <div className={`relative px-4 sm:px-6 py-2 sm:py-3 rounded-[12px] sm:rounded-xl shadow-lg border border-white/20
+                                     ${t.id === team?.id ? 'ring-2 ring-white/30' : ''}`}
                                     style={{ backgroundColor: t.color }}>
-                                    ${t.budget}
+                                    <div className="absolute inset-[3px] rounded-[9px] border border-white/10 pointer-events-none"></div>
+                                    <span className="relative z-10 text-white font-black text-lg sm:text-2xl tabular-nums">
+                                        ${t.budget}
+                                    </span>
                                 </div>
                                 <span className="font-bold text-[10px] sm:text-xs mt-1 sm:mt-2 tracking-widest uppercase text-[#333] dark:text-[#FDFBF7] text-center" >
                                     {t.name}

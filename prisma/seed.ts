@@ -42,95 +42,84 @@ async function main() {
             {
                 name: 'Political Red',
                 description: 'For political and diplomatic crises',
-                backgroundColor: '#FEE2E2',
-                textColor: '#991B1B',
-                textBoxColor: '#FCA5A5',
+                backgroundColor: '#CD302F',
+                textColor: '#FDFAE5',
+                textBoxColor: '#450F0F',
                 isDefault: true
             },
             {
                 name: 'Economic Blue',
                 description: 'For financial and market crises',
-                backgroundColor: '#DBEAFE',
-                textColor: '#1E40AF',
-                textBoxColor: '#93C5FD',
+                backgroundColor: '#4190A9',
+                textColor: '#FDFAE5',
+                textBoxColor: '#133F4D',
                 isDefault: true
             },
             {
                 name: 'Social Yellow',
                 description: 'For social unrest and public welfare',
-                backgroundColor: '#FEF3C7',
-                textColor: '#92400E',
-                textBoxColor: '#FCD34D',
+                backgroundColor: '#D9AD1F',
+                textColor: '#FDFAE5',
+                textBoxColor: '#665315',
                 isDefault: true
             },
             {
                 name: 'Environmental Green',
                 description: 'For natural disasters and environmental issues',
-                backgroundColor: '#D1FAE5',
-                textColor: '#065F46',
-                textBoxColor: '#6EE7B7',
+                backgroundColor: '#399B2C',
+                textColor: '#FDFAE5',
+                textBoxColor: '#195012',
                 isDefault: true
             },
             {
-                name: 'Infrastructure Gray',
+                name: 'Infrastructure Orange',
                 description: 'For technical and infrastructure failures',
-                backgroundColor: '#F3F4F6',
-                textColor: '#1F2937',
-                textBoxColor: '#D1D5DB',
+                backgroundColor: '#CA840C',
+                textColor: '#FDFAE5',
+                textBoxColor: '#665315',
                 isDefault: true
             }
         ];
 
-        for (const preset of presets) {
-            await prisma.colorPreset.upsert({
-                where: { id: 0 }, // Hack to force create if not matching by unique constraint (which we don't have on name easily accessible here without query) - actually better to just createMany or upsert by name if unique.
-                // Wait, name is not unique in schema? Let's check schema.
-                // Schema: ColorPreset name is just String @db.VarChar(50), not unique.
-                // Let's use findFirst to check existence to avoid duplicates on re-seed if we didn't wipe.
-                // But we are wiping. So create is fine.
-                update: {},
-                create: {
-                    ...preset,
-                    createdById: adminUser.id
-                }
-            }).catch(async () => {
-                 // Fallback if upsert fails or just use create
-                 const existing = await prisma.colorPreset.findFirst({ where: { name: preset.name }});
-                 if (!existing) {
-                     await prisma.colorPreset.create({
-                         data: { ...preset, createdById: adminUser.id }
-                     });
-                 }
-            });
-        }
-        // Actually, let's just delete all presets and recreate to be clean since we are doing a reset?
-        // The user said "drop the database and refresh", so we can assume empty state if we run db push --force-reset.
-        // But to be safe in `seed.ts` which might be run standalone:
-        // Let's just use `create` since we expect empty DB after reset.
-        // However, to make it robust:
-
-        // Let's clear existing data first if we want to be super sure, but `db push --force-reset` does that.
-        // So I will just use create.
-
-        // Re-implementing loop for clarity and robustness
         const createdPresets = [];
-        for (const preset of presets) {
-             const p = await prisma.colorPreset.create({
-                 data: { ...preset, createdById: adminUser.id }
-             });
+        for (const presetData of presets) {
+            // Check if preset already exists by name
+            let preset = await prisma.colorPreset.findFirst({
+                where: { name: presetData.name }
+            });
 
-             createdPresets.push(p);
+            if (preset) {
+                // Update existing
+                preset = await prisma.colorPreset.update({
+                    where: { id: preset.id },
+                    data: {
+                        ...presetData,
+                        updatedAt: new Date()
+                    }
+                });
+                console.log(`   ♻️  Updated preset: ${preset.name}`);
+            } else {
+                // Create new
+                preset = await prisma.colorPreset.create({
+                    data: {
+                        ...presetData,
+                        createdById: adminUser.id
+                    }
+                });
+                console.log(`   ✅ Created preset: ${preset.name}`);
+            }
+            createdPresets.push(preset);
         }
-        console.log(`   ✅ Created ${createdPresets.length} color presets`);
+        console.log(`   ✨ Total presets handled: ${createdPresets.length}`);
 
         // 3. Categories
         console.log('j Seeding Categories...');
         const categoriesData = [
-            { name: 'Political Instability', presetName: 'Political Red', color: '#EF4444' },
-            { name: 'Economic Crisis', presetName: 'Economic Blue', color: '#3B82F6' },
-            { name: 'Social Unrest', presetName: 'Social Yellow', color: '#F59E0B' },
-            { name: 'Environmental Disaster', presetName: 'Environmental Green', color: '#10B981' },
-            { name: 'Infrastructure Failure', presetName: 'Infrastructure Gray', color: '#6B7280' }
+            { name: 'Political Instability', presetName: 'Political Red', color: '#CD302F' },
+            { name: 'Economic Crisis', presetName: 'Economic Blue', color: '#4190A9' },
+            { name: 'Social Unrest', presetName: 'Social Yellow', color: '#D9AD1F' },
+            { name: 'Environmental Disaster', presetName: 'Environmental Green', color: '#399B2C' },
+            { name: 'Infrastructure Failure', presetName: 'Infrastructure Orange', color: '#CA840C' }
         ];
 
         const createdCategories = [];

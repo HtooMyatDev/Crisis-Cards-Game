@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useGameSounds } from '@/hooks/useGameSounds';
 import { LogOut } from 'lucide-react';
+import { TopLogo } from './CategoryIcons';
 
 interface Team {
     id: string;
@@ -91,16 +92,28 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
 
             <div className="relative z-10 max-w-[676px] mx-auto w-full px-4 flex flex-col mt-8 md:mt-12 flex-grow">
                 {/* 1. MY IDENTITY SECTION */}
-                <div className="w-full flex justify-center mb-8">
+                <div className="w-full flex justify-center mb-6">
                     <div
-                        className="w-full bg-[#FEFDF9] dark:bg-stone-800 rounded-[12px] border-[4px] border-t-[16px] flex flex-col items-center justify-center py-12 md:py-16 shadow-sm"
-                        style={{ borderColor: team?.color || '#16A34A' }}
+                        className="w-full relative rounded-[24px] p-2 shadow-xl"
+                        style={{ backgroundColor: team?.color || '#CD302F' }}
                     >
-                        <div className="text-[#3F3D39] dark:text-yellow-50 text-6xl md:text-8xl font-serif font-bold italic mb-2 leading-none truncate px-4">
-                            {nickname}
+                        {/* Inner stroke like the Red Card */}
+                        <div className="absolute inset-[10px] rounded-[16px] border-[1px] border-[#FDFAE5]/20 pointer-events-none z-20"></div>
+
+                        {/* Top Logo - Aligned with the high-fidelity design */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-30">
+                            <TopLogo className="w-20 h-auto drop-shadow-sm" />
                         </div>
-                        <div className="text-[#A1A1AA] dark:text-stone-400 text-xl md:text-2xl font-sans font-medium">
-                            {team ? team.name : 'Unassigned'}
+
+                        <div className="relative z-10 w-full flex flex-col items-center justify-center py-14 md:py-20">
+                            <div className="text-[#FDFAE5] text-[64px] md:text-[80px] font-serif font-bold italic mb-0 leading-none truncate px-6 drop-shadow-md">
+                                {nickname}
+                            </div>
+                            <div className="text-[#FDFAE5]/90 text-lg md:text-xl font-sans mt-2 font-bold uppercase tracking-[0.2em] relative inline-block">
+                                <span className="absolute -left-6 top-1/2 -translate-y-1/2 w-4 h-[1px] bg-[#FDFAE5]/50"></span>
+                                {team ? team.name : 'Unassigned'}
+                                <span className="absolute -right-6 top-1/2 -translate-y-1/2 w-4 h-[1px] bg-[#FDFAE5]/50"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -125,30 +138,42 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                                     className="w-full"
                                 >
                                     <div
-                                        className="w-full bg-[#FEFDF9] dark:bg-stone-800 rounded-[10px] border-[4px] border-t-[12px] p-4 flex flex-col items-start gap-2 shadow-sm"
-                                        style={{ borderColor: t.color }}
+                                        className="w-full relative rounded-[20px] p-2 shadow-md transition-transform hover:scale-[1.01]"
+                                        style={{ backgroundColor: t.color }}
                                     >
-                                        <div className="text-[#3F3D39] dark:text-yellow-50 text-sm font-bold font-sans">
-                                            {t.name}
+                                        <div className="absolute inset-[8px] rounded-[14px] border border-[#FDFAE5]/20 pointer-events-none z-10"></div>
+
+                                        {/* Top Logo Asset */}
+                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-20">
+                                            <TopLogo className="w-12 h-auto" />
                                         </div>
 
-                                        <div className="flex flex-wrap gap-2">
-                                            {teamPlayers.length > 0 ? (
-                                                teamPlayers.map(p => (
-                                                    <div
-                                                        key={p.id}
-                                                        className="px-3 py-1.5 rounded-[4px] border-2 border-[#3F3D39] dark:border-[#FDFBF7] bg-[#FEFDF9] dark:bg-stone-700 flex items-center justify-center transition-colors hover:bg-black/5 dark:hover:bg-white/5"
-                                                    >
-                                                        <span className="text-[#3F3D39] dark:text-yellow-50 text-lg font-serif font-bold italic leading-none">
-                                                            {p.nickname} {p.id === playerId && '(You)'}
-                                                        </span>
+                                        <div className="relative z-10 p-3 pt-4 flex flex-col items-start gap-4">
+                                            <div className="text-[#FDFAE5] text-sm font-bold font-sans uppercase tracking-widest pl-1">
+                                                {t.name}
+                                            </div>
+
+                                            <div className="flex flex-wrap gap-2">
+                                                {teamPlayers.length > 0 ? (
+                                                    teamPlayers.map(p => (
+                                                        <div
+                                                            key={p.id}
+                                                            className="px-4 py-2 rounded-[6px] bg-[#FDFAE5] shadow-sm flex items-center justify-center transition-colors"
+                                                        >
+                                                            <span
+                                                                className="text-lg font-serif font-bold italic leading-none"
+                                                                style={{ color: t.color }}
+                                                            >
+                                                                {p.nickname} {p.id === playerId && '(You)'}
+                                                            </span>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="opacity-60 text-[#FDFAE5] font-serif italic text-sm py-1 pl-1">
+                                                        Awaiting agents...
                                                     </div>
-                                                ))
-                                            ) : (
-                                                <div className="opacity-40 text-[#3F3D39] dark:text-yellow-50 font-serif italic text-sm py-1">
-                                                    Empty
-                                                </div>
-                                            )}
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -158,21 +183,25 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                         {/* Unassigned Players (if any) */}
                         {unassignedPlayers.length > 0 && (
                             <div className="w-full">
-                                <div className="w-full bg-[#FEFDF9] dark:bg-stone-800 rounded-[10px] border-[4px] border-t-[12px] p-4 flex flex-col items-start gap-2 shadow-sm border-gray-400 dark:border-gray-500">
-                                    <div className="text-[#3F3D39] dark:text-yellow-50 text-sm font-bold font-sans">
-                                        Unassigned
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {unassignedPlayers.map(p => (
-                                            <div
-                                                key={p.id}
-                                                className="px-3 py-1.5 rounded-[4px] border-2 border-[#3F3D39] dark:border-[#FDFBF7] bg-[#FEFDF9] dark:bg-stone-700 flex items-center justify-center transition-colors hover:bg-black/5 dark:hover:bg-white/5"
-                                            >
-                                                <span className="text-[#3F3D39] dark:text-yellow-50 text-lg font-serif font-bold italic leading-none">
-                                                    {p.nickname} {p.id === playerId && '(You)'}
-                                                </span>
-                                            </div>
-                                        ))}
+                                <div className="w-full relative rounded-[14px] p-2 shadow-md bg-stone-500 dark:bg-stone-700">
+                                    <div className="absolute inset-[5px] rounded-[9px] border border-[#FDFAE5]/50 pointer-events-none"></div>
+
+                                    <div className="relative z-10 p-3 pt-4 flex flex-col items-start gap-4">
+                                        <div className="text-[#FDFAE5] text-sm font-bold font-sans uppercase tracking-widest pl-1">
+                                            Unassigned
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {unassignedPlayers.map(p => (
+                                                <div
+                                                    key={p.id}
+                                                    className="px-4 py-2 rounded-[6px] bg-[#FDFAE5] shadow-sm flex items-center justify-center transition-colors"
+                                                >
+                                                    <span className="text-stone-700 text-lg font-serif font-bold italic leading-none">
+                                                        {p.nickname} {p.id === playerId && '(You)'}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

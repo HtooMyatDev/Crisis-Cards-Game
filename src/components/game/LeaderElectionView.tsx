@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { Crown, CheckCircle, Loader2 } from 'lucide-react'
+import { TopLogo } from './CategoryIcons'
 import { motion, AnimatePresence } from 'framer-motion'
 import PageTransition from '@/components/ui/PageTransition'
 
@@ -159,7 +160,11 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
                         <h2 className="text-3xl sm:text-5xl font-serif text-stone-700 dark:text-[#FDFBF7] mb-4">Leader Elected</h2>
 
                         {currentLeader && (
-                            <div className="bg-white dark:bg-[#FDFBF7] border-[4px] border-stone-700 dark:border-[#FDFBF7] rounded-xl p-8 max-w-md mx-auto mb-8 shadow-lg">
+                            <div className="relative bg-white dark:bg-[#FDFBF7] border-[4px] border-stone-700 dark:border-[#FDFBF7] rounded-xl p-8 max-w-md mx-auto mb-8 shadow-lg overflow-hidden">
+                                {/* Top Logo Asset */}
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 z-20">
+                                    <TopLogo className="w-16 h-auto" />
+                                </div>
                                 <div className="text-xl font-bold uppercase tracking-widest mb-2" style={{ color: teamColor }}>{teamName}</div>
                                 <div className="text-4xl font-serif font-bold text-stone-700">{currentLeader.nickname}</div>
                                 <div className="text-sm text-[#666] font-medium mt-2">Representative</div>
@@ -284,6 +289,10 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
                                         }
                                     `}
                                 >
+                                    {/* Top Logo Asset - Mini version for candidates */}
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
+                                        <TopLogo className="w-10 h-auto" />
+                                    </div>
                                     {/* Avatar Placeholder */}
                                     <div className="w-20 h-20 rounded-full bg-stone-200 mb-4 flex items-center justify-center text-2xl font-serif font-bold text-stone-700">
                                         {player.nickname.charAt(0)}
