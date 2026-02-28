@@ -58,19 +58,19 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
     return (
         <div className="min-h-screen bg-[#FDFAE5] dark:bg-[#3E3E3C] font-sans transition-colors duration-300 relative flex flex-col pb-20 overflow-hidden">
             {/* Background - Light Mode */}
-            <img
+            {/* <img
                 src="/svg/light/background.svg"
                 alt=""
                 className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none dark:hidden z-0"
                 aria-hidden="true"
-            />
+            /> */}
             {/* Background - Dark Mode */}
-            <img
+            {/* <img
                 src="/svg/dark/background.svg"
                 alt=""
                 className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none hidden dark:block z-0"
                 aria-hidden="true"
-            />
+            /> */}
 
             {/* Decorative Header Area */}
             <div className="w-full flex justify-center pt-8 pb-4 relative z-20">
@@ -88,9 +88,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                     <img src="/svg/dark/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[70px] w-auto hidden dark:block" />
                 </div>
             </div>
-
-            <div className="relative z-10 max-w-[676px] mx-auto w-full px-4 flex flex-col gap-8 mt-8 md:mt-12 opacity-0 animate-[fadeIn_0.5s_ease-out_forwards]">
-
+            <div className="relative z-10 max-w-[676px] mx-auto w-full px-4 flex flex-col gap-8 mt-8 md:mt-12">
                 {/* 1. MY IDENTITY SECTION */}
                 <div className="w-full flex justify-center mb-8">
                     <div
@@ -109,6 +107,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
 
                 {/* 2. ALL PLAYERS SECTION */}
                 <div className="flex flex-col mb-12">
+
                     <h2 className="text-[#3F3D39] dark:text-yellow-50 text-3xl md:text-[32px] font-serif font-bold italic mb-4 pl-2 tracking-tight">
                         All Players ({allPlayers.length})
                     </h2>
@@ -122,8 +121,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                             return (
                                 <div
                                     key={t.id}
-                                    className="w-full opacity-0 animate-[slideUp_0.5s_ease-out_forwards]"
-                                    style={{ animationDelay: `${idx * 100}ms` }}
+                                    className="w-full"
                                 >
                                     <div
                                         className="w-full bg-[#FEFDF9] dark:bg-stone-800 rounded-[10px] border-[4px] border-t-[12px] p-4 flex flex-col items-start gap-2 shadow-sm"
@@ -158,7 +156,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
 
                         {/* Unassigned Players (if any) */}
                         {unassignedPlayers.length > 0 && (
-                            <div className="w-full opacity-0 animate-[slideUp_0.5s_ease-out_forwards] delay-300">
+                            <div className="w-full">
                                 <div className="w-full bg-[#FEFDF9] dark:bg-stone-800 rounded-[10px] border-[4px] border-t-[12px] p-4 flex flex-col items-start gap-2 shadow-sm border-gray-400 dark:border-gray-500">
                                     <div className="text-[#3F3D39] dark:text-yellow-50 text-sm font-bold font-sans">
                                         Unassigned

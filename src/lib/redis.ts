@@ -47,9 +47,13 @@ export async function getOrSetCache<T>(
     callback: () => Promise<T>,
     ttlSeconds: number = 60
 ): Promise<T> {
-    if (!redis) return callback();
+    // If Redis is not available or connection is closed (e.g. max retries reached), bypass cache
+    if (!redis || redis.status === 'end') return callback();
 
     try {
+        // Only attempt to read/write if Redis is fully ready to avoid queueing/timeouts when down
+        if (redis.status !== 'ready') return callback();
+
         const cached = await redis.get(key);
         if (cached) return JSON.parse(cached);
 
