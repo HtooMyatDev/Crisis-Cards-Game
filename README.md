@@ -1,130 +1,104 @@
-# Crisis Cards Game App
+# Cards of Crisis 🌍
 
-A collaborative, real-time strategy card game where players work in teams to solve global crises. Built with **Next.js 14**, **Prisma**, **PostgreSQL**, and **Pusher**.
+**Cards of Crisis** is a collaborative, real-time simulation game designed for **The Change Lab** and **Doing More With Less**. Our organization aims to foster environmental awareness and sustainability through interactive workshops and immersive simulations.
 
-![Crisis Cards Banner](https://via.placeholder.com/1200x400?text=Crisis+Cards+Game)
+In this high-stakes strategy game, players work in teams to manage resources, make critical policy decisions, and navigate global environmental and societal crises.
 
-## Features
-
-### 🎮 Gameplay
-- **Hybrid Real-time System**: Instant updates using Pusher Websockets with robust polling fallback.
-- **Team-Based Strategy**: Players are assigned teams (Red, Blue, etc.) with shared budgets and scores.
-- **Role-Based Mechanics**: Rotational "Leader" system where one player makes the final call after team deliberation.
-- **Dynamic Phases**: Lobby -> Team Assignment -> Leader Election -> Decision Phase -> Results.
-
-### 🛠 Host Controls
-- **Optimistic UI**: Instant-feedback controls for pausing, resuming, and advancing cards.
-- **Live Dashboard**: Watch player submissions and team stats update in real-time.
-- **Full Customization**: Create custom scenarios (cards), categories, and game modes.
-
-### 🎨 UX & Design
-- **Neo-Brutalist / Modern UI**: Distinctive aesthetic with heavy borders and bold shadows.
-- **Mobile First**: Fully optimized for players on smartphones.
-- **Smooth Transitions**: Cinematic fade transitions between game phases.
-- **Smooth Transitions**: Cinematic fade transitions between game phases.
-- **Immersive Audio**: Sound effects for key game events (Lobby Join, Timer, Alerts).
-
-### ⚡️ Performance
-- **Redis Caching**: Host view calls are cached to support 1000+ concurrent users.
-- **Optimized Database**: strategic indexing for fast queries.
+![Cards of Crisis Logo](https://via.placeholder.com/1200x400?text=Cards+of+Crisis)
 
 ---
 
-## Tech Stack
+## 🏛 Mission & Impact
 
-- **Framework**: Next.js 14 (App Router)
-- **Database**: PostgreSQL (via Prisma ORM)
-- **Real-time**: Pusher Channels (WebSockets)
-- **Caching**: Redis (Upstash / Local)
-- **Styling**: Tailwind CSS + Framer Motion
-- **Icons**: Lucide React
+The project serves as a cornerstone for environmental workshops, helping participants understand the complexity of:
+- **Resource Management**: Balancing economic growth with environmental preservation.
+- **Crisis Response**: Reacting to toxic spills, climate events, and societal shifts.
+- **Collaborative Leadership**: Building consensus in a time-pressured environment.
 
 ---
 
-## Getting Started
+## 🎮 Game Features
 
-### 1. Clone & Install
+- **Hybrid Real-time System**: Instant updates via Pusher Channels with robust polling fallbacks.
+- **Team-Based Strategy**: Adaptive scoring and shared budgets across discrete teams.
+- **Role-Based Mechanics**: A rotational "Leader" system ensures everyone participates in the final decision-making process.
+- **Dynamic Phases**: Seamless transitions from Lobby → Role Assignment → Policy Deliberation → Crisis Resolution.
+- **Neo-Brutalist Design**: A premium, "Cards of Crisis" signature aesthetic with bold shadows, heavy borders, and high-contrast visuals.
+
+---
+
+## 🛠 Tech Stack
+
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router & Turbopack)
+- **Runtime**: [React 19](https://react.dev/)
+- **Database**: [PostgreSQL](https://www.postgresql.org/) via [Prisma ORM](https://www.prisma.io/)
+- **Real-time**: [Pusher](https://pusher.com/) (WebSockets)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) & [Framer Motion](https://www.framer.com/motion/)
+- **State & Logic**: [Zod](https://zod.dev/) (Validation), [Lucide React](https://lucide.dev/) (Icons)
+
+---
+
+## 🏗 System Structure
+
+```text
+src/
+├── app/                  # Next.js App Router (Pages & API)
+│   ├── (auth)/           # Authentication flows (Login/Register)
+│   ├── admin/            # Host & Workshop management dashboards
+│   ├── user/             # Player profile and history
+│   ├── live/             # Real-time game simulation interface
+│   └── api/              # Backend endpoints
+│       ├── game/         # Game logic (voting, submissions, state)
+│       └── admin/        # CRUD operations for cards/scenarios
+├── components/           # Reusable UI components
+│   ├── game/             # Core simulation views (Lobby, Decision, Results)
+│   ├── admin/            # Dashboard widgets and analytics
+│   └── ui/               # Base design system (Buttons, Cards, Inputs)
+├── lib/                  # Shared utilities
+│   ├── prisma.ts         # Database client
+│   └── pusher.ts         # Real-time event broadcasting
+├── hooks/                # Custom React hooks (Game state, polling)
+└── types/                # TypeScript interface definitions
+```
+
+---
+
+## 🚀 Getting Started
+
+### 1. Installation
 ```bash
 git clone <repository-url>
 cd crisis-card-game-app
 npm install
 ```
 
-### 2. Database Setup
-Ensure you have a PostgreSQL database running (local or cloud like database.new).
-
+### 2. Database Initialization
+1.  Copy `.env.example` to `.env`.
+2.  Update `DATABASE_URL` with your PostgreSQL connection string.
+3.  Run migrations and seed the initial scenarios:
 ```bash
-# Create .env file
-cp .env.example .env
-```
-
-Update `.env` with your database URL:
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/crisis_game"
-```
-
-Run migrations and seed data:
-```bash
-npx prisma generate
 npx prisma db push
+npm run postinstall
 npx ts-node prisma/seed.ts
 ```
 
-npx ts-node prisma/seed.ts
-```
+### 3. Real-time Setup
+Create a [Pusher](https://pusher.com) app and add your credentials to `.env`:
+- `NEXT_PUBLIC_PUSHER_KEY`
+- `NEXT_PUBLIC_PUSHER_CLUSTER`
+- `PUSHER_APP_ID`
+- `PUSHER_SECRET`
 
-### 3. Real-time Setup (Pusher)
-To enable instant updates (highly recommended), create a free app on [pusher.com](https://pusher.com) and add the keys to `.env`.
-
-### 4. Caching Setup (Redis) - Optional
-To enable high-performance caching for the Host View:
-1.  Install Redis locally or use [Upstash](https://upstash.com).
-2.  Add `REDIS_URL` to your `.env` file (see `.env.example`).
-*If skipped, the app gracefully falls back to direct DB calls.*
-
-### 5. Sound Effects Setup (Optional)
-
-```env
-NEXT_PUBLIC_PUSHER_KEY=your_key
-NEXT_PUBLIC_PUSHER_CLUSTER=your_cluster
-PUSHER_APP_ID=your_app_id
-PUSHER_SECRET=your_secret
-```
-*If skipped, the app will fall back to 3-second polling.*
-
-### 4. Sound Effects Setup (Optional)
-To enable audio feedback, place the following .wav files in `public/sounds/`:
-- `join.wav` (Player joined)
-- `notification.wav` (Next card)
-- `tick.wav` (Timer countdown)
-- `success.wav` (Game completed)
-
-*Free assets can be found on Mixkit or Pixabay.*
-
-### 6. Run Development Server
+### 4. Run Development
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## Project Structure
+## 🏗 Deployment
+This application is optimized for [Vercel](https://vercel.com). Ensure all environment variables (DB, Pusher, Auth Secrets) are configured in the Vercel dashboard.
 
-- `src/app`: App Router pages and API routes.
-    - `/api/game`: Player-facing endpoints (join, vote, submit).
-    - `/api/admin`: Host/Admin management endpoints.
-- `src/components`:
-    - `/game`: Core game views (Lobby, Decision, Results).
-    - `/admin`: Dashboard widgets and management tables.
-- `src/lib`:
-    - `pusher.ts`: Server-side WebSocket trigger.
-    - `pusher-client.ts`: Client-side WebSocket listener.
-- `src/hooks`: Custom hooks (`useGamePolling`, `useGameState`).
+---
 
-## Deployment
-
-Deploy easily on **Vercel**.
-1. Import project to Vercel.
-2. Add Environment Variables (`DATABASE_URL`, `PUSHER_...`).
-3. Deploy!
+**Doing More With Less (DMWL)** | *The Change Lab*

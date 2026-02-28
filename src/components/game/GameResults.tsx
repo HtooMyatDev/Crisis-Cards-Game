@@ -51,8 +51,22 @@ export const GameResults: React.FC<GameResultsProps> = ({ gameCode, onJoinAnothe
 
     if (!results) {
         return (
-            <div className="min-h-screen bg-gray-50 dark:bg-[#0B0F19] flex items-center justify-center text-gray-900 dark:text-white font-[family-name:var(--font-roboto)] transition-colors duration-500">
-                <div className="flex flex-col items-center gap-4">
+            <div className="min-h-screen bg-[#FDFAE5] dark:bg-[#3E3E3C] flex items-center justify-center text-gray-900 dark:text-white font-[family-name:var(--font-roboto)] transition-colors duration-500 relative">
+                {/* Background - Light Mode */}
+                <img
+                    src="/svg/light/background.svg"
+                    alt=""
+                    className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none dark:hidden z-0"
+                    aria-hidden="true"
+                />
+                {/* Background - Dark Mode */}
+                <img
+                    src="/svg/dark/background.svg"
+                    alt=""
+                    className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none hidden dark:block z-0"
+                    aria-hidden="true"
+                />
+                <div className="flex flex-col items-center gap-4 relative z-10">
                     <div className="w-12 h-12 border-4 border-gray-300 dark:border-white/20 border-t-gray-900 dark:border-t-white rounded-full animate-spin" />
                     <span className="uppercase tracking-widest opacity-60">Calculating Outcome...</span>
                 </div>
@@ -61,7 +75,21 @@ export const GameResults: React.FC<GameResultsProps> = ({ gameCode, onJoinAnothe
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[#0B0F19] text-gray-900 dark:text-white p-4 md:p-8 font-[family-name:var(--font-roboto)] relative overflow-hidden transition-colors duration-500">
+        <div className="min-h-screen bg-[#FDFAE5] dark:bg-[#3E3E3C] text-gray-900 dark:text-white p-4 md:p-8 font-[family-name:var(--font-roboto)] relative overflow-hidden transition-colors duration-500">
+            {/* Background - Light Mode */}
+            <img
+                src="/svg/light/background.svg"
+                alt=""
+                className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none dark:hidden z-0"
+                aria-hidden="true"
+            />
+            {/* Background - Dark Mode */}
+            <img
+                src="/svg/dark/background.svg"
+                alt=""
+                className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none hidden dark:block z-0"
+                aria-hidden="true"
+            />
             {/* Transition Overlay */}
             <AnimatePresence>
                 {showTransition && (
@@ -103,7 +131,10 @@ export const GameResults: React.FC<GameResultsProps> = ({ gameCode, onJoinAnothe
 
             <div className="max-w-6xl mx-auto relative z-10">
                 {/* Header / Reflective Session */}
-                <div className="text-center mb-16 pt-8">
+                <div className="text-center mb-16 pt-8 flex flex-col items-center">
+                    <img src="/svg/light/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[60px] w-auto dark:hidden mb-6" />
+                    <img src="/svg/dark/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[60px] w-auto hidden dark:block mb-6" />
+
                     <h1 className="text-4xl md:text-6xl font-[family-name:var(--font-russo)] uppercase tracking-wider mb-2 text-transparent bg-clip-text bg-gradient-to-b from-gray-700 to-gray-900 dark:from-gray-100 dark:to-gray-400 drop-shadow-2xl">
                         Reflective Session
                     </h1>

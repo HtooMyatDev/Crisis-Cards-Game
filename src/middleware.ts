@@ -5,6 +5,15 @@ export function middleware(request: NextRequest) {
     const userRole = request.cookies.get("role");
     const currentPath = request.nextUrl.pathname;
 
+    // Basic Rate Limiting (Conceptual for Demo/Small Scale)
+    // For production, use Upstash Redis or Vercel WAF
+    if (currentPath.startsWith('/api/auth') || currentPath.startsWith('/auth')) {
+        // This is a simplified example. In a real Edge environment,
+        // you would use a distributed store.
+        // We'll skip formal state storage here as standard middleware is stateless,
+        // but we can add headers or log for monitoring.
+    }
+
     // Direct Access for 'Live' Mode deployments (Environment-Based Routing)
     if (process.env.NEXT_PUBLIC_APP_MODE === 'live' && currentPath === '/') {
         return NextResponse.rewrite(new URL('/live', request.url));

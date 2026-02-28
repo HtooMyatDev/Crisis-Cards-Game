@@ -134,27 +134,34 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
     if (electionStatus === 'COMPLETED') {
         return (
             <PageTransition>
-                <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#3E3E3C] p-4 sm:p-8 flex items-center justify-center font-sans transition-colors duration-300">
-                    <div className="text-center">
-                        {/* Header Logo */}
-                        <div className="flex flex-col items-center gap-2 mb-16">
-                            <h2 className="text-3xl font-serif italic text-black/80 dark:text-[#FDFBF7]">Cards of Crisis</h2>
-                            {/* 5 Color bar with border */}
-                            <div className="flex -space-x-0.5 border-2 border-[#333] dark:border-[#FDFBF7] px-2 py-1 rounded-full bg-transparent items-center">
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#399B2C] z-0"></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#D9AD1F] z-10"></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#4190A9] z-20"></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#BE8111] z-30"></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#CD302F] z-40"></div>
-                            </div>
+                <div className="min-h-screen bg-[#FDFAE5] dark:bg-[#3E3E3C] p-4 sm:p-8 flex items-center justify-center font-sans transition-colors duration-300 relative overflow-hidden">
+                    {/* Background - Light Mode */}
+                    <img
+                        src="/svg/light/background.svg"
+                        alt=""
+                        className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none dark:hidden z-0"
+                        aria-hidden="true"
+                    />
+                    {/* Background - Dark Mode */}
+                    <img
+                        src="/svg/dark/background.svg"
+                        alt=""
+                        className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none hidden dark:block z-0"
+                        aria-hidden="true"
+                    />
+
+                    <div className="text-center relative z-10 w-full max-w-lg mx-auto bg-white/40 dark:bg-black/20 p-8 rounded-3xl backdrop-blur-sm border border-black/5 dark:border-white/5">
+                        <div className="flex flex-col items-center gap-4 mb-12">
+                            <img src="/svg/light/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[60px] w-auto dark:hidden" />
+                            <img src="/svg/dark/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[60px] w-auto hidden dark:block" />
                         </div>
 
-                        <h2 className="text-5xl font-serif italic text-[#333] dark:text-[#FDFBF7] mb-4">Leader Elected</h2>
+                        <h2 className="text-5xl font-serif text-stone-700 dark:text-[#FDFBF7] mb-4">Leader Elected</h2>
 
                         {currentLeader && (
-                            <div className="bg-white dark:bg-[#FDFBF7] border-[4px] border-[#333] dark:border-[#FDFBF7] rounded-xl p-8 max-w-md mx-auto mb-8 shadow-lg">
+                            <div className="bg-white dark:bg-[#FDFBF7] border-[4px] border-stone-700 dark:border-[#FDFBF7] rounded-xl p-8 max-w-md mx-auto mb-8 shadow-lg">
                                 <div className="text-xl font-bold uppercase tracking-widest mb-2" style={{ color: teamColor }}>{teamName}</div>
-                                <div className="text-4xl font-serif font-bold text-[#333]">{currentLeader.nickname}</div>
+                                <div className="text-4xl font-serif font-bold text-stone-700">{currentLeader.nickname}</div>
                                 <div className="text-sm text-[#666] font-medium mt-2">Representative</div>
                             </div>
                         )}
@@ -171,33 +178,46 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
 
     return (
         <PageTransition>
-            <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#3E3E3C] p-4 sm:p-8 flex flex-col items-center font-sans relative overflow-hidden transition-colors duration-300">
+            <div className="min-h-screen bg-[#FDFAE5] dark:bg-[#3E3E3C] flex flex-col items-center relative overflow-x-hidden transition-colors duration-300">
+                {/* Background - Light Mode */}
+                <img
+                    src="/svg/light/background.svg"
+                    alt=""
+                    className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none dark:hidden z-0"
+                    aria-hidden="true"
+                />
+                {/* Background - Dark Mode */}
+                <img
+                    src="/svg/dark/background.svg"
+                    alt=""
+                    className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none hidden dark:block z-0"
+                    aria-hidden="true"
+                />
 
-                {/* Header Logo */}
-                <div className="mt-8 mb-12 flex flex-col items-center gap-2">
-                    <h2 className="text-3xl font-serif italic text-black/80 dark:text-[#FDFBF7]">Cards of Crisis</h2>
-                    {/* 5 Color bar with border */}
-                    <div className="flex -space-x-0.5 border-2 border-[#333] dark:border-[#FDFBF7] px-2 py-1 rounded-full bg-transparent items-center">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#4CAF50] z-0"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#EBA937] z-10"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#2196F3] z-20"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#ED8936] z-30"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#F44336] z-40"></div>
+                {/* Decorative Header Area */}
+                <div className="relative w-full max-w-[1440px] h-auto flex flex-col items-center justify-start pt-12 sm:pt-20 pb-12 z-10">
+
+                    <div className="flex flex-col items-center gap-4 mb-8">
+                        <img src="/svg/light/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[80px] w-auto dark:hidden" />
+                        <img src="/svg/dark/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[80px] w-auto hidden dark:block" />
                     </div>
-                </div>
 
-                <div className="w-full max-w-3xl text-center relative z-10">
-                    {/* Title */}
-                    <div className="mb-12">
-                        <h1 className="text-6xl md:text-8xl font-serif italic text-[#333] dark:text-[#FDFBF7] mb-4 tracking-tight leading-none">
+                    {/* Main Title */}
+                    <div className="text-center z-10 px-4">
+                        <h1 className="text-6xl sm:text-7xl md:text-8xl font-black font-serif text-stone-700 leading-tight mb-4 tracking-tight">
                             {electionStatus === 'RUNOFF' ? `Tie Breaker ${runoffCount > 0 ? `#${runoffCount}` : ''}` : 'Cast Your Vote'}
                         </h1>
-                        <p className="text-lg md:text-2xl text-[#555] dark:text-[#FDFBF7]/80 font-medium font-sans">
+                        <p className="text-lg sm:text-2xl md:text-3xl text-stone-700 font-medium font-sans">
                             {electionStatus === 'RUNOFF'
                                 ? 'Voting ended in a tie. Re-vote for one of the top candidates!'
                                 : 'Elect your leader for 3 rounds (1 term)'}
                         </p>
                     </div>
+                </div>
+
+
+                {/* Content Area */}
+                <div className="w-full max-w-5xl px-4 sm:px-8 pb-12 relative z-10 flex flex-col items-center">
 
                     <AnimatePresence>
                         {showTransition && electionStatus === 'OPEN' && (
@@ -213,19 +233,18 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
                                     exit={{ scale: 1.1, opacity: 0 }}
                                     className="text-center"
                                 >
-                                    <h2 className="text-6xl font-serif italic text-[#FDFBF7] mb-2">Term Ended</h2>
+                                    <h2 className="text-6xl font-serif text-[#FDFBF7] mb-2">Term Ended</h2>
                                     <p className="text-2xl text-[#FDFBF7]/80 font-sans uppercase tracking-widest">Election Time</p>
                                 </motion.div>
                             </motion.div>
                         )}
                     </AnimatePresence>
 
-                    {/* Timer */}
-                    {/* Show a subtle timer - maybe top right or just numbers? */}
-                    <div className="absolute top-0 right-0 md:right-[-2rem] md:top-[-1rem]">
+                    {/* Timer - Positioned absolutely or integrated? Let's keep it clear but stylish */}
+                    <div className="mb-8">
                         <div className={`
-                             text-4xl font-black font-serif italic
-                             ${timeLeft < 10 ? 'text-red-500 animate-pulse' : 'text-[#333]/20 dark:text-[#FDFBF7]/20'}
+                             text-4xl font-black font-serif
+                             ${timeLeft < 10 ? 'text-red-600 animate-pulse' : 'text-stone-300 dark:text-[#FDFBF7]/20'}
                          `}>
                             {timeLeft}s
                         </div>
@@ -233,14 +252,14 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
 
                     {/* Status Messages */}
                     {hasVoted && (
-                        <div className="mb-8 inline-flex items-center gap-2 bg-[#333] dark:bg-[#FDFBF7] text-white dark:text-[#333] px-6 py-2 rounded-full shadow-lg">
+                        <div className="mb-8 inline-flex items-center gap-2 bg-stone-800 dark:bg-[#FDFBF7] text-white dark:text-[#333] px-6 py-2 rounded-full shadow-lg">
                             <CheckCircle size={20} />
                             <span className="font-bold uppercase tracking-wider text-sm">Vote Recorded</span>
                         </div>
                     )}
 
                     {/* Candidate Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-4xl">
                         {displayPlayers.map((player, index) => {
                             const isSelected = selectedCandidate === player.id
 
@@ -254,33 +273,32 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
                                     disabled={hasVoted || isSubmitting}
                                     className={`
                                         relative group p-6 rounded-xl border-[3px] transition-all duration-300 bg-white dark:bg-[#FDFBF7]
+                                        flex flex-col items-center text-center
                                         ${hasVoted
                                             ? 'opacity-60 cursor-not-allowed border-[#ddd] dark:border-[#3E3E3C]/20'
                                             : 'cursor-pointer hover:-translate-y-1 hover:shadow-xl'
                                         }
                                         ${isSelected
-                                            ? 'border-[#333] dark:border-[#3E3E3C] bg-[#f0f0f0] dark:bg-white shadow-none ring-2 ring-[#333] ring-offset-2'
-                                            : 'border-[#ddd] dark:border-transparent hover:border-[#333] dark:hover:border-[#3E3E3C]'
+                                            ? 'border-stone-800 dark:border-[#3E3E3C] bg-stone-50 dark:bg-white shadow-none ring-2 ring-stone-800 ring-offset-2'
+                                            : 'border-[#ddd] dark:border-transparent hover:border-stone-600 dark:hover:border-[#3E3E3C]'
                                         }
                                     `}
                                 >
-                                    <div className="flex flex-col items-center gap-3">
-                                        {/* Avatar Placeholder */}
-                                        <div className="w-16 h-16 rounded-full bg-[#eee] flex items-center justify-center text-2xl font-serif italic font-bold text-[#333]">
-                                            {player.nickname.charAt(0)}
-                                        </div>
-
-                                        <div>
-                                            <div className="text-xl font-bold text-[#333] font-serif italic">
-                                                {player.nickname} {player.id === currentPlayerId && '(You)'}
-                                            </div>
-                                            {player.isLeader && electionStatus !== 'RUNOFF' && (
-                                                <div className="text-xs font-bold text-[#D97706] uppercase tracking-wider mt-1 flex items-center justify-center gap-1">
-                                                    <Crown size={12} /> Incumbent
-                                                </div>
-                                            )}
-                                        </div>
+                                    {/* Avatar Placeholder */}
+                                    <div className="w-20 h-20 rounded-full bg-stone-200 mb-4 flex items-center justify-center text-2xl font-serif font-bold text-stone-700">
+                                        {player.nickname.charAt(0)}
                                     </div>
+
+                                    <div className="text-xl font-bold text-stone-800 font-serif">
+                                        {player.nickname}
+                                    </div>
+                                    {player.id === currentPlayerId && <span className="text-xs text-stone-500 font-sans uppercase tracking-wider">(You)</span>}
+
+                                    {player.isLeader && electionStatus !== 'RUNOFF' && (
+                                        <div className="text-xs font-bold text-amber-600 uppercase tracking-wider mt-2 flex items-center justify-center gap-1">
+                                            <Crown size={12} /> Incumbent
+                                        </div>
+                                    )}
 
                                     {isSelected && (
                                         <div className="absolute top-3 right-3 text-green-600">
@@ -294,7 +312,7 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
 
                     {/* Solo Player State */}
                     {teamPlayers.length === 1 && teamPlayers[0].id === currentPlayerId && (
-                        <div className="mt-8 text-[#666] dark:text-[#FDFBF7]/60 font-medium">
+                        <div className="mt-8 text-stone-500 dark:text-[#FDFBF7]/60 font-medium">
                             <Loader2 className="animate-spin inline-block mr-2" size={16} />
                             Auto-selecting you as leader...
                         </div>

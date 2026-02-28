@@ -1,16 +1,32 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, ShieldAlert, Users, PieChart, Activity, Globe2, Trophy } from 'lucide-react';
-import { BackgroundCard } from '@/components/auth/BackgroundCard';
 import { cookies } from 'next/headers';
 
 export default async function LandingPage() {
     const cookieStore = await cookies();
     const userRole = cookieStore.get("role")?.value;
     return (
-        <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#3E3E3C] flex flex-col relative overflow-hidden font-sans transition-colors duration-300">
-            {/* Background Grain */}
-            <div className="absolute inset-0 bg-grain pointer-events-none opacity-40 mix-blend-overlay fixed"></div>
+        <div className="min-h-screen bg-[#FDFAE5] dark:bg-[#3E3E3C] flex flex-col relative font-sans transition-colors duration-300">
+            {/* SVG Background — fades out after hero */}
+            <div className="absolute inset-x-0 top-0 h-[110vh] overflow-hidden pointer-events-none z-0">
+                {/* Light Mode */}
+                <img
+                    src="/svg/light/background.svg"
+                    alt=""
+                    className="w-full h-full object-cover dark:hidden"
+                    aria-hidden="true"
+                />
+                {/* Dark Mode */}
+                <img
+                    src="/svg/dark/background.svg"
+                    alt=""
+                    className="w-full h-full object-cover hidden dark:block"
+                    aria-hidden="true"
+                />
+                {/* Gradient fade to page background */}
+                <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-b from-transparent to-[#FDFAE5] dark:to-[#3E3E3C]" />
+            </div>
 
             {/* News Ticker */}
             <div className="w-full bg-red-600/10 border-b border-red-500/20 py-3 overflow-hidden flex whitespace-nowrap relative z-50 backdrop-blur-sm">
@@ -31,44 +47,34 @@ export default async function LandingPage() {
             {/* Content Container */}
             <main className="flex-1 flex flex-col items-center justify-center relative p-4 pb-20 pt-10">
 
-                {/* Decorative Elements - High Fidelity Background Cards */}
-                <div className="absolute top-[10%] left-[5%] transform rotate-[35.44deg] opacity-60 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-700 z-0">
-                    <BackgroundCard
-                        color="#399B2C"
-                        title="Toxic Waste Spill in River"
-                        description="Residents along the river fall ill after a factory leaks toxic chemicals."
-                        mins="3 Mins"
-                        category="Environmental"
-                        options={[]}
-                        className="h-[200px] w-[140px] scale-75"
-                    />
+                {/* Top Right Navigation */}
+                <div className="absolute top-6 right-6 z-50 flex gap-4 items-center hidden md:flex animate-in fade-in slide-in-from-top-4 duration-700">
+                    <Link
+                        href="/live"
+                        className="font-bold font-sans text-[#333] dark:text-[#FDFBF7] text-lg hover:text-opacity-70 transition-colors"
+                    >
+                        Join a game
+                    </Link>
+                    {userRole ? (
+                        <Link
+                            href={userRole === 'ADMIN' ? "/admin/dashboard" : "/user/home"}
+                            className="bg-white dark:bg-[#3E3E3C] border-2 border-[#333] dark:border-[#FDFBF7] text-[#333] dark:text-[#FDFBF7] px-6 py-2 rounded-lg font-bold font-sans hover:bg-[#333]/5 dark:hover:bg-[#FDFBF7]/10 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[5px_5px_0px_0px_rgba(255,255,255,1)] active:translate-x-[0px] active:translate-y-[0px] active:shadow-none"
+                        >
+                            Dashboard
+                        </Link>
+                    ) : (
+                        <Link
+                            href="/auth/login"
+                            className="bg-white dark:bg-[#3E3E3C] border-2 border-[#333] dark:border-[#FDFBF7] text-[#333] dark:text-[#FDFBF7] px-6 py-2 rounded-lg font-bold font-sans hover:bg-[#333]/5 dark:hover:bg-[#FDFBF7]/10 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[5px_5px_0px_0px_rgba(255,255,255,1)] active:translate-x-[0px] active:translate-y-[0px] active:shadow-none"
+                        >
+                            Log in
+                        </Link>
+                    )}
                 </div>
-                <div className="absolute top-[20%] right-[8%] transform -rotate-[15deg] opacity-50 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-700 z-0">
-                    <BackgroundCard
-                        color="#4190A9"
-                        title="Urban Decay"
-                        description="A once-prosperous neighborhood has fallen into disrepair."
-                        mins="5 Mins"
-                        category="Society"
-                        options={[]}
-                        className="h-[200px] w-[140px] scale-75"
-                    />
-                </div>
-                <div className="absolute bottom-[20%] left-[10%] transform -rotate-[50deg] opacity-50 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-700 z-0">
-                    <BackgroundCard
-                        color="#CD302F"
-                        title="Climate Summit"
-                        description="Commit to bold new targets and invest heavily in renewables."
-                        mins="5 Mins"
-                        category="Political"
-                        options={[]}
-                        className="h-[200px] w-[140px] scale-75"
-                    />
-                </div>
-
 
                 {/* Top Logo */}
-                <div className="flex flex-col items-center gap-2 mb-12 z-10 animate-in fade-in slide-in-from-top-4 duration-700">
+                {/* Top Logo */}
+                <Link href="/" className="flex flex-col items-center gap-2 mb-12 z-10 animate-in fade-in slide-in-from-top-4 duration-700 hover:opacity-80 transition-opacity">
                     <h2 className="text-3xl md:text-4xl font-serif italic text-black/80 dark:text-[#FDFBF7]">Cards of Crisis</h2>
                     {/* 5 Color bar with border */}
                     <div className="flex -space-x-1.5 border-[3px] border-[#333] dark:border-[#FDFBF7] px-3 py-1.5 rounded-full bg-transparent items-center">
@@ -78,7 +84,7 @@ export default async function LandingPage() {
                         <div className="w-4 h-4 rounded-full bg-[#CA840C] border border-white/0 z-30"></div>
                         <div className="w-4 h-4 rounded-full bg-[#CD302F] border border-white/0 z-40"></div>
                     </div>
-                </div>
+                </Link>
 
                 {/* Main Hero */}
                 <div className="relative z-10 w-full max-w-4xl text-center flex flex-col items-center justify-center mb-24 animate-in fade-in zoom-in duration-700">
@@ -90,24 +96,22 @@ export default async function LandingPage() {
                         Manage resources, make tough decisions, and lead your nation through global crises in this high-stakes simulation.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto items-center justify-center p-4">
-                        {userRole != "ADMIN" && (
+                    <div className="flex flex-col items-center justify-center p-4 w-full">
+                        {!userRole ? (
                             <Link
-                                href={process.env.NODE_ENV === 'production' ? "https://crisis-cards-game-live.vercel.app/" : "/live"}
-                                className="group relative bg-[#333] dark:bg-[#FDFBF7] text-[#FDFBF7] dark:text-[#3E3E3C] text-2xl font-serif italic px-12 py-5 rounded-xl hover:bg-black dark:hover:bg-white transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)] active:translate-x-[0px] active:translate-y-[0px] active:shadow-none duration-200 w-full sm:w-auto text-center"
+                                href="/auth/register"
+                                className="group relative bg-[#333] dark:bg-[#FDFBF7] text-[#FDFBF7] dark:text-[#3E3E3C] text-3xl font-serif italic px-16 py-6 rounded-xl hover:bg-black dark:hover:bg-white transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)] active:translate-x-[0px] active:translate-y-[0px] active:shadow-none duration-200 w-full sm:w-auto text-center"
                             >
-                                <span className="flex items-center justify-center gap-3">
-                                    Enter Simulation <ArrowRight className="w-6 h-6 transition-transform group-hover:translate-x-1" />
-                                </span>
+                                Sign Up
+                            </Link>
+                        ) : (
+                            <Link
+                                href={userRole === 'ADMIN' ? "/admin/dashboard" : (process.env.NODE_ENV === 'production' ? "https://crisis-cards-game-live.vercel.app/" : "/live")}
+                                className="group relative bg-[#333] dark:bg-[#FDFBF7] text-[#FDFBF7] dark:text-[#3E3E3C] text-3xl font-serif italic px-16 py-6 rounded-xl hover:bg-black dark:hover:bg-white transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)] active:translate-x-[0px] active:translate-y-[0px] active:shadow-none duration-200 w-full sm:w-auto text-center"
+                            >
+                                {userRole === 'ADMIN' ? "Admin Dashboard" : "Enter Simulation"}
                             </Link>
                         )}
-
-                        <Link
-                            href="/auth/login"
-                            className="group bg-transparent border-[3px] border-[#333] dark:border-[#FDFBF7] text-[#333] dark:text-[#FDFBF7] text-xl font-bold font-sans px-10 py-5 rounded-xl hover:bg-[#333]/5 dark:hover:bg-[#FDFBF7]/10 transition-all hover:scale-105 duration-300 w-full sm:w-auto text-center"
-                        >
-                            Admin Access
-                        </Link>
                     </div>
 
                     {/* Live Stats */}
@@ -173,31 +177,12 @@ export default async function LandingPage() {
                 {/* Footer Branding */}
                 <div className="w-full flex justify-between items-end px-4 md:px-12 mt-12 opacity-80 pointer-events-none sticky bottom-6">
                     <div className="hidden md:block">
-                        <div className="flex items-center gap-1">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="transform rotate-90 text-[#333] dark:text-[#FDFBF7]">
-                                <path d="M20.5 14.5L13.5 21.5C12.7 22.3 11.3 22.3 10.5 21.5L3.5 14.5C2 13 3 10.5 5 10.5H19C21 10.5 22 13 20.5 14.5Z" />
-                            </svg>
-                            <div className="font-black text-[#333] dark:text-[#FDFBF7] text-[0.65rem] leading-[0.85] flex flex-col tracking-tighter uppercase font-sans">
-                                <span className="self-start">Doing</span>
-                                <span className="self-end">More With</span>
-                                <span className="self-end">Less</span>
-                            </div>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="transform -rotate-90 text-[#333] dark:text-[#FDFBF7]">
-                                <path d="M20.5 14.5L13.5 21.5C12.7 22.3 11.3 22.3 10.5 21.5L3.5 14.5C2 13 3 10.5 5 10.5H19C21 10.5 22 13 20.5 14.5Z" />
-                            </svg>
-                        </div>
+                        <img src="/svg/light/dmwl-logo.svg" alt="Doing More With Less" className="h-10 w-auto dark:hidden" />
+                        <img src="/svg/dark/dmwl-logo.svg" alt="Doing More With Less" className="h-10 w-auto hidden dark:block" />
                     </div>
-
-                    <div className="flex flex-col items-center">
-                        <div className="relative w-8 h-8 flex items-center justify-center">
-                            <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8 text-[#FCD34D] drop-shadow-sm">
-                                <path d="M12 2C13.1 2 14 2.9 14 4V10H20C21.1 10 22 10.9 22 12C22 13.1 21.1 14 20 14H14V20C14 21.1 13.1 22 12 22C10.9 22 10 21.1 10 20V14H4C2.9 14 2 13.1 2 12C2 10.9 2.9 10 4 10H10V4C10 2.9 10.9 2 12 2Z" fill="currentColor" />
-                                <circle cx="12" cy="12" r="2" className="fill-[#FDFBF7] dark:fill-[#3E3E3C]" />
-                            </svg>
-                        </div>
-                        <div className="text-[10px] font-bold text-[#333] dark:text-[#FDFBF7] mt-1 leading-[0.9] text-left font-[family-name:var(--font-pixel)] tracking-wide">
-                            the<br />change<br />lab
-                        </div>
+                    <div className="hidden md:block">
+                        <img src="/svg/light/combined-brand-logo.svg" alt="The Change Lab | Cards of Crisis" className="h-10 w-auto dark:hidden" />
+                        <img src="/svg/dark/combined-brand-logo.svg" alt="The Change Lab | Cards of Crisis" className="h-10 w-auto hidden dark:block" />
                     </div>
                 </div>
 

@@ -1,16 +1,16 @@
 import React from 'react';
-import { Clock, DollarSign, Heart, Landmark, Settings } from 'lucide-react';
+import { Clock, DollarSign, Heart, Landmark, Settings, Users, Zap, Shield, TrendingUp, Building2, Leaf } from 'lucide-react';
 
 interface CardResponse {
     id: number;
     text: string;
     score?: number;
-    cost?: number;
-    politicalEffect?: number; // Clock (Speed/Urgency?)
-    economicEffect?: number;  // $
-    infrastructureEffect?: number; // Bank/Building
-    societyEffect?: number; // Heart
-    environmentEffect?: number; // Gear/Environment
+    cost?: number; // monetary cost
+    politicalEffect?: number; // Clock (Speed/Urgency?) - Red
+    economicEffect?: number;  // $ - Yellow
+    infrastructureEffect?: number; // Bank/Building - Orange
+    societyEffect?: number; // Heart - Blue
+    environmentEffect?: number; // Gear/Environment - Green
 }
 
 interface CrisisCardProps {
@@ -40,39 +40,142 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
     votes = {},
     timeLeft,
     categoryName,
-    categoryColor,
 }) => {
-    // Exact palette extraction with Darker Accents for tabs/letters
-    const getCategoryPalette = (cat?: string) => {
+
+    const getTheme = (cat?: string) => {
         const c = cat?.toLowerCase() || '';
 
-        // Green #399B2C -> Darker #266E1E
-        if (c.includes('environment')) return { bg: '#399B2C', accent: '#266E1E', text: '#FDFBF7' };
+        // Green / Environmental
+        if (c.includes('environment')) {
+            return {
+                bg: 'bg-green-600',
+                shadow: 'shadow-[-2.75px_3.58px_9.81px_0px_rgba(0,0,0,0.10)] shadow-[-10.91px_14.12px_17.88px_0px_rgba(0,0,0,0.09)] shadow-[-24.57px_31.81px_22.92px_0px_rgba(0,0,0,0.05)] shadow-[-43.63px_56.56px_22.92px_0px_rgba(0,0,0,0.01)]',
+                textColor: 'text-green-900',
+                accentColor: 'text-green-500',
+                pillBg: 'bg-green-500',
+                pillText: 'text-green-900',
+                letterBg: 'bg-green-600',
+                letterText: 'text-yellow-50',
+                cardBg: 'bg-yellow-50',
+                bodyText: 'text-stone-700',
+                categoryLabel: 'Environmental',
+                categoryColor: 'text-green-500',
+                title: 'text-green-900',
+            };
+        }
 
-        // Yellow #D9AD1F -> Darker #AB8818
-        if (c.includes('economic')) return { bg: '#D9AD1F', accent: '#AB8818', text: '#FDFBF7' };
+        // Yellow / Economic
+        if (c.includes('economic')) {
+            return {
+                bg: 'bg-yellow-500',
+                shadow: 'shadow-[-2.93px_3.67px_10.36px_0px_rgba(0,0,0,0.10)] shadow-[-11.64px_14.76px_18.79px_0px_rgba(0,0,0,0.09)] shadow-[-26.13px_33.09px_22.92px_0px_rgba(0,0,0,0.05)] shadow-[-46.48px_58.94px_22.92px_0px_rgba(0,0,0,0.01)]',
+                textColor: 'text-yellow-900',
+                accentColor: 'text-amber-300',
+                pillBg: 'bg-amber-300',
+                pillText: 'text-yellow-900',
+                letterBg: 'bg-yellow-500',
+                letterText: 'text-yellow-50',
+                cardBg: 'bg-yellow-50',
+                bodyText: 'text-stone-700',
+                categoryLabel: 'Economic',
+                categoryColor: 'text-amber-300',
+                title: 'text-yellow-900',
+            };
+        }
 
-        // Orange #BE8111 -> Darker #8C5E0C
-        if (c.includes('infrastructure')) return { bg: '#BE8111', accent: '#8C5E0C', text: '#FDFBF7' };
+        // Orange / Infrastructure
+        if (c.includes('infrastructure')) {
+            return {
+                bg: 'bg-yellow-600', // Using yellow-600 as base per snippet "bg-yellow-600" but could be orange-500
+                shadow: 'shadow-[-2.75px_3.48px_9.81px_0px_rgba(0,0,0,0.10)] shadow-[-11.09px_14.03px_17.88px_0px_rgba(0,0,0,0.09)] shadow-[-24.84px_31.53px_22.92px_0px_rgba(0,0,0,0.05)] shadow-[-44.18px_56.10px_22.92px_0px_rgba(0,0,0,0.01)]',
+                textColor: 'text-yellow-900',
+                accentColor: 'text-orange-400',
+                pillBg: 'bg-orange-400',
+                pillText: 'text-yellow-900',
+                letterBg: 'bg-yellow-600',
+                letterText: 'text-yellow-50',
+                cardBg: 'bg-yellow-50',
+                bodyText: 'text-stone-700',
+                categoryLabel: 'Infrastructure',
+                categoryColor: 'text-orange-400',
+                title: 'text-yellow-900',
+            };
+        }
 
-        // Blue #4190A9 -> Darker #306B7D
-        if (c.includes('society') || c.includes('social')) return { bg: '#4190A9', accent: '#306B7D', text: '#FDFBF7' };
+        // Blue / Society
+        if (c.includes('society') || c.includes('social')) {
+            return {
+                bg: 'bg-slate-500',
+                shadow: 'shadow-[-3.03px_3.48px_10.18px_0px_rgba(0,0,0,0.10)] shadow-[-12.10px_14.03px_18.52px_0px_rgba(0,0,0,0.09)] shadow-[-27.13px_31.53px_22.92px_0px_rgba(0,0,0,0.05)] shadow-[-48.22px_56.01px_22.92px_0px_rgba(0,0,0,0.01)]',
+                textColor: 'text-teal-900',
+                accentColor: 'text-slate-400',
+                pillBg: 'bg-slate-400',
+                pillText: 'text-teal-900',
+                letterBg: 'bg-slate-500',
+                letterText: 'text-yellow-50',
+                cardBg: 'bg-yellow-50',
+                bodyText: 'text-stone-700',
+                categoryLabel: 'Society',
+                categoryColor: 'text-slate-400', // Matching snippet snippet text-slate-400
+                title: 'text-teal-900',
+            };
+        }
 
-        // Red #CD302F -> Darker #942221
-        if (c.includes('political')) return { bg: '#CD302F', accent: '#942221', text: '#FDFBF7' };
+        // Red / Political
+        if (c.includes('political')) {
+            return {
+                bg: 'bg-red-600',
+                shadow: 'shadow-[-2.84px_3.58px_9.99px_0px_rgba(0,0,0,0.10)] shadow-[-11.37px_14.30px_18.24px_0px_rgba(0,0,0,0.09)] shadow-[-25.48px_32.18px_22.92px_0px_rgba(0,0,0,0.05)] shadow-[-45.38px_57.11px_22.92px_0px_rgba(0,0,0,0.01)]',
+                textColor: 'text-red-950',
+                accentColor: 'text-red-500',
+                pillBg: 'bg-red-500',
+                pillText: 'text-red-950',
+                letterBg: 'bg-red-600',
+                letterText: 'text-yellow-50',
+                cardBg: 'bg-yellow-50',
+                bodyText: 'text-stone-700',
+                categoryLabel: 'Political',
+                categoryColor: 'text-red-500',
+                title: 'text-red-950',
+            };
+        }
 
-        // Default to Green
-        return { bg: categoryColor || '#399B2C', accent: '#266E1E', text: '#FDFBF7' };
+        // Default Fallback (Green-ish)
+        return {
+            bg: 'bg-green-600',
+            shadow: 'shadow-xl',
+            textColor: 'text-green-900',
+            accentColor: 'text-green-500',
+            pillBg: 'bg-green-500',
+            pillText: 'text-green-900',
+            letterBg: 'bg-green-600',
+            letterText: 'text-yellow-50',
+            cardBg: 'bg-yellow-50',
+            bodyText: 'text-stone-700',
+            categoryLabel: 'Crisis',
+            categoryColor: 'text-green-500',
+            title: 'text-green-900',
+        };
     };
 
-    const palette = getCategoryPalette(categoryName);
+    const theme = getTheme(categoryName);
+    const isTimeCritical = timeLeft <= 10 && timeLeft > 0;
 
-    // Add global keyboard shortcuts
+    // Helper to get stats in a consistent order
+    const getStats = (r: CardResponse) => [
+        { val: r.politicalEffect, type: 'pol' },
+        { val: r.economicEffect, type: 'eco' },
+        { val: r.infrastructureEffect, type: 'inf' },
+        { val: r.societyEffect, type: 'soc' },
+        { val: r.environmentEffect ?? r.score, type: 'env' },
+    ];
+
+    // Global keyboard shortucts
     React.useEffect(() => {
         const handleGlobalKeyPress = (e: KeyboardEvent) => {
             if (disabled) return;
             const key = e.key.toUpperCase();
-            const index = key.charCodeAt(0) - 65; // A=0, B=1, C=2, etc.
+            const index = key.charCodeAt(0) - 65;
             if (index >= 0 && index < responses.length) {
                 e.preventDefault();
                 onSelectResponse(responses[index].id);
@@ -82,131 +185,121 @@ export const CrisisCard: React.FC<CrisisCardProps> = ({
         return () => window.removeEventListener('keydown', handleGlobalKeyPress);
     }, [disabled, responses, onSelectResponse]);
 
-    const isTimeCritical = timeLeft <= 10 && timeLeft > 0;
-
     return (
-        <div
-            className={`
-                relative w-full max-w-xl mx-auto rounded-[2.5rem] p-8 shadow-2xl transition-all duration-500 overflow-hidden text-[#1a1a1a]
-                ${isTimeCritical ? 'animate-pulse ring-8 ring-red-500/50' : ''}
-                font-sans
-            `}
-            style={{ backgroundColor: palette.bg }}
-        >
-            {/* Top Decoration: Larger Tab with Overlapping Dots */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] px-8 py-5 rounded-b-[2rem] shadow-sm flex items-center justify-center -space-x-3 z-20">
-                <div className="w-6 h-6 rounded-full bg-[#399B2C] border-2 border-[#FDFBF7]" />
-                <div className="w-6 h-6 rounded-full bg-[#D9AD1F] border-2 border-[#FDFBF7]" />
-                <div className="w-6 h-6 rounded-full bg-[#4190A9] border-2 border-[#FDFBF7]" />
-                <div className="w-6 h-6 rounded-full bg-[#BE8111] border-2 border-[#FDFBF7]" />
-                <div className="w-6 h-6 rounded-full bg-[#CD302F] border-2 border-[#FDFBF7]" />
+        <div className={`
+             relative w-full max-w-[24rem] sm:max-w-md mx-auto aspect-[3/4]
+             ${theme.bg} rounded-lg ${theme.shadow} overflow-hidden
+             ${isTimeCritical ? 'animate-pulse ring-4 ring-red-500' : ''}
+             transition-all duration-300
+        `}>
+            {/* Top Decorator Dots */}
+            <div className="absolute top-[2%] left-1/2 -translate-x-1/2 flex gap-1 z-20 scale-75 origin-top">
+                <div className="w-2 h-2 bg-green-600 rounded-full" />
+                <div className="w-2 h-2 bg-yellow-500 rounded-full" />
+                <div className="w-2 h-2 bg-slate-500 rounded-full" />
+                <div className="w-2 h-2 bg-yellow-600 rounded-full" />
+                <div className="w-2 h-2 bg-red-600 rounded-full" />
             </div>
 
-            {/* Content Container */}
-            <div className="relative z-10 flex flex-col items-center mt-12">
-
-                {/* Title & Description */}
-                <div className="text-center mb-8 px-4 space-y-2">
-                    <h2 className="font-serif italic text-4xl sm:text-[3.5rem] text-[#1a1a1a]/90 leading-[1] drop-shadow-sm tracking-tight scale-y-90">
-                        {title}
-                    </h2>
-                    <p className="font-sans text-[#1a1a1a]/80 text-sm sm:text-base font-medium leading-relaxed max-w-sm mx-auto">
-                        {description}
-                    </p>
+            {/* Title Section */}
+            <div className="absolute top-[8%] left-0 w-full flex flex-col items-center gap-1 z-10 px-4">
+                <div className={`text-center text-xs sm:text-sm font-black font-['Perfectly_Nostalgic'] uppercase leading-tight ${theme.title}`}>
+                    {title}
                 </div>
-
-                {/* Headers: Response Options & Timer */}
-                <div className="w-full flex justify-between items-end px-2 mb-2">
-                    <h3 className="font-serif italic text-2xl text-[#1a1a1a]/80">
-                        Response Options
-                    </h3>
-                    <div className="font-serif italic text-2xl text-[#1a1a1a]/80">
-                        {timeLimit ?? 3} Mins
-                    </div>
+                <div className={`text-center text-[0.6rem] sm:text-xs font-medium font-['Nohemi'] leading-snug px-4 ${theme.title}`}>
+                    {description}
                 </div>
+            </div>
 
-                {/* Responses List */}
-                <div className="w-full space-y-9 mt-4" role="radiogroup">
-                    {responses.map((response, idx) => {
-                        const isSelected = selectedResponseId === response.id;
-                        const letter = String.fromCharCode(65 + idx);
-                        const voteCount = votes[response.id] || 0;
+            {/* Category Labels */}
+            <div className={`absolute bottom-[4%] left-[15%] text-[0.6rem] sm:text-xs font-bold font-['Perfectly_Nostalgic'] uppercase ${theme.categoryColor}`}>
+                {theme.categoryLabel}
+            </div>
+            <div className={`absolute left-[15%] top-[25%] text-[0.7rem] sm:text-sm font-black font-['Perfectly_Nostalgic'] uppercase ${theme.textColor}`}>
+                Response Options
+            </div>
+            <div className={`absolute right-[15%] top-[25%] text-[0.7rem] sm:text-sm font-black font-['Perfectly_Nostalgic'] uppercase ${theme.textColor}`}>
+                {timeLeft} Mins
+            </div>
+            {/* Note: The "time" was hardcoded in snippet as "3 Mins", using `timeLeft` or `timeLimit` is dynamic */}
 
-                        // Stats
-                        const stats = [
-                            { icon: <DollarSign size={14} strokeWidth={3} />, val: response.economicEffect },
-                            { icon: <Heart size={14} strokeWidth={3} />, val: response.societyEffect },
-                            { icon: <Clock size={14} strokeWidth={3} />, val: response.politicalEffect },
-                            { icon: <Landmark size={14} strokeWidth={3} />, val: response.infrastructureEffect },
-                            { icon: <Settings size={14} strokeWidth={3} />, val: response.environmentEffect || response.score },
-                        ].filter(s => s.val !== undefined && s.val !== 0);
+            {/* Response Options Container */}
+            <div className="absolute top-[32%] w-full px-8 flex flex-col gap-6">
+                {responses.map((response, idx) => {
+                    const isSelected = selectedResponseId === response.id;
+                    const letter = String.fromCharCode(65 + idx);
+                    const stats = getStats(response);
 
-                        return (
-                            <div key={response.id} className="relative group">
-                                {/* Cost Badge - Tab Style Above Button */}
-                                {(response.cost !== undefined) && (
-                                    <div
-                                        className="absolute -top-7 right-0 h-8 px-5 flex items-center justify-center rounded-t-xl font-black text-sm text-white z-0"
-                                        style={{ backgroundColor: palette.accent }}
-                                    >
-                                        {response.cost > 0 ? `+${response.cost}` : `${response.cost}`}
-                                    </div>
-                                )}
+                    return (
+                        <div key={response.id} className="w-full flex flex-col items-start gap-1 relative group">
+                            {/* Selection indicator / Ring */}
+                            {isSelected && (
+                                <div className="absolute -inset-2 border-2 border-white/50 rounded-lg pointer-events-none animate-pulse" />
+                            )}
 
-                                <button
-                                    onClick={() => !disabled && onSelectResponse(response.id)}
-                                    disabled={disabled}
-                                    className={`
-                                        w-full flex items-stretch bg-[#FDFBF7] rounded-xl overflow-hidden transition-all duration-200 shadow-sm relative z-10
-                                        ${isSelected ? 'ring-4 ring-white scale-[1.01] shadow-xl' : 'hover:scale-[1.005] hover:shadow-md'}
-                                        ${disabled && !isSelected ? 'opacity-60' : 'cursor-pointer'}
-                                    `}
-                                >
-                                    {/* Letter Block - Full Height Left Panel */}
-                                    <div
-                                        className="w-16 flex flex-col items-center justify-center shrink-0"
-                                        style={{ backgroundColor: palette.accent }}
-                                    >
-                                        <span className="font-serif italic text-4xl text-white font-bold drop-shadow-sm">
-                                            {letter}
-                                        </span>
-                                    </div>
+                            {/* Top Row: Cost Pill */}
+                            <div className="w-full flex justify-end">
+                                <div className={`
+                                    h-4 px-2 flex items-center justify-center rounded-t-sm gap-px
+                                    ${theme.pillBg}
+                                `}>
+                                    <span className={`text-[0.6rem] font-black font-['Nohemi'] ${theme.pillText}`}>
+                                        {(response.cost || 0) > 0 ? `-${response.cost}` : `+${Math.abs(response.cost || 0)}`}
+                                        {/* Logic Inversion Check: Usually +Cost means spending money (-$). The snippet shows "-1000" in a green card?
+                                            Wait, snippet for green option A says "-1000" in pill. text says "Deploy cleanup". Usually cleanup costs money.
+                                            Snippet for yellow option A says "-600", text "Offer tax breaks".
+                                            Snippet for yellow option 1 (top) says "+0"? or just "0".
+                                            I'll stick to displaying the raw value or simple sign logic.
+                                            Let's just show the value with sign.
+                                         */}
+                                    </span>
+                                </div>
+                            </div>
 
-                                    {/* Text Content */}
-                                    <div className="flex-1 py-4 px-6 flex items-center min-h-[5.5rem]">
-                                        <p className="text-[#1a1a1a] text-sm sm:text-base font-medium text-left leading-tight">
-                                            {response.text}
-                                        </p>
-                                    </div>
-                                </button>
-
-                                {/* Stats Row */}
-                                <div className="flex items-center gap-4 px-2 mt-2 ml-1">
-                                    {stats.map((stat, i) => (
-                                        <div key={i} className="flex items-center justify-center text-[#1a1a1a]/80 font-black text-xs gap-1.5" title="Stat Impact">
-                                            <div className="opacity-75">{stat.icon}</div>
-                                            <span>{(stat.val ?? 0) > 0 ? '+' : ''}{stat.val}</span>
-                                        </div>
-                                    ))}
+                            {/* Main Content Row */}
+                            <div
+                                className="w-full h-8 flex items-stretch cursor-pointer hover:brightness-110 active:scale-[0.99] transition-transform"
+                                onClick={() => !disabled && onSelectResponse(response.id)}
+                            >
+                                {/* Letter Box */}
+                                <div className={`
+                                    w-8 h-full flex items-center justify-center rounded-l-sm outline outline-1 outline-offset-[-1px] outline-yellow-50
+                                    ${theme.letterBg}
+                                    ${isSelected ? 'ring-2 ring-white z-10' : ''}
+                                `}>
+                                    <span className={`text-xs font-black font-['Perfectly_Nostalgic'] ${theme.letterText}`}>
+                                        {letter}
+                                    </span>
                                 </div>
 
-                                {/* Vote Count Overlay */}
-                                {voteCount > 0 && (
-                                    <div className="absolute -left-4 top-1/2 -translate-y-1/2 bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold border-4 border-white shadow-xl z-30 animate-in zoom-in">
-                                        {voteCount}
+                                {/* Description Box */}
+                                <div className={`flex-1 h-full px-3 flex items-center justify-start rounded-r-sm ${theme.cardBg}`}>
+                                    <p className={`text-[0.6rem] sm:text-[0.7rem] font-light font-['Nohemi'] leading-tight line-clamp-2 ${theme.bodyText}`}>
+                                        {response.text}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Stats Row */}
+                            <div className="flex items-center gap-2 pl-1">
+                                {stats.map((stat, i) => (
+                                    <div key={i} className="flex items-center gap-0.5 min-w-[1rem] justify-center">
+                                        <span className={`text-[0.5rem] font-bold font-['Nohemi'] ${theme.textColor}`}>
+                                            {(stat.val ?? 0) > 0 ? `+${stat.val}` : (stat.val ?? 0)}
+                                        </span>
+                                    </div>
+                                ))}
+
+                                {/* Vote Count Badge placed near stats if any */}
+                                {(votes[response.id] || 0) > 0 && (
+                                    <div className="ml-auto bg-white text-black text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
+                                        {votes[response.id]} votes
                                     </div>
                                 )}
                             </div>
-                        )
-                    })}
-                </div>
-
-                {/* Category Footer */}
-                <div className="mt-12 mb-2 opacity-60">
-                    <h3 className="font-serif text-[#1a1a1a] text-xl tracking-wider text-center italic capitalize">
-                        {categoryName?.toLowerCase() || 'Crisis Event'}
-                    </h3>
-                </div>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

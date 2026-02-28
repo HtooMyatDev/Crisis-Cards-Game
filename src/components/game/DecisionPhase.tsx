@@ -89,9 +89,21 @@ export const DecisionPhase: React.FC<DecisionPhaseProps> = ({
 
     return (
         <PageTransition>
-            <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#3E3E3C] p-4 flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-300">
-                {/* Background Effects */}
-                <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-gray-200/50 dark:from-black/20 to-transparent pointer-events-none"></div>
+            <div className="min-h-screen bg-[#FDFAE5] dark:bg-[#3E3E3C] p-4 flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-300">
+                {/* Background - Light Mode */}
+                <img
+                    src="/svg/light/background.svg"
+                    alt=""
+                    className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none dark:hidden z-0"
+                    aria-hidden="true"
+                />
+                {/* Background - Dark Mode */}
+                <img
+                    src="/svg/dark/background.svg"
+                    alt=""
+                    className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none hidden dark:block z-0"
+                    aria-hidden="true"
+                />
 
                 <div className="w-full max-w-4xl relative z-10">
                     {/* User Profile / Team Identity */}

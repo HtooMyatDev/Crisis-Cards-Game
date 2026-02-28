@@ -16,7 +16,7 @@ interface GameData {
     }>;
 }
 
-import { BackgroundCard } from '@/components/auth/BackgroundCard'
+
 
 const JoinGamePage: React.FC = () => {
     const router = useRouter()
@@ -235,127 +235,48 @@ const JoinGamePage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#3E3E3C] flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans transition-colors duration-300">
+        <div className="min-h-screen bg-[#FDFAE5] flex flex-col items-center justify-between p-4 relative overflow-hidden font-sans transition-colors duration-300">
             <NicknameTakenModal
                 isOpen={isNicknameTaken}
                 onClose={() => setIsNicknameTaken(false)}
             />
 
-            {/* Background Grain */}
-            <div className="absolute inset-0 bg-grain pointer-events-none opacity-40 mix-blend-overlay"></div>
+            {/* Background - Light Mode */}
+            <img
+                src="/svg/light/background.svg"
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover pointer-events-none dark:hidden"
+                aria-hidden="true"
+            />
+            {/* Background - Dark Mode */}
+            <img
+                src="/svg/dark/background.svg"
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover pointer-events-none hidden dark:block"
+                aria-hidden="true"
+            />
 
-
-            {/* Decorative Elements - High Fidelity Background Cards */}
-            {/* Decorative Elements - High Fidelity Background Cards */}
-            <div className="absolute top-[-108px] left-[137px] transform rotate-[35.44deg] opacity-90 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-700">
-                <BackgroundCard
-                    color="#399B2C"
-                    title="Toxic Waste Spill in River"
-                    description="Residents along the river fall ill after a factory leaks toxic chemicals, threatening crops and community health."
-                    mins="3 Mins"
-                    category="Environmental"
-                    options={[
-                        { letter: 'A', text: 'Deploy emergency cleanup crews with advanced equipment.', cost: -1000, stats: [-3, +3, +2, +1, 0] },
-                        { letter: 'B', text: 'Relocate communities & wait for natural recovery.', cost: -400, stats: [-2, -1, -1, -1, 0] },
-                        { letter: 'C', text: 'Ignore and let the factory keep operating.', cost: +200, stats: [+1, -3, -5, -2, 0] }
-                    ]}
-                    className="h-[259px] w-[185px]"
-                />
-            </div>
-
-            <div className="absolute top-[391px] left-[-46px] transform -rotate-[18.3deg] opacity-80 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-700">
-                <BackgroundCard
-                    color="#4190A9"
-                    title="Urban Decay"
-                    description="A once-prosperous neighborhood has fallen into disrepair, with abandoned buildings and rising crime."
-                    mins="5 Mins"
-                    category="Society"
-                    options={[
-                        { letter: 'A', text: 'Increase police patrols and fund a few small renovation projects.', cost: -300, stats: [-1, +2, 0, +1, +1] },
-                        { letter: 'B', text: 'Launch a community project to restore the area and provide tax breaks for new businesses.', cost: -600, stats: [+3, +5, +1, +4, +3] },
-                        { letter: 'C', text: 'Sell the land to a large developer for a single, massive project.', cost: +500, stats: [+2, -3, -1, -2, +2] }
-                    ]}
-                    className="h-[259px] w-[185px]"
-                />
-            </div>
-
-            <div className="absolute top-[50px] left-[1079px] transform -rotate-[55.79deg] opacity-80 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-700">
-                <BackgroundCard
-                    color="#D9AD1F"
-                    title="City Housing Crisis"
-                    description="A city's population is growing fast, leading to a shortage of housing and sky-high rents."
-                    mins="4 Mins"
-                    category="Economic"
-                    options={[
-                        { letter: 'A', text: 'Offer tax breaks to developers who build new housing.', cost: -600, stats: [+1, +1, 0, +1, 0] },
-                        { letter: 'B', text: 'Fund a massive public housing project and change zoning laws.', cost: -1500, stats: [+2, +5, +2, +3, +4] },
-                        { letter: 'C', text: 'Let the market decide and do not interfere', cost: 0, stats: [-2, -4, 0, -2, 0] }
-                    ]}
-                    className="h-[259px] w-[185px]"
-                />
-            </div>
-
-            <div className="absolute top-[485px] left-[1219px] transform -rotate-[127.88deg] opacity-80 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-700">
-                <BackgroundCard
-                    color="#CD302F"
-                    title="International Climate Summit"
-                    description="Your country is asked to raise its climate commitments at a global summit."
-                    mins="5 Mins"
-                    category="Political"
-                    options={[
-                        { letter: 'A', text: 'Commit to bold new targets and invest heavily in renewables.', cost: -1200, stats: [-1, +2, +5, +4, +3] },
-                        { letter: 'B', text: 'Pledge modest targets with limited sustainable projects.', cost: -600, stats: [+1, +1, +2, +1, 0] },
-                        { letter: 'C', text: 'Refuse new pledges and defend domestic industries.', cost: +400, stats: [+2, -2, -4, -3, 0] }
-                    ]}
-                    className="h-[259px] w-[185px]"
-                />
-            </div>
-
-            <div className="absolute top-[697px] left-[535px] transform rotate-[62.31deg] opacity-70 pointer-events-none hidden md:block transition-transform hover:scale-105 duration-700 z-0">
-                <BackgroundCard
-                    color="#CA840C"
-                    title="Deteriorating Water Pipes"
-                    description="An old city water system has frequent pipe bursts, leading to widespread leaks and water waste."
-                    mins="3 Mins"
-                    category="Infrastructure"
-                    options={[
-                        { letter: 'A', text: 'Replace broken pipes with modern materials.', cost: -800, stats: [+2, +1, 0, 0, +3] },
-                        { letter: 'B', text: 'Fund a complete overhaul of the entire water grid.', cost: -2000, stats: [-2, +4, +1, +3, +5] },
-                        { letter: 'C', text: 'Use temporary patches and encourage water conservation.', cost: -100, stats: [-1, -2, -1, -2, -3] }
-                    ]}
-                    className="h-[259px] w-[185px]"
-                />
-            </div>
-
-
-            {/* Top Logo - Only show when NOT in splash or nickname step (nickname has its own logo) */}
+            {/* Top Header - Cards of Crisis Logo */}
             {step === 'code' && (
-                <div className="absolute top-10 flex flex-col items-center gap-1">
-                    <h2 className="text-4xl font-serif italic text-black/80 dark:text-[#FDFBF7]">Cards of Crisis</h2>
-                    {/* 5 Color bar with border */}
-                    <div className="flex -space-x-1.5 border-[3px] border-[#333] dark:border-[#FDFBF7] px-3 py-1.5 rounded-full bg-transparent items-center">
-                        <div className="w-4 h-4 rounded-full bg-[#399B2C] border border-white/0 z-0"></div>
-                        <div className="w-4 h-4 rounded-full bg-[#D9AD1F] border border-white/0 z-10"></div>
-                        <div className="w-4 h-4 rounded-full bg-[#4190A9] border border-white/0 z-20"></div>
-                        <div className="w-4 h-4 rounded-full bg-[#CA840C] border border-white/0 z-30"></div>
-                        <div className="w-4 h-4 rounded-full bg-[#CD302F] border border-white/0 z-40"></div>
-                    </div>
+                <div className="w-full flex justify-center pt-8 relative z-20">
+                    <img src="/svg/light/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-16 w-auto dark:hidden" />
+                    <img src="/svg/dark/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-16 w-auto hidden dark:block" />
                 </div>
             )}
 
             {/* Main Content */}
-            <div className="relative z-10 w-full max-w-2xl text-center flex flex-col items-center justify-center min-h-[50vh]">
+            <div className="relative z-10 w-full max-w-2xl text-center flex flex-col items-center justify-center flex-grow">
 
                 {step === 'code' && (
-                    <div className="animate-in fade-in zoom-in duration-500 w-full">
-                        <h1 className="text-6xl md:text-7xl font-serif italic text-[#333] dark:text-[#FDFBF7] mb-4 tracking-tight">
+                    <div className="animate-in fade-in zoom-in duration-500 w-full flex flex-col items-center">
+                        <h1 className="text-[66.24px] leading-none font-[family-name:var(--font-perfectly-nostalgic)] text-[#3F3D39] dark:text-yellow-50 mb-4 tracking-tight">
                             Join The Game
                         </h1>
-                        <p className="text-xl text-[#333] dark:text-[#FDFBF7] mb-10 font-medium font-sans">
+                        <p className="text-[27.27px] text-[#3F3D39] dark:text-yellow-50 mb-12 font-medium font-[family-name:var(--font-nohemi)]">
                             Enter An Invitation Code
                         </p>
 
-                        <div className="flex justify-center gap-3 mb-12">
+                        <div className="flex justify-center gap-4 mb-14">
                             {[0, 1, 2, 3, 4, 5].map((index) => (
                                 <input
                                     key={index}
@@ -366,8 +287,7 @@ const JoinGamePage: React.FC = () => {
                                     onChange={(e) => handleCodeInput(index, e.target.value)}
                                     onKeyDown={(e) => handleKeyDown(index, e)}
                                     onPaste={index === 0 ? handlePaste : undefined}
-
-                                    className="w-14 h-16 md:w-20 md:h-24 border-[3px] border-[#333] dark:border-[#3E3E3C] rounded-2xl text-center text-3xl md:text-5xl font-bold bg-[#FDFBF7] dark:bg-[#FDFBF7] dark:text-[#3E3E3C] text-[#333] shadow-sm focus:outline-none focus:ring-0 focus:border-black dark:focus:border-[#3E3E3C] transition-all uppercase placeholder-transparent transform hover:-translate-y-1 duration-200"
+                                    className="w-[57.44px] h-[68.93px] border-[4.92px] border-[#3F3D39] dark:border-yellow-50 rounded-[10.13px] text-center text-3xl font-bold bg-[#FDFAE5] dark:bg-yellow-50 text-[#3F3D39] shadow-sm focus:outline-none focus:ring-4 focus:ring-[#3F3D39]/20 transition-all uppercase placeholder-transparent transform hover:-translate-y-1 duration-200"
                                 />
                             ))}
                         </div>
@@ -382,82 +302,76 @@ const JoinGamePage: React.FC = () => {
                         <button
                             onClick={() => handleValidateCode()}
                             disabled={pending}
-                            className="bg-[#333] dark:bg-[#FDFBF7] text-[#FDFBF7] dark:text-[#3E3E3C] text-3xl md:text-4xl font-serif italic px-16 py-4 rounded-xl hover:bg-black dark:hover:bg-white transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 duration-300"
+                            className="bg-[#3F3D39] text-[#FDFAE5] dark:bg-yellow-50 dark:text-stone-700 text-[35.07px] font-[family-name:var(--font-perfectly-nostalgic)] px-20 py-4 rounded-[6.59px] hover:bg-black dark:hover:bg-white transition-all shadow-[0px_6px_0px_0px_rgba(0,0,0,0.1)] hover:shadow-[0px_8px_0px_0px_rgba(0,0,0,0.1)] active:shadow-none translate-y-0 active:translate-y-[2px] disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 duration-300 w-[168.32px] flex items-center justify-center h-[54.55px]"
                         >
-                            {pending ? <Loader2 className="animate-spin mx-auto w-8 h-8" /> : 'Enter'}
+                            {pending ? <Loader2 className="animate-spin mx-auto w-6 h-6" /> : 'Enter'}
                         </button>
 
-                        <div className="mt-16 flex items-center justify-center gap-3 text-[#333] dark:text-[#FDFBF7] font-bold text-sm md:text-base font-sans tracking-wide">
-                            <span className="opacity-70">Already have an account?</span>
-                            <Link href="/auth/login" className="font-black hover:underline opacity-100">Login</Link>
-                            <span className="mx-2 text-xl opacity-40">•</span>
-                            <span className="opacity-70">Need an account?</span>
-                            <Link href="/auth/register" className="font-black hover:underline opacity-100">Sign Up</Link>
+                        <div className="mt-16 flex items-center justify-center gap-8 text-[#3F3D39] dark:text-yellow-50 font-sans tracking-wide">
+                            <div className="flex flex-col md:flex-row items-center gap-1">
+                                <span className="font-medium text-[15.58px]">Already have an account?</span>
+                                <Link href="/auth/login" className="font-extrabold text-[15.58px] underline hover:text-black dark:hover:text-white">Login</Link>
+                            </div>
+                            <div className="w-2 h-2 rounded-full bg-[#3F3D39] dark:bg-yellow-50 hidden md:block"></div>
+                            <div className="flex flex-col md:flex-row items-center gap-1">
+                                <span className="font-medium text-[15.58px]">Need an account?</span>
+                                <Link href="/auth/register" className="font-extrabold text-[15.58px] underline hover:text-black dark:hover:text-white">Sign Up</Link>
+                            </div>
                         </div>
                     </div>
                 )}
 
                 {step === 'splash' && (
-                    <div className="animate-in fade-in zoom-in duration-700 flex flex-col items-center justify-center scale-110">
-                        <span className="text-3xl font-sans text-[#333] dark:text-[#FDFBF7] mb-4 tracking-tight">Welcome to</span>
-                        <h1 className="text-8xl font-serif italic text-[#333] dark:text-[#FDFBF7] mb-6 leading-none">Cards of Crisis</h1>
+                    <div className="animate-in fade-in zoom-in duration-700 flex flex-col items-center justify-center scale-110 z-50">
+                        <span className="text-5xl font-light font-[family-name:var(--font-nohemi)] text-[#3F3D39] dark:text-yellow-50 mb-4 text-center leading-[50px]">Welcome to</span>
+                        <h1 className="text-8xl font-serif italic font-black text-[#3F3D39] dark:text-yellow-50 mb-12 leading-none text-center">Cards of Crisis</h1>
 
-                        {/* 5 Color bar with border - Large */}
-                        <div className="flex -space-x-2 border-[4px] border-[#333] dark:border-[#FDFBF7] px-5 py-2.5 rounded-full bg-transparent items-center">
-                            <div className="w-6 h-6 rounded-full bg-[#399B2C] border border-white/0 z-0"></div>
-                            <div className="w-6 h-6 rounded-full bg-[#D9AD1F] border border-white/0 z-10"></div>
-                            <div className="w-6 h-6 rounded-full bg-[#4190A9] border border-white/0 z-20"></div>
-                            <div className="w-6 h-6 rounded-full bg-[#CA840C] border border-white/0 z-30"></div>
-                            <div className="w-6 h-6 rounded-full bg-[#CD302F] border border-white/0 z-40"></div>
+                        {/* New Color Bar Design */}
+                        <div className="relative w-52 h-16 rounded-xl outline outline-[7px] outline-offset-[-3.5px] outline-[#3F3D39] dark:outline-yellow-50 flex items-center justify-center bg-transparent">
+                            <div className="flex -space-x-4 items-center justify-center">
+                                <div className="w-12 h-12 bg-[#399B2C] rounded-full rotate-90"></div>
+                                <div className="w-12 h-12 bg-[#D9AD1F] rounded-full rotate-90"></div>
+                                <div className="w-12 h-12 bg-[#4190A9] rounded-full rotate-90"></div>
+                                <div className="w-12 h-12 bg-[#CA840C] rounded-full rotate-90"></div>
+                                <div className="w-12 h-12 bg-[#CD302F] rounded-full rotate-90"></div>
+                            </div>
                         </div>
                     </div>
                 )}
 
                 {step === 'nickname' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-8 duration-500 w-full max-w-lg flex flex-col items-center">
+                    <div className="animate-in fade-in slide-in-from-bottom-8 duration-500 w-full max-w-lg flex flex-col items-center z-50">
 
-                        {/* Top Logo Small */}
-                        <div className="flex flex-col items-center gap-1 mb-12">
-                            <h2 className="text-2xl font-serif italic text-black/80 dark:text-[#FDFBF7]">Cards of Crisis</h2>
-                            <div className="flex -space-x-1 border-[2px] border-[#333] dark:border-[#FDFBF7] px-2 py-1 rounded-full bg-transparent items-center">
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#399B2C] z-0"></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#D9AD1F] z-10"></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#4190A9] z-20"></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#CA840C] z-30"></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#CD302F] z-40"></div>
-                            </div>
-                        </div>
+                        <h2 className="text-[70px] leading-[66px] font-serif italic font-black text-[#3F3D39] dark:text-yellow-50 mb-12 text-center">Enter Your Name</h2>
 
-                        <h2 className="text-6xl font-serif italic text-[#333] dark:text-[#FDFBF7] mb-10 text-center leading-tight">Enter Your Name</h2>
-
-                        <div className="w-full relative group">
+                        <div className="w-full flex flex-col items-center gap-8">
                             <input
                                 type="text"
                                 value={nickname}
                                 onChange={(e) => setNickname(e.target.value)}
                                 placeholder="Enter your name"
-                                className="w-full px-8 py-5 border-[3px] border-[#333] dark:border-[#FDFBF7] rounded-2xl text-center text-2xl font-bold bg-[#FDFBF7] dark:bg-[#FDFBF7] dark:text-[#3E3E3C] mb-8 placeholder-[#333]/30 dark:placeholder-[#3E3E3C]/30 focus:outline-none focus:ring-4 focus:ring-black/5 dark:focus:ring-[#FDFBF7]/20 transition-all"
+                                className="w-96 h-16 bg-[#FDFAE5] dark:bg-yellow-50 rounded-[10.13px] outline outline-[4.92px] outline-[#3F3D39] dark:outline-yellow-50 text-center text-3xl font-normal font-[family-name:var(--font-nohemi)] text-[#3F3D39] placeholder-[#3F3D39]/20 focus:outline-[#3F3D39] dark:text-stone-700 dark:placeholder-stone-700/20 dark:focus:outline-white transition-all"
                                 maxLength={15}
                                 autoFocus
                                 onKeyDown={(e) => e.key === 'Enter' && nickname && handleJoinGame()}
                             />
+
+                            <button
+                                onClick={handleJoinGame}
+                                disabled={pending || !nickname}
+                                className="w-44 h-14 bg-[#3F3D39] rounded-md text-[#FDFAE5] dark:bg-yellow-50 dark:text-stone-700 text-4xl font-black font-serif italic flex items-center justify-center hover:bg-black dark:hover:bg-white transition-all shadow-none disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 duration-300 pb-1"
+                            >
+                                {pending ? <Loader2 className="animate-spin w-8 h-8" /> : 'Enter'}
+                            </button>
                         </div>
 
                         {error && (
-                            <div className="text-red-500 font-bold mb-6">
+                            <div className="text-red-500 font-bold mt-6">
                                 {error}
                             </div>
                         )}
 
-                        <button
-                            onClick={handleJoinGame}
-                            disabled={pending || !nickname}
-                            className="bg-[#333] dark:bg-[#FDFBF7] text-[#FDFBF7] dark:text-[#3E3E3C] text-3xl font-serif italic px-20 py-4 rounded-xl hover:bg-black dark:hover:bg-white transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 duration-300"
-                        >
-                            {pending ? <Loader2 className="animate-spin mx-auto w-8 h-8" /> : 'Enter'}
-                        </button>
-
-                        <div className="mt-8 text-[#333]/60 dark:text-[#FDFBF7]/60 font-bold font-sans tracking-wide text-sm">
+                        <div className="mt-8 text-[#3F3D39] dark:text-yellow-50 font-medium font-[family-name:var(--font-nohemi)] text-base leading-5">
                             Invite Code: {gameCode}
                         </div>
                     </div>
@@ -465,48 +379,13 @@ const JoinGamePage: React.FC = () => {
             </div>
 
             {/* Bottom Footer Logos */}
-            <div className="absolute bottom-8 right-8 flex items-center gap-6 opacity-90 pointer-events-none hidden md:flex">
-                <div className="flex flex-col items-center">
-                    <div className="relative w-8 h-8 flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8 text-[#FCD34D] drop-shadow-sm">
-                            <path d="M12 2C13.1 2 14 2.9 14 4V10H20C21.1 10 22 10.9 22 12C22 13.1 21.1 14 20 14H14V20C14 21.1 13.1 22 12 22C10.9 22 10 21.1 10 20V14H4C2.9 14 2 13.1 2 12C2 10.9 2.9 10 4 10H10V4C10 2.9 10.9 2 12 2Z" fill="currentColor" />
-                            <circle cx="12" cy="12" r="2" className="fill-[#FDFBF7] dark:fill-[#3E3E3C]" />
-                        </svg>
-                    </div>
-                    <div className="text-[10px] font-bold text-[#333] dark:text-[#FDFBF7] mt-1 leading-[0.9] text-left font-[family-name:var(--font-pixel)] tracking-wide">
-                        the<br />change<br />lab
-                    </div>
-                </div>
-                <div className="h-10 w-[1.5px] bg-[#333]/20 dark:bg-[#FDFBF7]/20"></div>
-                <div className="flex flex-col items-center">
-                    <span className="text-lg font-serif italic font-bold text-[#1a1a1a] dark:text-[#FDFBF7]">Cards of Crisis</span>
-                    <div className="flex -space-x-1 mt-1 border-[2px] border-[#333] dark:border-[#FDFBF7] px-1.5 py-0.5 rounded-full">
-                        <div className="w-2.5 h-2.5 bg-[#399B2C] rounded-full"></div>
-                        <div className="w-2.5 h-2.5 bg-[#D9AD1F] rounded-full"></div>
-                        <div className="w-2.5 h-2.5 bg-[#4190A9] rounded-full"></div>
-                        <div className="w-2.5 h-2.5 bg-[#CA840C] rounded-full"></div>
-                        <div className="w-2.5 h-2.5 bg-[#CD302F] rounded-full"></div>
-                    </div>
-                </div>
+            <div className="absolute bottom-6 right-6 opacity-80 pointer-events-none hidden md:flex items-center">
+                <img src="/svg/light/combined-brand-logo.svg" alt="The Change Lab | Cards of Crisis" className="h-10 w-auto dark:hidden" />
+                <img src="/svg/dark/combined-brand-logo.svg" alt="The Change Lab | Cards of Crisis" className="h-10 w-auto hidden dark:block" />
             </div>
-            <div className="absolute bottom-8 left-8 opacity-90 pointer-events-none hidden md:block">
-                <div className="flex items-center gap-1">
-                    {/* Left Triangle - Points Left */}
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="transform rotate-90 text-[#333] dark:text-[#FDFBF7]">
-                        <path d="M20.5 14.5L13.5 21.5C12.7 22.3 11.3 22.3 10.5 21.5L3.5 14.5C2 13 3 10.5 5 10.5H19C21 10.5 22 13 20.5 14.5Z" />
-                    </svg>
-
-                    <div className="font-black text-[#333] dark:text-[#FDFBF7] text-[0.65rem] leading-[0.85] flex flex-col tracking-tighter uppercase font-sans">
-                        <span className="self-start">Doing</span>
-                        <span className="self-end">More With</span>
-                        <span className="self-end">Less</span>
-                    </div>
-
-                    {/* Right Triangle - Points Right */}
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="transform -rotate-90 text-[#333] dark:text-[#FDFBF7]">
-                        <path d="M20.5 14.5L13.5 21.5C12.7 22.3 11.3 22.3 10.5 21.5L3.5 14.5C2 13 3 10.5 5 10.5H19C21 10.5 22 13 20.5 14.5Z" />
-                    </svg>
-                </div>
+            <div className="absolute bottom-6 left-6 opacity-80 pointer-events-none hidden md:block">
+                <img src="/svg/light/dmwl-logo.svg" alt="Doing More With Less" className="h-10 w-auto dark:hidden" />
+                <img src="/svg/dark/dmwl-logo.svg" alt="Doing More With Less" className="h-10 w-auto hidden dark:block" />
             </div>
         </div>
     )

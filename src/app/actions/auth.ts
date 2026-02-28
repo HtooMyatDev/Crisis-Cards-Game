@@ -15,6 +15,18 @@ export async function registerAction(
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
+    const honeypot = formData.get("username_full") as string;
+
+    // Honeypot check: if this field is filled, it's likely a bot
+    if (honeypot) {
+        console.warn("Honeypot triggered in registration");
+        return {
+            success: false,
+            message: "Registration failed. Please try again.",
+            errors: {},
+            redirectTo: null
+        }
+    }
 
     try {
         const validatedFields = registerFormSchema.safeParse({
@@ -133,6 +145,18 @@ export async function loginAction(
 ) {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
+    const honeypot = formData.get("username_full") as string;
+
+    // Honeypot check: if this field is filled, it's likely a bot
+    if (honeypot) {
+        console.warn("Honeypot triggered in login");
+        return {
+            success: false,
+            message: "Login failed. Please try again.",
+            errors: {},
+            redirectTo: null
+        }
+    }
     try {
         const validatedFields = loginFormSchema.safeParse({
             email,

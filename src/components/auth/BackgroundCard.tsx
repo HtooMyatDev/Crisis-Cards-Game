@@ -23,9 +23,9 @@ export const BackgroundCard: React.FC<BackgroundCardProps> = ({
     category = "Society",
     pillColors = ["#399B2C", "#D9AD1F", "#4190A9", "#CA840C", "#CD302F"]
 }) => (
-    <div className={`w-52 bg-[${color}] rounded-[2.5rem] shadow-2xl flex flex-col items-center relative overflow-hidden ring-4 ring-black/5 ${className}`} style={{ backgroundColor: color }}>
+    <div className={`w-52 bg-[${color}] rounded-[9.17px] shadow-[calc(-2.75px)_3.5px_9.8px_rgba(0,0,0,0.1),calc(-10.9px)_14.1px_17.9px_rgba(0,0,0,0.09)] flex flex-col items-center relative overflow-hidden ${className}`} style={{ backgroundColor: color }}>
         {/* Top Decor Pill */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] px-3 py-1.5 rounded-b-[1.2rem] shadow-sm flex -space-x-1 z-20">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#FDFBF7] dark:bg-yellow-50 px-3 py-1.5 rounded-b-[1.2rem] shadow-sm flex -space-x-1 z-20">
             {pillColors.map((c, i) => (
                 <div key={i} className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c }} />
             ))}
@@ -61,7 +61,7 @@ export const BackgroundCard: React.FC<BackgroundCardProps> = ({
                         )}
                         {!opt.cost && <div className="h-[10px]"></div>} {/* Spacer if no cost to align */}
 
-                        <div className="flex bg-[#FDFBF7] rounded-[4px] overflow-hidden shadow-sm min-h-[1.8rem] items-stretch">
+                        <div className="flex bg-[#FDFBF7] dark:bg-yellow-50 rounded-[4px] overflow-hidden shadow-sm min-h-[1.8rem] items-stretch">
                             {/* Letter Box */}
                             <div className="w-5 flex items-center justify-center shrink-0" style={{ backgroundColor: color, filter: 'brightness(0.95)' }}>
                                 <span className="font-serif italic text-white font-bold text-xs">{opt.letter}</span>
