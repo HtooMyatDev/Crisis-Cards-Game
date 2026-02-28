@@ -138,7 +138,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                                                 teamPlayers.map(p => (
                                                     <div
                                                         key={p.id}
-                                                        className="px-3 py-1.5 rounded-[4px] border-2 border-[#3F3D39] dark:border-[#FDFBF7] bg-[#FEFDF9] dark:bg-stone-700 flex items-center justify-center transition-colors hover:bg-black/5"
+                                                        className="px-3 py-1.5 rounded-[4px] border-2 border-[#3F3D39] dark:border-[#FDFBF7] bg-[#FEFDF9] dark:bg-stone-700 flex items-center justify-center transition-colors hover:bg-black/5 dark:hover:bg-white/5"
                                                     >
                                                         <span className="text-[#3F3D39] dark:text-yellow-50 text-lg font-serif font-bold italic leading-none">
                                                             {p.nickname} {p.id === playerId && '(You)'}
@@ -159,7 +159,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                         {/* Unassigned Players (if any) */}
                         {unassignedPlayers.length > 0 && (
                             <div className="w-full opacity-0 animate-[slideUp_0.5s_ease-out_forwards] delay-300">
-                                <div className="w-full bg-[#FEFDF9] dark:bg-stone-800 rounded-[10px] border-[4px] border-t-[12px] p-4 flex flex-col items-start gap-2 shadow-sm border-gray-400">
+                                <div className="w-full bg-[#FEFDF9] dark:bg-stone-800 rounded-[10px] border-[4px] border-t-[12px] p-4 flex flex-col items-start gap-2 shadow-sm border-gray-400 dark:border-gray-500">
                                     <div className="text-[#3F3D39] dark:text-yellow-50 text-sm font-bold font-sans">
                                         Unassigned
                                     </div>
@@ -167,7 +167,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                                         {unassignedPlayers.map(p => (
                                             <div
                                                 key={p.id}
-                                                className="px-3 py-1.5 rounded-[4px] border-2 border-[#3F3D39] dark:border-[#FDFBF7] bg-[#FEFDF9] dark:bg-stone-700 flex items-center justify-center transition-colors hover:bg-black/5"
+                                                className="px-3 py-1.5 rounded-[4px] border-2 border-[#3F3D39] dark:border-[#FDFBF7] bg-[#FEFDF9] dark:bg-stone-700 flex items-center justify-center transition-colors hover:bg-black/5 dark:hover:bg-white/5"
                                             >
                                                 <span className="text-[#3F3D39] dark:text-yellow-50 text-lg font-serif font-bold italic leading-none">
                                                     {p.nickname} {p.id === playerId && '(You)'}
