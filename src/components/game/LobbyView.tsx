@@ -56,19 +56,19 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
     // Usually teams are pre-defined.
 
     return (
-        <div className="min-h-screen bg-[#FDFAE5] dark:bg-[#3E3E3C] font-sans transition-colors duration-300 relative flex flex-col pb-20">
+        <div className="min-h-screen bg-[#FDFAE5] dark:bg-[#3E3E3C] font-sans transition-colors duration-300 relative flex flex-col pb-20 overflow-hidden">
             {/* Background - Light Mode */}
             <img
                 src="/svg/light/background.svg"
                 alt=""
-                className="absolute inset-0 w-full h-[110vh] object-cover pointer-events-none dark:hidden z-0"
+                className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none dark:hidden z-0"
                 aria-hidden="true"
             />
             {/* Background - Dark Mode */}
             <img
                 src="/svg/dark/background.svg"
                 alt=""
-                className="absolute inset-0 w-full h-[110vh] object-cover pointer-events-none hidden dark:block z-0"
+                className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none hidden dark:block z-0"
                 aria-hidden="true"
             />
 
