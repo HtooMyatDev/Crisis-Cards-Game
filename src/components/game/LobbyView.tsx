@@ -92,36 +92,24 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
             <div className="relative z-10 max-w-[676px] mx-auto w-full px-4 flex flex-col gap-8 mt-8 md:mt-12 opacity-0 animate-[fadeIn_0.5s_ease-out_forwards]">
 
                 {/* 1. MY IDENTITY SECTION */}
-                <div className="w-full flex flex-col relative group hover:-translate-y-1 transition-transform duration-300">
-                    {/* Top Bar */}
+                <div className="w-full flex justify-center mb-8">
                     <div
-                        className="w-full h-5 rounded-tl-[10px] rounded-tr-[10px] border-l-[5px] border-r-[5px] border-t-[5px]"
-                        style={{
-                            backgroundColor: team?.color || '#16A34A', // Default green if no team
-                            borderColor: team?.color || '#16A34A'
-                        }}
-                    />
-
-                    {/* Main Content Box */}
-                    <div
-                        className="w-full h-52 bg-stone-700 rounded-bl-[10px] rounded-br-[10px] outline outline-[5px] flex flex-col justify-center px-8 md:px-12 relative shadow-2xl"
-                        style={{ outlineColor: team?.color || '#16A34A' }}
+                        className="w-full bg-[#FEFDF9] dark:bg-stone-800 rounded-[12px] border-[4px] border-t-[16px] flex flex-col items-center justify-center py-12 md:py-16 shadow-sm"
+                        style={{ borderColor: team?.color || '#16A34A' }}
                     >
-                        {/* Inner bg to hide stone if outline has spacing? No, outline is solid. */}
-
-                        <div className="text-yellow-50 text-2xl md:text-3xl font-normal font-[family-name:var(--font-nohemi)] opacity-50 mb-2 leading-none">
-                            {team ? team.name : 'Unassigned'}
-                        </div>
-                        <div className="text-yellow-50 text-6xl md:text-8xl font-black font-[family-name:var(--font-perfectly-nostalgic)] leading-[0.9] tracking-tight truncate">
+                        <div className="text-[#3F3D39] dark:text-yellow-50 text-6xl md:text-8xl font-serif font-bold italic mb-2 leading-none truncate px-4">
                             {nickname}
+                        </div>
+                        <div className="text-[#A1A1AA] dark:text-stone-400 text-xl md:text-2xl font-sans font-medium">
+                            {team ? team.name : 'Unassigned'}
                         </div>
                     </div>
                 </div>
 
 
                 {/* 2. ALL PLAYERS SECTION */}
-                <div className="bg-stone-800/20 dark:bg-black/20 p-6 rounded-2xl border border-stone-800/10 dark:border-white/5 backdrop-blur-sm">
-                    <h2 className="text-[#3F3D39] dark:text-yellow-50 text-3xl md:text-4xl font-black font-[family-name:var(--font-perfectly-nostalgic)] mb-8 pl-2">
+                <div className="flex flex-col mb-12">
+                    <h2 className="text-[#3F3D39] dark:text-yellow-50 text-3xl md:text-[32px] font-serif font-bold italic mb-4 pl-2 tracking-tight">
                         All Players ({allPlayers.length})
                     </h2>
 
@@ -137,38 +125,28 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                                     className="w-full opacity-0 animate-[slideUp_0.5s_ease-out_forwards]"
                                     style={{ animationDelay: `${idx * 100}ms` }}
                                 >
-                                    {/* Team Header Bar */}
                                     <div
-                                        className="w-full h-2 rounded-tl-[10px] rounded-tr-[10px] border-l-[5px] border-r-[5px] border-t-[5px]"
-                                        style={{
-                                            backgroundColor: t.color,
-                                            borderColor: t.color
-                                        }}
-                                    />
-
-                                    {/* Team Content Box */}
-                                    <div
-                                        className="w-full min-h-[6rem] bg-stone-700 rounded-bl-[10px] rounded-br-[10px] outline outline-[5px] p-6 flex flex-col justify-center items-start gap-3"
-                                        style={{ outlineColor: t.color }}
+                                        className="w-full bg-[#FEFDF9] dark:bg-stone-800 rounded-[10px] border-[4px] border-t-[12px] p-4 flex flex-col items-start gap-2 shadow-sm"
+                                        style={{ borderColor: t.color }}
                                     >
-                                        <div className="text-yellow-50 text-base font-medium font-[family-name:var(--font-nohemi)] opacity-90">
+                                        <div className="text-[#3F3D39] dark:text-yellow-50 text-sm font-bold font-sans">
                                             {t.name}
                                         </div>
 
-                                        <div className="flex flex-wrap gap-3">
+                                        <div className="flex flex-wrap gap-2">
                                             {teamPlayers.length > 0 ? (
                                                 teamPlayers.map(p => (
                                                     <div
                                                         key={p.id}
-                                                        className="px-3 py-2 rounded-[3px] outline outline-[3px] outline-yellow-50 inline-flex justify-center items-center bg-transparent group hover:bg-yellow-50/10 transition-colors"
+                                                        className="px-3 py-1.5 rounded-[4px] border-2 border-[#3F3D39] dark:border-[#FDFBF7] bg-[#FEFDF9] dark:bg-stone-700 flex items-center justify-center transition-colors hover:bg-black/5"
                                                     >
-                                                        <span className="text-yellow-50 text-lg md:text-xl font-black font-[family-name:var(--font-perfectly-nostalgic)] leading-none pt-0.5">
+                                                        <span className="text-[#3F3D39] dark:text-yellow-50 text-lg font-serif font-bold italic leading-none">
                                                             {p.nickname} {p.id === playerId && '(You)'}
                                                         </span>
                                                     </div>
                                                 ))
                                             ) : (
-                                                <div className="opacity-30 text-yellow-50 font-[family-name:var(--font-nohemi)] italic text-sm pl-1">
+                                                <div className="opacity-40 text-[#3F3D39] dark:text-yellow-50 font-serif italic text-sm py-1">
                                                     Empty
                                                 </div>
                                             )}
@@ -180,22 +158,18 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
 
                         {/* Unassigned Players (if any) */}
                         {unassignedPlayers.length > 0 && (
-                            <div className="w-full">
-                                {/* Header Bar */}
-                                <div className="w-full h-2 rounded-tl-[10px] rounded-tr-[10px] border-l-[5px] border-r-[5px] border-t-[5px] border-stone-500 bg-stone-500" />
-
-                                {/* Content Box */}
-                                <div className="w-full min-h-[6rem] bg-stone-700 rounded-bl-[10px] rounded-br-[10px] outline outline-[5px] outline-stone-500 p-6 flex flex-col justify-center items-start gap-3">
-                                    <div className="text-yellow-50 text-base font-medium font-[family-name:var(--font-nohemi)] opacity-90">
+                            <div className="w-full opacity-0 animate-[slideUp_0.5s_ease-out_forwards] delay-300">
+                                <div className="w-full bg-[#FEFDF9] dark:bg-stone-800 rounded-[10px] border-[4px] border-t-[12px] p-4 flex flex-col items-start gap-2 shadow-sm border-gray-400">
+                                    <div className="text-[#3F3D39] dark:text-yellow-50 text-sm font-bold font-sans">
                                         Unassigned
                                     </div>
-                                    <div className="flex flex-wrap gap-3">
+                                    <div className="flex flex-wrap gap-2">
                                         {unassignedPlayers.map(p => (
                                             <div
                                                 key={p.id}
-                                                className="px-3 py-2 rounded-[3px] outline outline-[3px] outline-yellow-50 inline-flex justify-center items-center bg-transparent hover:bg-yellow-50/10"
+                                                className="px-3 py-1.5 rounded-[4px] border-2 border-[#3F3D39] dark:border-[#FDFBF7] bg-[#FEFDF9] dark:bg-stone-700 flex items-center justify-center transition-colors hover:bg-black/5"
                                             >
-                                                <span className="text-yellow-50 text-lg md:text-xl font-black font-[family-name:var(--font-perfectly-nostalgic)] leading-none pt-0.5">
+                                                <span className="text-[#3F3D39] dark:text-yellow-50 text-lg font-serif font-bold italic leading-none">
                                                     {p.nickname} {p.id === playerId && '(You)'}
                                                 </span>
                                             </div>
