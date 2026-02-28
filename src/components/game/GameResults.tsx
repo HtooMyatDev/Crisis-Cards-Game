@@ -103,7 +103,7 @@ export const GameResults: React.FC<GameResultsProps> = ({ gameCode, onJoinAnothe
                             initial={{ scale: 0.8, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
-                            className="text-5xl md:text-7xl font-[family-name:var(--font-russo)] uppercase tracking-wider text-white mb-4 text-center"
+                            className="text-3xl sm:text-5xl md:text-7xl font-[family-name:var(--font-russo)] uppercase tracking-wider text-white mb-4 text-center px-4 leading-tight"
                         >
                             Mission Completed
                         </motion.h1>
@@ -131,14 +131,14 @@ export const GameResults: React.FC<GameResultsProps> = ({ gameCode, onJoinAnothe
 
             <div className="max-w-6xl mx-auto relative z-10">
                 {/* Header / Reflective Session */}
-                <div className="text-center mb-16 pt-8 flex flex-col items-center">
-                    <img src="/svg/light/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[60px] w-auto dark:hidden mb-6" />
-                    <img src="/svg/dark/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[60px] w-auto hidden dark:block mb-6" />
+                <div className="text-center mb-10 sm:mb-16 pt-4 sm:pt-8 flex flex-col items-center px-4">
+                    <img src="/svg/light/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[40px] sm:h-[60px] w-auto dark:hidden mb-4 sm:mb-6" />
+                    <img src="/svg/dark/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[40px] sm:h-[60px] w-auto hidden dark:block mb-4 sm:mb-6" />
 
-                    <h1 className="text-4xl md:text-6xl font-[family-name:var(--font-russo)] uppercase tracking-wider mb-2 text-transparent bg-clip-text bg-gradient-to-b from-gray-700 to-gray-900 dark:from-gray-100 dark:to-gray-400 drop-shadow-2xl">
+                    <h1 className="text-3xl sm:text-4xl md:text-6xl font-[family-name:var(--font-russo)] uppercase tracking-wider mb-2 text-transparent bg-clip-text bg-gradient-to-b from-gray-700 to-gray-900 dark:from-gray-100 dark:to-gray-400 drop-shadow-2xl leading-tight">
                         Reflective Session
                     </h1>
-                    <p className="text-xl text-gray-500 dark:text-gray-400 uppercase tracking-[0.3em] font-bold">Mission Debriefing</p>
+                    <p className="text-base sm:text-xl text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em] sm:tracking-[0.3em] font-bold">Mission Debriefing</p>
                 </div>
 
                 {/* Teams Showcase */}
@@ -159,27 +159,27 @@ export const GameResults: React.FC<GameResultsProps> = ({ gameCode, onJoinAnothe
 
                                     <div className="relative z-10 flex justify-between items-start">
                                         <div>
-                                            <h2 className="text-3xl font-[family-name:var(--font-russo)] uppercase tracking-wider mb-1 text-gray-900 dark:text-white truncate max-w-[200px]">{team.name}</h2>
+                                            <h2 className="text-2xl sm:text-3xl font-[family-name:var(--font-russo)] uppercase tracking-wider mb-1 text-gray-900 dark:text-white truncate max-w-[180px] sm:max-w-[200px]">{team.name}</h2>
                                             <div className="flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: team.color }} />
-                                                <span className="text-gray-500 dark:text-white/40 text-xs font-bold uppercase tracking-widest">Team Performance</span>
+                                                <span className="text-gray-500 dark:text-white/40 text-[10px] sm:text-xs font-bold uppercase tracking-widest leading-none">Team Performance</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Score Breakdown */}
-                                    <div className="relative z-10 grid grid-cols-3 gap-4 bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-white/5">
+                                    <div className="relative z-10 grid grid-cols-3 gap-2 sm:gap-4 bg-gray-50 dark:bg-black/20 p-3 sm:p-4 rounded-xl border border-gray-200 dark:border-white/5">
                                         <div className="flex flex-col items-center">
-                                            <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 font-bold mb-1">Budget</span>
-                                            <span className="text-xl font-black text-gray-900 dark:text-white font-[family-name:var(--font-russo)]">${team.budget.toLocaleString()}</span>
+                                            <span className="text-[10px] sm:text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 font-bold mb-1">Budget</span>
+                                            <span className="text-lg sm:text-xl font-black text-gray-900 dark:text-white font-[family-name:var(--font-russo)] truncate w-full text-center">${team.budget.toLocaleString()}</span>
                                         </div>
-                                        <div className="flex flex-col items-center border-l border-gray-200 dark:border-white/10 pl-4">
-                                            <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 font-bold mb-1">Value</span>
-                                            <span className="text-xl font-black text-gray-900 dark:text-white font-[family-name:var(--font-russo)]">{team.baseValue}</span>
+                                        <div className="flex flex-col items-center border-l border-gray-200 dark:border-white/10 pl-2 sm:pl-4">
+                                            <span className="text-[10px] sm:text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 font-bold mb-1">Value</span>
+                                            <span className="text-lg sm:text-xl font-black text-gray-900 dark:text-white font-[family-name:var(--font-russo)]">{team.baseValue}</span>
                                         </div>
-                                        <div className="flex flex-col items-center border-l border-gray-200 dark:border-white/10 pl-4">
-                                            <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 font-bold mb-1">Score</span>
-                                            <span className="text-xl font-black text-emerald-500 dark:text-emerald-400 font-[family-name:var(--font-russo)]">{team.score.toLocaleString()}</span>
+                                        <div className="flex flex-col items-center border-l border-gray-200 dark:border-white/10 pl-2 sm:pl-4">
+                                            <span className="text-[10px] sm:text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 font-bold mb-1">Score</span>
+                                            <span className="text-lg sm:text-xl font-black text-emerald-500 dark:text-emerald-400 font-[family-name:var(--font-russo)] truncate w-full text-center">{team.score.toLocaleString()}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -205,14 +205,14 @@ export const GameResults: React.FC<GameResultsProps> = ({ gameCode, onJoinAnothe
                 </div>
 
                 {/* Footer Actions */}
-                <div className="flex justify-center pb-12">
+                <div className="flex justify-center pb-12 px-4">
                     <button
                         onClick={onJoinAnother}
-                        className="group relative px-12 py-6 bg-gray-900 dark:bg-white text-white dark:text-black font-[family-name:var(--font-russo)] text-xl uppercase tracking-widest hover:bg-yellow-400 dark:hover:bg-yellow-400 hover:text-black transition-all duration-300 hover:scale-105 shadow-xl"
-                        style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%)' }}
+                        className="group relative px-6 sm:px-12 py-4 sm:py-6 bg-gray-900 dark:bg-white text-white dark:text-black font-[family-name:var(--font-russo)] text-sm sm:text-xl uppercase tracking-widest hover:bg-yellow-400 dark:hover:bg-yellow-400 hover:text-black transition-all duration-300 hover:scale-105 shadow-xl w-full sm:w-auto text-center"
+                        style={{ clipPath: 'polygon(5% 0, 100% 0, 100% 70%, 95% 100%, 0 100%, 0 30%)' }}
                     >
-                        <span className="relative z-10 flex items-center gap-3">
-                            <Gamepad2 size={24} />
+                        <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
+                            <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6" />
                             Start New Operation
                         </span>
                         <div className="absolute inset-0 bg-white/20 blur-lg opacity-0 group-hover:opacity-50 transition-opacity" />

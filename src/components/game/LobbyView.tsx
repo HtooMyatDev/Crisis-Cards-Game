@@ -56,21 +56,21 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
     // Usually teams are pre-defined.
 
     return (
-        <div className="min-h-screen bg-[#FDFAE5] dark:bg-[#3E3E3C] font-sans transition-colors duration-300 relative flex flex-col pb-20 overflow-hidden">
+        <div className="min-h-screen bg-[#FDFAE5] dark:bg-[#3E3E3C] font-sans transition-colors duration-300 relative flex flex-col pb-8 overflow-x-hidden overflow-y-auto w-full">
             {/* Background - Light Mode */}
-            {/* <img
+            <img
                 src="/svg/light/background.svg"
                 alt=""
                 className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none dark:hidden z-0"
                 aria-hidden="true"
-            /> */}
+            />
             {/* Background - Dark Mode */}
-            {/* <img
+            <img
                 src="/svg/dark/background.svg"
                 alt=""
                 className="absolute inset-x-0 top-0 w-full h-[110vh] object-cover pointer-events-none hidden dark:block z-0"
                 aria-hidden="true"
-            /> */}
+            />
 
             {/* Decorative Header Area */}
             <div className="w-full flex justify-center pt-8 pb-4 relative z-20">
@@ -88,7 +88,8 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                     <img src="/svg/dark/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[70px] w-auto hidden dark:block" />
                 </div>
             </div>
-            <div className="relative z-10 max-w-[676px] mx-auto w-full px-4 flex flex-col gap-8 mt-8 md:mt-12">
+
+            <div className="relative z-10 max-w-[676px] mx-auto w-full px-4 flex flex-col mt-8 md:mt-12 flex-grow">
                 {/* 1. MY IDENTITY SECTION */}
                 <div className="w-full flex justify-center mb-8">
                     <div
@@ -106,13 +107,13 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
 
 
                 {/* 2. ALL PLAYERS SECTION */}
-                <div className="flex flex-col mb-12">
+                <div className="flex flex-col mb-12 flex-grow">
 
                     <h2 className="text-[#3F3D39] dark:text-yellow-50 text-3xl md:text-[32px] font-serif font-bold italic mb-4 pl-2 tracking-tight">
                         All Players ({allPlayers.length})
                     </h2>
 
-                    <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-6 mb-8">
 
                         {/* Map through Defined Teams first */}
                         {teams.map((t, idx) => {
@@ -180,16 +181,16 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                     </div>
                 </div>
 
-                {/* Game Code Display (Footer) */}
-                <div className="relative z-10 text-center mt-8 mb-4 opacity-70">
-                    <div className="text-[#3F3D39] dark:text-yellow-50 font-[family-name:var(--font-nohemi)] text-sm font-bold">
-                        Waiting for host to start...
-                    </div>
-                    <div className="text-[#3F3D39] dark:text-yellow-50 font-[family-name:var(--font-perfectly-nostalgic)] text-2xl mt-1 tracking-widest bg-white/20 dark:bg-black/20 inline-block px-4 py-1 rounded-full border border-black/10 dark:border-white/10">
-                        Code: {gameCode}
-                    </div>
-                </div>
+            </div>
 
+            {/* Game Code Display (Footer) */}
+            <div className="relative z-10 text-center mt-auto mb-8 opacity-70 w-full">
+                <div className="text-[#3F3D39] dark:text-yellow-50 font-[family-name:var(--font-nohemi)] text-sm font-bold">
+                    Waiting for host to start...
+                </div>
+                <div className="text-[#3F3D39] dark:text-yellow-50 font-[family-name:var(--font-perfectly-nostalgic)] text-2xl mt-1 tracking-widest bg-white/20 dark:bg-black/20 inline-block px-4 py-1 rounded-full border border-black/10 dark:border-white/10">
+                    Code: {gameCode}
+                </div>
             </div>
         </div>
     );

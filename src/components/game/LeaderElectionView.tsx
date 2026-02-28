@@ -151,12 +151,12 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
                     />
 
                     <div className="text-center relative z-10 w-full max-w-lg mx-auto bg-white/40 dark:bg-black/20 p-8 rounded-3xl backdrop-blur-sm border border-black/5 dark:border-white/5">
-                        <div className="flex flex-col items-center gap-4 mb-12">
-                            <img src="/svg/light/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[60px] w-auto dark:hidden" />
-                            <img src="/svg/dark/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[60px] w-auto hidden dark:block" />
+                        <div className="flex flex-col items-center gap-4 mb-8 sm:mb-12">
+                            <img src="/svg/light/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[40px] sm:h-[60px] w-auto dark:hidden" />
+                            <img src="/svg/dark/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[40px] sm:h-[60px] w-auto hidden dark:block" />
                         </div>
 
-                        <h2 className="text-5xl font-serif text-stone-700 dark:text-[#FDFBF7] mb-4">Leader Elected</h2>
+                        <h2 className="text-3xl sm:text-5xl font-serif text-stone-700 dark:text-[#FDFBF7] mb-4">Leader Elected</h2>
 
                         {currentLeader && (
                             <div className="bg-white dark:bg-[#FDFBF7] border-[4px] border-stone-700 dark:border-[#FDFBF7] rounded-xl p-8 max-w-md mx-auto mb-8 shadow-lg">
@@ -197,17 +197,17 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
                 {/* Decorative Header Area */}
                 <div className="relative w-full max-w-[1440px] h-auto flex flex-col items-center justify-start pt-12 sm:pt-20 pb-12 z-10">
 
-                    <div className="flex flex-col items-center gap-4 mb-8">
-                        <img src="/svg/light/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[80px] w-auto dark:hidden" />
-                        <img src="/svg/dark/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[80px] w-auto hidden dark:block" />
+                    <div className="flex flex-col items-center gap-4 mb-6 sm:mb-8">
+                        <img src="/svg/light/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[50px] sm:h-[80px] w-auto dark:hidden" />
+                        <img src="/svg/dark/cards-of-crisis-logo.svg" alt="Cards of Crisis" className="h-[50px] sm:h-[80px] w-auto hidden dark:block" />
                     </div>
 
                     {/* Main Title */}
                     <div className="text-center z-10 px-4">
-                        <h1 className="text-6xl sm:text-7xl md:text-8xl font-black font-serif text-stone-700 leading-tight mb-4 tracking-tight">
+                        <h1 className="text-4xl sm:text-6xl md:text-8xl font-black font-serif text-stone-700 leading-tight mb-2 sm:mb-4 tracking-tight">
                             {electionStatus === 'RUNOFF' ? `Tie Breaker ${runoffCount > 0 ? `#${runoffCount}` : ''}` : 'Cast Your Vote'}
                         </h1>
-                        <p className="text-lg sm:text-2xl md:text-3xl text-stone-700 font-medium font-sans">
+                        <p className="text-base sm:text-2xl md:text-3xl text-stone-700 font-medium font-sans">
                             {electionStatus === 'RUNOFF'
                                 ? 'Voting ended in a tie. Re-vote for one of the top candidates!'
                                 : 'Elect your leader for 3 rounds (1 term)'}
@@ -231,10 +231,10 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
                                     initial={{ scale: 0.8, y: 20 }}
                                     animate={{ scale: 1, y: 0 }}
                                     exit={{ scale: 1.1, opacity: 0 }}
-                                    className="text-center"
+                                    className="text-center px-4"
                                 >
-                                    <h2 className="text-6xl font-serif text-[#FDFBF7] mb-2">Term Ended</h2>
-                                    <p className="text-2xl text-[#FDFBF7]/80 font-sans uppercase tracking-widest">Election Time</p>
+                                    <h2 className="text-4xl sm:text-6xl font-serif text-[#FDFBF7] mb-2 leading-tight">Term Ended</h2>
+                                    <p className="text-lg sm:text-2xl text-[#FDFBF7]/80 font-sans uppercase tracking-widest">Election Time</p>
                                 </motion.div>
                             </motion.div>
                         )}
@@ -259,7 +259,7 @@ export const LeaderElectionView: React.FC<LeaderElectionViewProps> = ({
                     )}
 
                     {/* Candidate Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-4xl">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full max-w-4xl px-2">
                         {displayPlayers.map((player, index) => {
                             const isSelected = selectedCandidate === player.id
 

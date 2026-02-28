@@ -105,54 +105,64 @@ export const DecisionPhase: React.FC<DecisionPhaseProps> = ({
                     aria-hidden="true"
                 />
 
-                <div className="w-full max-w-4xl relative z-10">
+                <div className="w-full max-w-4xl relative z-10 px-2 sm:px-0">
                     {/* User Profile / Team Identity */}
-                    <div className="flex flex-col items-center mb-10">
-                        <div className="flex items-center gap-3 bg-white dark:bg-[#FDFBF7] px-6 py-2.5 rounded-full border-[3px] border-[#333] dark:border-[#FDFBF7] shadow-xl transition-colors">
-                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner border-2 border-black/10" style={{ backgroundColor: team?.color || '#808080' }}>
-                                {isLeader ? '👑' : <User className="text-white" size={20} />}
+                    <div className="flex flex-col items-center mb-6 sm:mb-10 w-full">
+                        <div className="flex items-center gap-2 sm:gap-3 bg-white dark:bg-[#FDFBF7] px-4 sm:px-6 py-2 sm:py-2.5 rounded-full border-[3px] border-[#333] dark:border-[#FDFBF7] shadow-[2px_2px_0_0_#333] sm:shadow-xl transition-colors max-w-full overflow-hidden">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex shrink-0 items-center justify-center text-lg sm:text-xl shadow-inner border-2 border-black/10" style={{ backgroundColor: team?.color || '#808080' }}>
+                                {isLeader ? '👑' : <User className="text-white w-4 h-4 sm:w-5 sm:h-5" />}
                             </div>
-                            <div className="flex flex-col">
-                                <span className="text-[#666] text-[10px] font-black uppercase tracking-widest">{isLeader ? 'Team Leader' : 'Team Member'}</span>
-                                <span className="text-[#333] font-serif font-bold text-xl leading-none italic">{nickname}</span>
+                            <div className="flex flex-col min-w-0">
+                                <span className="text-[#666] text-[8px] sm:text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+                                    {isLeader ? 'Leader' : 'Member'}
+                                </span>
+                                <span className="text-[#333] font-serif font-bold text-base sm:text-xl leading-none italic truncate max-w-[80px] sm:max-w-[150px]">
+                                    {nickname}
+                                </span>
                             </div>
-                            <div className="h-8 w-[2px] bg-[#333]/20 mx-2" />
-                            <div className="flex flex-col items-end">
-                                <span className="font-black text-xl leading-none uppercase" style={{ color: team?.color || 'gray' }}>{team?.name || 'Unassigned'}</span>
+                            <div className="h-6 sm:h-8 w-[2px] bg-[#333]/20 mx-1 sm:mx-2 shrink-0" />
+                            <div className="flex flex-col items-end min-w-0 shrink">
+                                <span className="font-black text-sm sm:text-xl leading-none uppercase truncate max-w-[70px] sm:max-w-none" style={{ color: team?.color || 'gray' }}>
+                                    {team?.name || 'Unassigned'}
+                                </span>
                             </div>
                         </div>
                     </div>
 
                     {/* Game Header with Scores */}
-                    <div className="flex items-center justify-center gap-4 mb-8 flex-wrap">
+                    <div className="flex justify-center gap-2 sm:gap-4 mb-6 sm:mb-8 flex-wrap">
                         {teams?.map(t => (
-                            <div key={t.id} className={`flex flex-col items-center p-2 rounded-xl transition-all duration-300 ${t.id === team?.id ? 'scale-110 z-10' : 'opacity-70 scale-95'}`}>
-                                <div className={`text-white font-black text-2xl px-6 py-3 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[4px_4px_0px_0px_rgba(253,250,229,0.2)] border-[3px] border-[#333]
-                                     ${t.id === team?.id ? 'ring-4 ring-white/50 dark:ring-[#3E3E3C]/50' : ''}`}
+                            <div key={t.id} className={`flex flex-col items-center p-1 sm:p-2 rounded-xl transition-all duration-300 ${t.id === team?.id ? 'scale-105 sm:scale-110 z-10' : 'opacity-70 scale-90 sm:scale-95'}`}>
+                                <div className={`text-white font-black text-lg sm:text-2xl px-4 sm:px-6 py-2 sm:py-3 rounded-[10px] sm:rounded-2xl shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[4px_4px_0px_0px_rgba(253,250,229,0.2)] border-[2px] sm:border-[3px] border-[#333]
+                                     ${t.id === team?.id ? 'ring-2 sm:ring-4 ring-white/50 dark:ring-[#3E3E3C]/50' : ''}`}
                                     style={{ backgroundColor: t.color }}>
                                     ${t.budget}
                                 </div>
-                                <span className="font-bold text-xs mt-2 tracking-widest uppercase text-[#333] dark:text-[#FDFBF7]" >
+                                <span className="font-bold text-[10px] sm:text-xs mt-1 sm:mt-2 tracking-widest uppercase text-[#333] dark:text-[#FDFBF7] text-center" >
                                     {t.name}
-                                    {t.id === team?.id && <span className="ml-1 text-[9px] font-serif italic opacity-60">(YOURS)</span>}
+                                    {t.id === team?.id && <span className="ml-1 text-[8px] sm:text-[9px] font-serif italic opacity-60 block sm:inline">(YOURS)</span>}
                                 </span>
                             </div>
                         ))}
 
+                        <div className="w-full h-0 sm:hidden" /> {/* Force break on mobile for the timer/round indicator */}
+
                         {/* Timer */}
-                        <div className="flex flex-col items-center gap-2 mx-4">
-                            <div className={`flex items-center gap-2 px-6 py-3 rounded-2xl border-[3px] transition-all duration-300 ${timeLeft <= 10 ? 'bg-red-600 border-red-800 animate-pulse text-white' : 'bg-[#333] border-[#333] dark:bg-[#FDFBF7] dark:border-[#FDFBF7] text-white dark:text-[#333]'}`}>
-                                <Clock size={20} strokeWidth={2.5} />
-                                <span className="font-mono font-black text-2xl tabular-nums tracking-wider">{formatTime(timeLeft)}</span>
+                        <div className="flex flex-col items-center gap-2 mx-2 sm:mx-4 mt-2 sm:mt-0 order-last sm:order-none">
+                            <div className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl border-[2px] sm:border-[3px] transition-all duration-300 ${timeLeft <= 10 ? 'bg-red-600 border-red-800 animate-pulse text-white' : 'bg-[#333] border-[#333] dark:bg-[#FDFBF7] dark:border-[#FDFBF7] text-white dark:text-[#333]'}`}>
+                                <Clock className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
+                                <span className="font-mono font-black text-xl sm:text-2xl tabular-nums tracking-wider">{formatTime(timeLeft)}</span>
                             </div>
                         </div>
 
                         {/* Round Progress Indicator */}
-                        <RoundIndicator
-                            currentRound={Math.floor(gameState.currentCardIndex / 3) + 1}
-                            currentCardIndex={gameState.currentCardIndex}
-                            cardsPerRound={3}
-                        />
+                        <div className="mt-2 sm:mt-0 flex items-center scale-90 sm:scale-100 transform origin-left">
+                            <RoundIndicator
+                                currentRound={Math.floor(gameState.currentCardIndex / 3) + 1}
+                                currentCardIndex={gameState.currentCardIndex}
+                                cardsPerRound={3}
+                            />
+                        </div>
                     </div>
 
                     {/* Leader Indicator */}
