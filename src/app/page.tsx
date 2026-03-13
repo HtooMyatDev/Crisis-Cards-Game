@@ -99,10 +99,10 @@ export default async function LandingPage() {
                     <div className="flex flex-col items-center justify-center p-4 w-full">
                         {!userRole ? (
                             <Link
-                                href="/auth/register"
+                                href="/live"
                                 className="group relative bg-[#333] dark:bg-[#FDFBF7] text-[#FDFBF7] dark:text-[#3E3E3C] text-3xl font-serif italic px-16 py-6 rounded-xl hover:bg-black dark:hover:bg-white transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)] active:translate-x-[0px] active:translate-y-[0px] active:shadow-none duration-200 w-full sm:w-auto text-center"
                             >
-                                Sign Up
+                                Join a game
                             </Link>
                         ) : (
                             <Link
